@@ -1,0 +1,18 @@
+library(tidyverse)
+library(haven)
+library(sf)
+library(fixest)
+library(extrafont)
+library(lubridate)
+library(sjPlot)
+library(sfheaders)
+library(mgrs)
+library(broom)
+library(patchwork)
+library(srvyr)
+library(survey)
+library(lubridate)
+
+rm(list=ls())
+
+opencell <- read.csv("452_1.csv")
