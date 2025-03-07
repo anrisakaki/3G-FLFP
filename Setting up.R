@@ -12,7 +12,11 @@ library(patchwork)
 library(srvyr)
 library(survey)
 library(lubridate)
+library(units)
 
 rm(list=ls())
 
-opencell <- read.csv("452_1.csv")
+opencell <- read.csv("Vietnam_Cell_tower.csv")
+
+vnmap1 <- read_sf("VNShapefile/gadm36_VNM_1.shp")
+vnmap2 <- read_sf("VNShapefile/gadm36_VNM_2.shp")
