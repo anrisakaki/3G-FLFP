@@ -99,7 +99,8 @@ prov_covfn <- function(i){
       coverage_share = coverage_m2 / prov_area
     ) %>% 
     select(VARNAME_1, coverage_share) %>% 
-    right_join(vnmap1, by = "VARNAME_1")
+    left_join(vnmap1, by = "VARNAME_1") %>% 
+    st_as_sf()
 }
 
 prov_cov10 <- prov_cov10 %>% prov_covfn()
