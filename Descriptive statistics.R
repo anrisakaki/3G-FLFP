@@ -15,4 +15,16 @@ ggplot(dplyr::filter(sum_radio_cummulative_yr, radio == "GSM" | radio == "UMTS" 
         panel.border = element_blank(),
         legend.title=element_blank(),
         text = element_text(size=10))
-ggsave("radio_by_year.png", width = 7, height = 7)
+ggsave("Figures/radio_by_year.jpeg", width = 7, height = 7)
+
+ggplot(prov_cov20) + 
+  geom_sf(aes(fill = coverage_share*100)) +
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title.y=element_blank(),
+        axis.title.x=element_blank(),
+        panel.background = element_blank()) +
+  scale_fill_gradient(name = "3G coverage (%)", low = "lightblue", high = "darkblue", na.value = "grey")
+  ggtitle(" ")
+ggsave("Figures/prov_cov20.png", width = 7, height = 7)
