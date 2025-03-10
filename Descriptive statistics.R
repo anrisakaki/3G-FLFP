@@ -1,8 +1,8 @@
 
-ggplot(dplyr::filter(sum_radio_cummulative_yr, radio == "GSM" | radio == "UMTS" | radio == "LTE"), aes(x = year, y = cumulative_n, color = radio, group = radio)) +
+ggplot(dplyr::filter(sum_radio_cummulative_yr, radio == "GSM" | radio == "UMTS" | radio == "LTE"), aes(x = year_created, y = cumulative_n, color = radio, group = radio)) +
   geom_line(size = 1) + 
   geom_point(size = 1) + 
-  scale_x_continuous(breaks = seq(min(sum_radio_yr$year), max(sum_radio_yr$year), by = 1)) +
+  scale_x_continuous(breaks = seq(min(sum_radio_yr$year_created), max(sum_radio_yr$year_created), by = 1)) +
   labs(title = "",
        x = "Year",
        y = "Cumulative No. of Towers",
@@ -17,7 +17,7 @@ ggplot(dplyr::filter(sum_radio_cummulative_yr, radio == "GSM" | radio == "UMTS" 
         text = element_text(size=10))
 ggsave("Figures/radio_by_year.jpeg", width = 7, height = 7)
 
-ggplot(prov_cov20) + 
+ggplot(prov_cov13) + 
   geom_sf(aes(fill = coverage_share*100)) +
   theme(axis.text.x = element_blank(),
         axis.text.y = element_blank(),
