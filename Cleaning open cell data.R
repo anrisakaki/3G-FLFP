@@ -2,41 +2,47 @@
 # 3G - UMTS
 # 4G - LTE
 
-proj_crs <- st_crs(vnmap1)
+proj_crs <- st_crs(32648)
+
+opencell$created_recode <- as.POSIXct(opencell$created, origin = "1970-01-01", tz = "UTC")
+opencell$year_created <- year(opencell$created_recode)
+opencell$month_created <- month(opencell$created_recode)
+opencell$day_created <- day(opencell$created_recode)
+
+opencell$lastseen_recode <- as.POSIXct(opencell$updated, origin = "1970-01-01", tz = "UTC")
+opencell$year_lastseen <- year(opencell$lastseen_recode)
+opencell$month_lastseen <- month(opencell$lastseen_recode)
+opencell$day_lastseen <- day(opencell$lastseen_recode)
 
 gdf <- st_as_sf(opencell, coords = c("lon", "lat"), crs = 4326)
-gdf$lon <- st_coordinates(gdf)[, "X"]
-gdf$lat <- st_coordinates(gdf)[, "Y"]
+gdf <- st_transform(gdf, crs = 32648) %>% st_make_valid()
+gdf$lon <- st_coordinates(st_transform(gdf, crs = 4326))[, "X"]
+gdf$lat <- st_coordinates(st_transform(gdf, crs = 4326))[, "Y"]
 
-gdf$created_recode <- as.POSIXct(gdf$created, origin = "1970-01-01", tz = "UTC")
-
-gdf$year <- year(gdf$created_recode)
-gdf$month <- month(gdf$created_recode)
-gdf$day <- day(gdf$created_recode)
-
-gdf <- st_transform(gdf, proj_crs)
-
-gdf <- st_make_valid(gdf) 
+vnmap1 <- st_transform(vnmap1, crs = 32648) %>% st_make_valid()
 
 # Calculating share of province that is covered by 3G
 prov_umts <- gdf %>% filter(radio == "UMTS")
-prov_umts <- st_transform(prov_umts, proj_crs)
 
 compute_3G_coverage <- function(prov_umts, vnmap1, year_range, proj_crs) {
-
+  
+  # Filter by year range
   prov_filtered <- prov_umts %>%
-    filter(year >= year_range[1] & year <= year_range[2])
+    filter(year_created <= year_range[1] & year_lastseen >= year_range[2])
   
+  # Apply buffer using individual range per tower
   prov_filtered <- prov_filtered %>%
-    mutate(coverage_area = st_make_valid(st_buffer(st_geometry(prov_filtered), dist = range)))
+    mutate(coverage_area = map2(geometry, range, ~ st_make_valid(st_buffer(.x, dist = as.numeric(.y)))))
   
-  merged_coverage <- st_union(prov_filtered$coverage_area)
+  # Convert list to sf and merge overlapping coverage areas
+  coverage_sf <- st_sf(geometry = st_sfc(prov_filtered$coverage_area, crs = proj_crs))
   
-  merged_coverage <- st_sf(geometry = merged_coverage, crs = proj_crs) %>%
+  merged_coverage <- coverage_sf %>%
+    st_union() %>%
+    st_sf(geometry = .) %>%
     st_make_valid()
   
-  vnmap1 <- st_make_valid(vnmap1)
-  
+  # Intersect with province boundaries and calculate coverage area
   prov_cov <- st_intersection(vnmap1, merged_coverage) %>%
     mutate(coverage_m2 = st_area(geometry)) %>% 
     st_drop_geometry() %>% 
@@ -45,45 +51,17 @@ compute_3G_coverage <- function(prov_umts, vnmap1, year_range, proj_crs) {
   return(prov_cov)
 }
 
-prov_cov10 <- compute_3G_coverage(prov_umts, vnmap1, c(2010, 2010), proj_crs)
-save(prov_cov10, file = "prov_cov10.Rda")
-
-prov_cov11 <- compute_3G_coverage(prov_umts, vnmap1, c(2010, 2011), proj_crs) %>% st_drop_geometry()
-save(prov_cov11, file = "prov_cov11.Rda")
-
-prov_cov12 <- compute_3G_coverage(prov_umts, vnmap1, c(2010, 2012), proj_crs) %>% st_drop_geometry()
-save(prov_cov12, file = "prov_cov12.Rda")
-
-prov_cov13 <- compute_3G_coverage(prov_umts, vnmap1, c(2010, 2013), proj_crs) %>% st_drop_geometry()
-save(prov_cov13, file = "prov_cov13.Rda")
-
-prov_cov14 <- compute_3G_coverage(prov_umts, vnmap1, c(2010, 2014), proj_crs) %>% st_drop_geometry()
-save(prov_cov14, file = "prov_cov14.Rda")
-
-prov_cov15 <- compute_3G_coverage(prov_umts, vnmap1, c(2010, 2015), proj_crs) %>% st_drop_geometry()
-save(prov_cov15, file = "prov_cov15.Rda")
-
-prov_cov16 <- compute_3G_coverage(prov_umts, vnmap1, c(2010, 2016), proj_crs) %>% st_drop_geometry()
-save(prov_cov16, file = "prov_cov16.Rda")
-
-prov_cov17 <- compute_3G_coverage(prov_umts, vnmap1, c(2010, 2017), proj_crs) %>% st_drop_geometry()
-save(prov_cov17, file = "prov_cov17.Rda")
-
-prov_cov18 <- compute_3G_coverage(prov_umts, vnmap1, c(2010, 2018), proj_crs) %>% st_drop_geometry()
-save(prov_cov18, file = "prov_cov18.Rda")
-
-prov_cov19 <- compute_3G_coverage(prov_umts, vnmap1, c(2010, 2019), proj_crs) %>% st_drop_geometry()
-save(prov_cov19, file = "prov_cov19.Rda")
-
-prov_cov20 <- compute_3G_coverage(prov_umts, vnmap1, c(2010, 2020), proj_crs) %>% st_drop_geometry()
-save(prov_cov20, file = "prov_cov20.Rda")
-
-prov3g <- c("prov_cov10.Rda", "prov_cov11.Rda", "prov_cov12.Rda", "prov_cov13.Rda", "prov_cov14.Rda", "prov_cov15.Rda",
-            "prov_cov16.Rda", "prov_cov17.Rda", "prov_cov18.Rda", "prov_cov19.Rda", "prov_cov20.Rda")
-
-for (i in prov3g) {
-  load(i)
-}
+prov_cov10 <- compute_3G_coverage(prov_umts, vnmap1, c(2010, 2010), proj_crs) %>% st_drop_geometry()
+prov_cov11 <- compute_3G_coverage(prov_umts, vnmap1, c(2011, 2011), proj_crs) %>% st_drop_geometry()
+prov_cov12 <- compute_3G_coverage(prov_umts, vnmap1, c(2012, 2012), proj_crs) %>% st_drop_geometry()
+prov_cov13 <- compute_3G_coverage(prov_umts, vnmap1, c(2013, 2013), proj_crs) %>% st_drop_geometry()
+prov_cov14 <- compute_3G_coverage(prov_umts, vnmap1, c(2014, 2014), proj_crs) %>% st_drop_geometry()
+prov_cov15 <- compute_3G_coverage(prov_umts, vnmap1, c(2015, 2015), proj_crs) %>% st_drop_geometry()
+prov_cov16 <- compute_3G_coverage(prov_umts, vnmap1, c(2016, 2016), proj_crs) %>% st_drop_geometry()
+prov_cov17 <- compute_3G_coverage(prov_umts, vnmap1, c(2017, 2017), proj_crs) %>% st_drop_geometry()
+prov_cov18 <- compute_3G_coverage(prov_umts, vnmap1, c(2018, 2018), proj_crs) %>% st_drop_geometry()
+prov_cov19 <- compute_3G_coverage(prov_umts, vnmap1, c(2019, 2019), proj_crs) %>% st_drop_geometry()
+prov_cov20 <- compute_3G_coverage(prov_umts, vnmap1, c(2020, 2020), proj_crs) %>% st_drop_geometry()
 
 prov_area <- vnmap1 %>%
   mutate(prov_area = st_area(geometry)) %>%
