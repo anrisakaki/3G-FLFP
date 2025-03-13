@@ -200,4 +200,4 @@ vhlss18 <- list(m1a_18, m2v_18, m4a_18) %>%
 save(vhlss18, file = ("Clean data/vhlss18.Rda"))
 write_dta(vhlss18, "Clean data/vhlss18.dta")
 
-vhlss_all <- bind_rows(vhlss10, vhlss12, vhlss14, vhlss16, vhlss18)
+vhlss_all <- bind_rows(vhlss08, vhlss10, vhlss12, vhlss14, vhlss16, vhlss18)
