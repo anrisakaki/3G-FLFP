@@ -28,3 +28,118 @@ ggplot(prov_cov20_shp) +
   scale_fill_gradient(name = "3G coverage (%)", low = "lightblue", high = "darkblue", na.value = "grey") +
   ggtitle(" ")
 ggsave("Figures/prov_cov20.jpeg", width = 7, height = 7)
+
+ggplot(sum_vhlss, aes(x = year, y = fwork2_perc * 100, color = factor(age_group))) +
+  geom_line(size = 1) + 
+  geom_point(size = 1) + 
+  scale_x_continuous(breaks = seq(min(sum_vhlss$year), max(sum_vhlss$year), by = 2)) +
+  labs(
+    title = "",
+    x = "Year",
+    y = "Share of working women with second job (%)",
+    color = "Age Group"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.line = element_line(color = 'black'),
+    plot.background = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 8),
+    text = element_text(size = 10)
+  )
+ggsave("Figures/fwork2_agegroup.jpeg", width = 7, height = 7)
+
+ggplot(sum_vhlss, aes(x = year, y = retail_perc * 100, color = factor(age_group))) +
+  geom_line(size = 1) + 
+  geom_point(size = 1) + 
+  scale_x_continuous(breaks = seq(min(sum_vhlss$year), max(sum_vhlss$year), by = 2)) +
+  labs(
+    title = "",
+    x = "Year",
+    y = "Share of working women in retail (%)",
+    color = "Age Group"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.line = element_line(color = 'black'),
+    plot.background = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 8),
+    text = element_text(size = 10)
+  )
+ggsave("Figures/retailshare_agegroup.jpeg", width = 7, height = 7)
+
+ggplot(sum_vhlss, aes(x = year, y = retail2_perc * 100, color = factor(age_group))) +
+  geom_line(size = 1) + 
+  geom_point(size = 1) + 
+  scale_x_continuous(breaks = seq(min(sum_vhlss$year), max(sum_vhlss$year), by = 2)) +
+  labs(
+    title = "",
+    x = "Year",
+    y = "Share of women with second job in retail (%)",
+    color = "Age Group"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.line = element_line(color = 'black'),
+    plot.background = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 8),
+    text = element_text(size = 10)
+  )
+ggsave("Figures/retail2share_agegroup.jpeg", width = 7, height = 7)
+
+ggplot(sum_vhlss, aes(x = year, y = flfp * 100, color = factor(age_group))) +
+  geom_line(size = 1) + 
+  geom_point(size = 1) + 
+  scale_x_continuous(breaks = seq(min(sum_vhlss$year), max(sum_vhlss$year), by = 2)) +
+  labs(
+    title = "",
+    x = "Year",
+    y = "FLFP (%)",
+    color = "Age Group"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.line = element_line(color = 'black'),
+    plot.background = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 8),
+    text = element_text(size = 10)
+  )
+ggsave("Figures/flfp_agegroup.jpeg", width = 7, height = 7)
+
+ggplot(sum_vhlss, aes(x = year, y = agrihh_perc * 100, color = factor(age_group))) +
+  geom_line(size = 1) + 
+  geom_point(size = 1) + 
+  scale_x_continuous(breaks = seq(min(sum_vhlss$year), max(sum_vhlss$year), by = 2)) +
+  labs(
+    title = "",
+    x = "Year",
+    y = "Share of working women in household agriculture (%)",
+    color = "Age Group"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.line = element_line(color = 'black'),
+    plot.background = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 8),
+    text = element_text(size = 10)
+  )
+ggsave("Figures/agrihh_agegroup.jpeg", width = 7, height = 7)
