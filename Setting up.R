@@ -65,3 +65,11 @@ m1a_18 <- read_dta(file = "VHLSS/2018/2 - Data/1 - Households/MUC1A.dta")
 m2v_18 <- read_dta(file = "VHLSS/2018/2 - Data/1 - Households/MUC2V.dta")
 m4a_18 <- read_dta(file = "VHLSS/2018/2 - Data/1 - Households/MUC4A.dta")
 wt18 <- read_dta(file = "VHLSS/2018/2 - Data/1 - Households/wt18.dta")
+
+# VES 
+ec <- list.files("VES/DN", pattern = "^dn.*\\.dta$", full.names = TRUE)
+
+ec_list <- lapply(ec, read_dta)
+
+ec_gender <- list.files("VES/Gender data", pattern = "^dn.*\\.dta$", full.names = TRUE)
+ecgender_list <- lapply(ec_gender, read_dta)
