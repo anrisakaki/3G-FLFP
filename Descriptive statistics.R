@@ -33,7 +33,7 @@ ggsave("Figures/prov_cov20.jpeg", width = 7, height = 7)
 ggplot(female_sum_vhlss, aes(x = year, y = flfp * 100)) +
   geom_line(size = 1) + 
   geom_point(size = 1) + 
-  scale_x_continuous(breaks = seq(min(sum_vhlss$year), max(sum_vhlss$year), by = 2)) +
+  scale_x_continuous(breaks = seq(min(female_sum_vhlss$year), max(female_sum_vhlss$year), by = 2)) +
   labs(
     title = "",
     x = "Year",
@@ -55,7 +55,7 @@ ggsave("Figures/flfp.jpeg", width = 7, height = 7)
 ggplot(female_sum_vhlss, aes(x = year, y = informal_perc * 100)) +
   geom_line(size = 1) + 
   geom_point(size = 1) + 
-  scale_x_continuous(breaks = seq(min(sum_vhlss$year), max(sum_vhlss$year), by = 2)) +
+  scale_x_continuous(breaks = seq(min(female_sum_vhlss$year), max(female_sum_vhlss$year), by = 2)) +
   labs(
     title = "",
     x = "Year",
@@ -77,11 +77,11 @@ ggsave("Figures/informal_perc.jpeg", width = 7, height = 7)
 ggplot(female_sum_vhlss, aes(x = year, y = nonagri_informal_perc * 100)) +
   geom_line(size = 1) + 
   geom_point(size = 1) + 
-  scale_x_continuous(breaks = seq(min(sum_vhlss$year), max(sum_vhlss$year), by = 2)) +
+  scale_x_continuous(breaks = seq(min(female_sum_vhlss$year), max(female_sum_vhlss$year), by = 2)) +
   labs(
     title = "",
     x = "Year",
-    y = "Share of female workers working informally (%)"
+    y = "Share of female workers working informally (exc. agriculture) (%)"
   ) +
   theme_minimal() +
   theme(
@@ -98,11 +98,11 @@ ggplot(female_sum_vhlss, aes(x = year, y = nonagri_informal_perc * 100)) +
 ggplot(female_sum_vhlss, aes(x = year, y = agri_informal_perc * 100)) +
   geom_line(size = 1) + 
   geom_point(size = 1) + 
-  scale_x_continuous(breaks = seq(min(sum_vhlss$year), max(sum_vhlss$year), by = 2)) +
+  scale_x_continuous(breaks = seq(min(female_sum_vhlss$year), max(female_sum_vhlss$year), by = 2)) +
   labs(
     title = "",
     x = "Year",
-    y = "Share of working women in informal agriculture (%)"
+    y = "Share of female workers in informal agriculture (%)"
   ) +
   theme_minimal() +
   theme(
@@ -120,11 +120,11 @@ ggsave("Figures/agrihh_perc.jpeg", width = 7, height = 7)
 ggplot(female_sum_vhlss, aes(x = year, y = manu_informal_perc * 100)) +
   geom_line(size = 1) + 
   geom_point(size = 1) + 
-  scale_x_continuous(breaks = seq(min(sum_vhlss$year), max(sum_vhlss$year), by = 2)) +
+  scale_x_continuous(breaks = seq(min(female_sum_vhlss$year), max(female_sum_vhlss$year), by = 2)) +
   labs(
     title = "",
     x = "Year",
-    y = "Share of working women in informal manufacturing (%)"
+    y = "Share of female workers in informal manufacturing (%)"
   ) +
   theme_minimal() +
   theme(
@@ -142,11 +142,11 @@ ggsave("Figures/manuhh_perc.jpeg", width = 7, height = 7)
 ggplot(female_sum_vhlss, aes(x = year, y = service_informal_perc * 100)) +
   geom_line(size = 1) + 
   geom_point(size = 1) + 
-  scale_x_continuous(breaks = seq(min(sum_vhlss$year), max(sum_vhlss$year), by = 2)) +
+  scale_x_continuous(breaks = seq(min(female_sum_vhlss$year), max(female_sum_vhlss$year), by = 2)) +
   labs(
     title = "",
     x = "Year",
-    y = "Share of working women in informal services (%)"
+    y = "Share of female workers in informal services (%)"
   ) +
   theme_minimal() +
   theme(
@@ -163,32 +163,10 @@ ggsave("Figures/servicehh_perc.jpeg", width = 7, height = 7)
 
 # By year and age group 
 
-ggplot(fsum_age_vhlss, aes(x = year, y = informal_perc * 100, color = factor(age_group))) +
+ggplot(fsum_age_vhlss, aes(x = year, y = flfp * 100, color = factor(age_group))) +
   geom_line(size = 1) + 
   geom_point(size = 1) + 
-  scale_x_continuous(breaks = seq(min(sum_age_vhlss$year), max(sum_age_vhlss$year), by = 2)) +
-  labs(
-    title = "",
-    x = "Year",
-    y = "Share of working women with second job (%)",
-    color = "Age Group"
-  ) +
-  theme_minimal() +
-  theme(
-    axis.line = element_line(color = 'black'),
-    plot.background = element_blank(),
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(),
-    panel.border = element_blank(),
-    legend.title = element_text(size = 10),
-    legend.text = element_text(size = 8),
-    text = element_text(size = 10)
-  )
-
-ggplot(sum_age_vhlss, aes(x = year, y = flfp * 100, color = factor(age_group))) +
-  geom_line(size = 1) + 
-  geom_point(size = 1) + 
-  scale_x_continuous(breaks = seq(min(sum_age_vhlss$year), max(sum_age_vhlss$year), by = 2)) +
+  scale_x_continuous(breaks = seq(min(fsum_age_vhlss$year), max(fsum_age_vhlss$year), by = 2)) +
   labs(
     title = "",
     x = "Year",
@@ -208,15 +186,14 @@ ggplot(sum_age_vhlss, aes(x = year, y = flfp * 100, color = factor(age_group))) 
   )
 ggsave("Figures/flfp_agegroup.jpeg", width = 7, height = 7)
 
-ggplot(sum_age_vhlss, aes(x = year, y = agrihh_perc * 100, color = factor(age_group))) +
+ggplot(fsum_age_vhlss, aes(x = year, y = nonagri_informal_perc * 100, color = factor(age_group))) +
   geom_line(size = 1) + 
   geom_point(size = 1) + 
-  scale_x_continuous(breaks = seq(min(sum_age_vhlss$year), max(sum_age_vhlss$year), by = 2)) +
+  scale_x_continuous(breaks = seq(min(female_sum_vhlss$year), max(female_sum_vhlss$year), by = 2)) +
   labs(
     title = "",
     x = "Year",
-    y = "Share of working women in household agriculture (%)",
-    color = "Age Group"
+    y = "Share of female workers working informally (exc. agriculture) (%)"
   ) +
   theme_minimal() +
   theme(
@@ -229,4 +206,69 @@ ggplot(sum_age_vhlss, aes(x = year, y = agrihh_perc * 100, color = factor(age_gr
     legend.text = element_text(size = 8),
     text = element_text(size = 10)
   )
-ggsave("Figures/agrihh_agegroup.jpeg", width = 7, height = 7)
+
+ggplot(fsum_age_vhlss, aes(x = year, y = agri_informal_perc * 100, color = factor(age_group))) +
+  geom_line(size = 1) + 
+  geom_point(size = 1) + 
+  scale_x_continuous(breaks = seq(min(fsum_age_vhlss$year), max(fsum_age_vhlss$year), by = 2)) +
+  labs(
+    title = "",
+    x = "Year",
+    y = "Share of female workers in informal agriculture (%)"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.line = element_line(color = 'black'),
+    plot.background = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 8),
+    text = element_text(size = 10)
+  )
+ggsave("Figures/agrihh_perc.jpeg", width = 7, height = 7)
+
+ggplot(fsum_age_vhlss, aes(x = year, y = manu_informal_perc * 100, color = factor(age_group))) +
+  geom_line(size = 1) + 
+  geom_point(size = 1) + 
+  scale_x_continuous(breaks = seq(min(fsum_age_vhlss$year), max(fsum_age_vhlss$year), by = 2)) +
+  labs(
+    title = "",
+    x = "Year",
+    y = "Share of female workers in informal manufacturing (%)"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.line = element_line(color = 'black'),
+    plot.background = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 8),
+    text = element_text(size = 10)
+  )
+ggsave("Figures/manuhh_perc.jpeg", width = 7, height = 7)
+
+ggplot(fsum_age_vhlss, aes(x = year, y = service_informal_perc * 100, color = factor(age_group))) +
+  geom_line(size = 1) + 
+  geom_point(size = 1) + 
+  scale_x_continuous(breaks = seq(min(fsum_age_vhlss$year), max(fsum_age_vhlss$year), by = 2)) +
+  labs(
+    title = "",
+    x = "Year",
+    y = "Share of female workers in informal services (%)"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.line = element_line(color = 'black'),
+    plot.background = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 8),
+    text = element_text(size = 10)
+  )
+ggsave("Figures/servicehh_perc.jpeg", width = 7, height = 7)
