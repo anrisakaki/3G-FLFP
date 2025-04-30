@@ -18,7 +18,7 @@ clean_vhlss_fn <- function(i){
          informal2 = ifelse(m4ac20 < 3, 1, 0),
          informal = ifelse(work == 0, NA, informal),
          informal2 = ifelse(work2 == 0, NA, informal2),
-         agri_informal = ifelse(m4ac8a == 1 & m4ac4 < 4 & work == 1, 1, 0),
+         agri_informal = ifelse(m4ac8a == 1 & work == 1, 1, 0),
          agri_informal = ifelse(work == 0, NA, agri_informal),
          manu_informal = ifelse(m4ac4 > 9 & m4ac4 < 34 & m4ac8a == 2 & work == 1, 1, 0),
          manu_informal = ifelse(work == 0, NA, manu_informal),
@@ -64,7 +64,7 @@ vhlss08 <- list(m123a_08, m4a_08) %>%
          agri_informal = ifelse(m4ac5 < 4 & informal == 1 & work == 1, 1, 0),
          agri_informal = ifelse(work == 0, NA, agri_informal),
          manu_informal = ifelse(m4ac5 > 9 & m4ac5 < 34 & informal == 1 & work == 1, 1, 0),
-         manu_informal = ifelse(work == 0, NA, agri_informal),
+         manu_informal = ifelse(work == 0, NA, manu_informal),
          service_informal = ifelse(m4ac5 > 43 & informal == 1 & work == 1, 1, 0),
          service_informal = ifelse(work == 0, NA, service_informal),
          nonagri_informal = ifelse(informal == 1 & work == 1 & m4ac5 > 4, 1, 0),
@@ -274,41 +274,62 @@ vhlss_all <- bind_rows(vhlss08, vhlss10, vhlss12, vhlss14, vhlss16, vhlss18) %>%
     work2 = ifelse(age < 16 & age > 64 | work == 0, NA, work2),
   )
 
-female_sum_vhlss_fn <- function(i){
+sum_vhlss_fn <- function(i){
   i %>% 
-    filter(female == 1 & age > 19 & age < 65) %>% 
     summarise(
       n = sum(hhwt, na.rm = T),
-      f_work = sum(hhwt[work == 1], na.rm = T),
-      f_work2 = sum(hhwt[work2 == 1], na.rm = T),
+      work = sum(hhwt[work == 1], na.rm = T),
+      work2 = sum(hhwt[work2 == 1], na.rm = T),
       informal = sum(hhwt[informal == 1], na.rm = T),
       informal2 = sum(hhwt[informal2 == 1], na.rm = T),
       agri_informal = sum(hhwt[agri_informal == 1], na.rm = T),
       manu_informal = sum(hhwt[manu_informal == 1], na.rm = T),
       service_informal = sum(hhwt[service_informal == 1], na.rm = T),
       nonagri_informal = sum(hhwt[nonagri_informal == 1], na.rm = T)
-    ) %>% 
-    mutate(
-      flfp = f_work/n,
-      fwork2_perc = f_work2/f_work,
-      informal_perc = informal/f_work,
-      informal2_perc = informal2/f_work2,
-      agri_informal_perc = agri_informal/f_work,
-      manu_informal_perc = manu_informal/f_work,
-      service_informal_perc = service_informal/f_work,
-      nonagri_informal_perc = nonagri_informal/f_work
     )
 }
-
-female_sum_vhlss <- vhlss_all %>% 
-  group_by(year) %>% 
-  female_sum_vhlss_fn()
-
-male_sum_vhlss <- vhlss_all %>% 
-  group_by(year) %>% 
-  male_sum_vhlss_fn()
 
 fsum_age_vhlss <- vhlss_all %>% 
   group_by(year, age_group) %>% 
   filter(age > 19 & age < 64 & female == 1) %>% 
-  female_sum_vhlss_fn()
+  sum_vhlss_fn() %>% 
+  mutate(
+    flfp = work/n,
+    fwork2_perc = work2/work,
+    informal_perc = informal/work,
+    informal2_perc = informal2/work2,
+    agri_informal_perc = agri_informal/work,
+    manu_informal_perc = manu_informal/work,
+    service_informal_perc = service_informal/work,
+    nonagri_informal_perc = nonagri_informal/work
+  )
+
+female_sum_vhlss <- vhlss_all %>% 
+  filter(female == 1 & age > 19 & age < 65) %>% 
+  group_by(year) %>% 
+  sum_vhlss_fn() %>% 
+  mutate(
+    flfp = work/n,
+    fwork2_perc = work2/work,
+    informal_perc = informal/work,
+    informal2_perc = informal2/work2,
+    agri_informal_perc = agri_informal/work,
+    manu_informal_perc = manu_informal/work,
+    service_informal_perc = service_informal/work,
+    nonagri_informal_perc = nonagri_informal/work
+  )
+
+male_sum_vhlss <- vhlss_all %>% 
+  filter(female == 0 & age > 19 & age < 65) %>% 
+  group_by(year) %>% 
+  sum_vhlss_fn() %>% 
+  mutate(
+    mlfp = work/n,
+    mwork2_perc = work2/work,
+    informal_perc = informal/work,
+    informal2_perc = informal2/work2,
+    agri_informal_perc = agri_informal/work,
+    manu_informal_perc = manu_informal/work,
+    service_informal_perc = service_informal/work,
+    nonagri_informal_perc = nonagri_informal/work
+  )
