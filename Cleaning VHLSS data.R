@@ -14,17 +14,17 @@ clean_vhlss_fn <- function(i){
          urban = ifelse(ttnt == 1, 1, 0),
          yrschool = as.numeric(m2ac1),
          m4ac4 = ifelse(m4ac4 > 99, 1, m4ac4),
-         informal = ifelse(m4ac8a == 2, 1, 0),
-         informal2 = ifelse(m4ac20 == 2, 1, 0),
+         informal = ifelse(m4ac8a < 3, 1, 0),
+         informal2 = ifelse(m4ac20 < 3, 1, 0),
          informal = ifelse(work == 0, NA, informal),
          informal2 = ifelse(work2 == 0, NA, informal2),
-         agri_informal = ifelse(m4ac4 < 4 & informal == 1 & work == 1, 1, 0),
+         agri_informal = ifelse(m4ac8a == 1 & work == 1, 1, 0),
          agri_informal = ifelse(work == 0, NA, agri_informal),
          manu_informal = ifelse(m4ac4 > 9 & m4ac4 < 34 & informal == 1 & work == 1, 1, 0),
          manu_informal = ifelse(work == 0, NA, agri_informal),
-         service_informal = ifelse(m4ac4 > 45 & informal == 1 & work == 1, 1, 0),
+         service_informal = ifelse(m4ac4 > 43 & informal == 1 & work == 1, 1, 0),
          service_informal = ifelse(work == 0, NA, service_informal),
-         nonagri_informal = ifelse(m4ac4 > 3 & informal == 1 & work == 1, 1, 0),
+         nonagri_informal = ifelse(m4ac8a == 2 & work == 1, 1, 0),
          nonagri_informal = ifelse(work == 0, NA, nonagri_informal)) %>% 
     rename(age = m1ac5,
            marst = m1ac6,
@@ -65,9 +65,9 @@ vhlss08 <- list(m123a_08, m4a_08) %>%
          agri_informal = ifelse(work == 0, NA, agri_informal),
          manu_informal = ifelse(m4ac5 > 9 & m4ac5 < 34 & informal == 1 & work == 1, 1, 0),
          manu_informal = ifelse(work == 0, NA, agri_informal),
-         service_informal = ifelse(m4ac5 > 45 & informal == 1 & work == 1, 1, 0),
+         service_informal = ifelse(m4ac5 > 43 & informal == 1 & work == 1, 1, 0),
          service_informal = ifelse(work == 0, NA, service_informal),
-         nonagri_informal = ifelse(m4ac5 > 3 & informal == 1 & work == 1, 1, 0),
+         nonagri_informal = ifelse(informal == 1 & work == 1 & m4ac5 > 4, 1, 0),
          nonagri_informal = ifelse(work == 0, NA, nonagri_informal),
          year = 2008) %>% 
   rename(age = m1ac5,
@@ -136,7 +136,8 @@ vhlss14 <- list(m1a_14, m2a_14, m4a_14) %>%
   mutate(year = 2014,
          hhwt = wt45) %>% 
   select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban, ethnicity,
-         work, wagework, informal, informal2, agri_informal, nonagri_informal, manu_informal, service_informal, occ, org, ind, days, hours, inc, work2, occ2, org2, ind2, days2, hours2, hhwt)
+         work, wagework, informal, informal2, agri_informal, nonagri_informal, manu_informal, service_informal, 
+         occ, org, ind, days, hours, inc, work2, occ2, org2, ind2, days2, hours2, hhwt)
 save(vhlss14, file = ("Clean data/vhlss14.Rda"))
 write_dta(vhlss14, "Clean data/vhlss14.dta")
 
@@ -154,25 +155,23 @@ vhlss16 <- list(m1a_16, m2ab_16, m4a_16) %>%
   mutate(female = ifelse(m1ac2 == 2, 1, 0),
          internet = ifelse(m1ac16 == 1, 1, 0),
          wagework = ifelse(m4ac1a == 1, 1, 0),
-         agri_hh = ifelse(m4ac1b == 1, 1, 0),
-         service_hh = ifelse(m4ac1c == 1, 1, 0),
          work = ifelse(m4ac2 == 1, 1, 0),
          work2 = ifelse(m4ac17 == 1, 1, 0),
          inc = m4ac11 + m4ac12a + m4ac12b,
          urban = ifelse(ttnt == 1, 1, 0),
          yrschool = as.numeric(m2ac1),
          m4ac4 = ifelse(m4ac4 > 99, 1, m4ac4),
-         informal = ifelse(m4ac8a == 2, 1, 0),
-         informal2 = ifelse(m4ac23 == 2, 1, 0),
+         informal = ifelse(m4ac8a < 3, 1, 0),
+         informal2 = ifelse(m4ac23 < 3, 1, 0),
          informal = ifelse(work == 0, NA, informal),
          informal2 = ifelse(work2 == 0, NA, informal2),
-         agri_informal = ifelse(m4ac4 < 4 & informal == 1 & work == 1, 1, 0),
+         agri_informal = ifelse(m4ac8a == 1 & m4ac4 < 4 & work == 1, 1, 0),
          agri_informal = ifelse(work == 0, NA, agri_informal),
          manu_informal = ifelse(m4ac4 > 9 & m4ac4 < 34 & informal == 1 & work == 1, 1, 0),
          manu_informal = ifelse(work == 0, NA, agri_informal),
-         service_informal = ifelse(m4ac4 > 45 & informal == 1 & work == 1, 1, 0),
+         service_informal = ifelse(m4ac4 > 43 & informal == 1 & work == 1, 1, 0),
          service_informal = ifelse(work == 0, NA, service_informal),
-         nonagri_informal = ifelse(m4ac4 > 3 & informal == 1 & work == 1, 1, 0),
+         nonagri_informal = ifelse(informal == 1 & m4ac4 > 3 & work == 1, 1, 0),
          nonagri_informal = ifelse(work == 0, NA, nonagri_informal),
          year = 2016) %>% 
   rename(age = m1ac5,
@@ -190,9 +189,9 @@ vhlss16 <- list(m1a_16, m2ab_16, m4a_16) %>%
          org2 = m4ac23,
          ethnicity = dantoc,
          hhwt = wt45) %>% 
-  select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban, ethnicity, internet,
-         work, wagework, informal, informal2, agri_hh, service_hh, occ, org, ind, days, hours, inc, work2, occ2, org2, ind2, days2, hours2, 
-         retail, retail2, wholesale, wholesale2, hhwt) 
+  select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban, ethnicity,
+         work, wagework, informal, informal2, agri_informal, nonagri_informal, manu_informal, service_informal, 
+         occ, org, ind, days, hours, inc, work2, occ2, org2, ind2, days2, hours2, hhwt)
 save(vhlss16, file = ("Clean data/vhlss16.Rda"))
 write_dta(vhlss16, "Clean data/vhlss16.dta")
 
@@ -217,15 +216,20 @@ vhlss18 <- list(m1a_18, m2v_18, m4a_18) %>%
          work2 = ifelse(m4ac17 == 1, 1, 0),
          inc = m4ac11 + m4ac12a + m4ac12b,
          yrschool = as.numeric(m2vc1),
+         m4ac4 = ifelse(m4ac4 > 99, 1, m4ac4),
          urban = ifelse(ttnt == 1, 1, 0),
-         retail = ifelse(work == 1 & m4ac4 == 47, 1, 0),
-         retail2 = ifelse(work2 == 1 & m4ac19 == 47, 1, 0),
-         wholesale = ifelse(work == 1 & m4ac4 == 46, 1, 0),
-         wholesale2 = ifelse(work2 == 1 & m4ac19 == 46, 1, 0),
-         informal = ifelse(m4ac8a == 2, 1, 0),
-         informal2 = ifelse(m4ac23 == 2, 1, 0),
+         informal = ifelse(m4ac8a < 3, 1, 0),
+         informal2 = ifelse(m4ac23 < 3, 1, 0),
          informal = ifelse(work == 0, NA, informal),
          informal2 = ifelse(work2 == 0, NA, informal2),
+         agri_informal = ifelse(informal == 1 & m4ac4 < 4 & work == 1, 1, 0),
+         agri_informal = ifelse(work == 0, NA, agri_informal),
+         manu_informal = ifelse(m4ac4 > 9 & m4ac4 < 34 & informal == 1 & work == 1, 1, 0),
+         manu_informal = ifelse(work == 0, NA, agri_informal),
+         service_informal = ifelse(m4ac4 > 43 & informal == 1 & work == 1, 1, 0),
+         service_informal = ifelse(work == 0, NA, service_informal),
+         nonagri_informal = ifelse(m4ac4 > 3 & informal == 1 & work == 1, 1, 0),
+         nonagri_informal = ifelse(work == 0, NA, nonagri_informal),
          year = 2018) %>% 
   rename(age = m1ac5,
          marst = m1ac8,
@@ -242,9 +246,9 @@ vhlss18 <- list(m1a_18, m2v_18, m4a_18) %>%
          org2 = m4ac23,
          ethnicity = dantoc,
          hhwt = wt45) %>% 
-  select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban, ethnicity, internet,
-         work, wagework, informal, informal2, agri_hh, service_hh, occ, org, ind, days, hours, inc, work2, occ2, org2, ind2, days2, hours2, 
-         retail, retail2, wholesale, wholesale2, hhwt) 
+  select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban, ethnicity,
+         work, wagework, informal, informal2, agri_informal, nonagri_informal, manu_informal, service_informal, 
+         occ, org, ind, days, hours, inc, work2, occ2, org2, ind2, days2, hours2, hhwt)
 save(vhlss18, file = ("Clean data/vhlss18.Rda"))
 write_dta(vhlss18, "Clean data/vhlss18.dta")
 
@@ -267,13 +271,7 @@ vhlss_all <- bind_rows(vhlss08, vhlss10, vhlss12, vhlss14, vhlss16, vhlss18) %>%
   mutate(
     work = ifelse(age < 16 & age > 64, NA, work),
     wagework = ifelse(work == 0 | is.na(work), NA, wagework),
-    agri_hh = ifelse(work == 0 | is.na(work), NA, agri_hh),
-    service_hh = ifelse(work == 0 | is.na(work), NA, service_hh),
     work2 = ifelse(age < 16 & age > 64 | work == 0, NA, work2),
-    retail = ifelse(work == 0 | is.na(work), NA, retail),
-    retail2 = ifelse(work2 == 0 | is.na(work), NA, retail2),
-    wholesale = ifelse(work == 0 | is.na(work), NA, wholesale),
-    wholesale2 = ifelse(work2 == 0 | is.na(work), NA, wholesale2)
   )
 
 female_sum_vhlss_fn <- function(i){
@@ -281,62 +279,28 @@ female_sum_vhlss_fn <- function(i){
     filter(female == 1 & age > 19 & age < 65) %>% 
     summarise(
       n = sum(hhwt, na.rm = T),
-      f_work = sum(hhwt[work == 1], na.rm = TRUE),
-      f_work2 = sum(hhwt[work2 == 1], na.rm = TRUE),
-      retail = sum(hhwt[retail == 1], na.rm = TRUE),
-      retail2 = sum(hhwt[retail2 == 1], na.rm = TRUE),
-      wholesale = sum(hhwt[wholesale == 1], na.rm = TRUE),
-      wholesale2 = sum(hhwt[wholesale2 == 1], na.rm = TRUE),
-      agri_hh = sum(hhwt[agri_hh == 1], na.rm = TRUE),
-      service_hh = sum(hhwt[service_hh == 1], na.rm = TRUE),
-      informal = sum(hhwt[informal == 1], na.rm = TRUE),
-      informal2 = sum(hhwt[informal2 == 1], na.rm = TRUE)
+      f_work = sum(hhwt[work == 1], na.rm = T),
+      f_work2 = sum(hhwt[work2 == 1], na.rm = T),
+      informal = sum(hhwt[informal == 1], na.rm = T),
+      informal2 = sum(hhwt[informal2 == 1], na.rm = T),
+      agri_informal = sum(hhwt[agri_informal == 1], na.rm = T),
+      manu_informal = sum(hhwt[manu_informal == 1], na.rm = T),
+      service_informal = sum(hhwt[service_informal == 1], na.rm = T),
+      nonagri_informal = sum(hhwt[nonagri_informal == 1], na.rm = T)
     ) %>% 
     mutate(
       flfp = f_work/n,
       fwork2_perc = f_work2/f_work,
-      retail_perc = retail/f_work,
-      retail2_perc = retail2/f_work2,
-      wholesale_perc = wholesale/f_work,
-      wholesale2_perc = wholesale2/f_work2,
-      servicehh_perc = service_hh/f_work,
-      agrihh_perc = agri_hh/f_work,
       informal_perc = informal/f_work,
-      informal2_perc = informal2/f_work2
+      informal2_perc = informal2/f_work2,
+      agri_informal_perc = agri_informal/f_work,
+      manu_informal_perc = manu_informal/f_work,
+      service_informal_perc = service_informal/f_work,
+      nonagri_informal_perc = nonagri_informal/f_work
     )
 }
 
-male_sum_vhlss_fn <- function(i){
-  i %>% 
-    filter(female == 0 & age > 19 & age < 65) %>% 
-    summarise(
-      n = sum(hhwt, na.rm = T),
-      f_work = sum(hhwt[work == 1], na.rm = TRUE),
-      f_work2 = sum(hhwt[work2 == 1], na.rm = TRUE),
-      retail = sum(hhwt[retail == 1], na.rm = TRUE),
-      retail2 = sum(hhwt[retail2 == 1], na.rm = TRUE),
-      wholesale = sum(hhwt[wholesale == 1], na.rm = TRUE),
-      wholesale2 = sum(hhwt[wholesale2 == 1], na.rm = TRUE),
-      agri_hh = sum(hhwt[agri_hh == 1], na.rm = TRUE),
-      service_hh = sum(hhwt[service_hh == 1], na.rm = TRUE),
-      informal = sum(hhwt[informal == 1], na.rm = TRUE),
-      informal2 = sum(hhwt[informal2 == 1], na.rm = TRUE)
-    ) %>% 
-    mutate(
-      flfp = f_work/n,
-      fwork2_perc = f_work2/f_work,
-      retail_perc = retail/f_work,
-      retail2_perc = retail2/f_work2,
-      wholesale_perc = wholesale/f_work,
-      wholesale2_perc = wholesale2/f_work2,
-      servicehh_perc = service_hh/f_work,
-      agrihh_perc = agri_hh/f_work,
-      informal_perc = informal/f_work,
-      informal2_perc = informal2/f_work2
-    )
-}
-
-sum_vhlss <- vhlss_all %>% 
+female_sum_vhlss <- vhlss_all %>% 
   group_by(year) %>% 
   female_sum_vhlss_fn()
 
