@@ -21,6 +21,8 @@ opencell <- read.csv("Vietnam_Cell_tower.csv")
 vnmap1 <- read_sf("VNShapefile/gadm36_VNM_1.shp")
 vnmap2 <- read_sf("VNShapefile/gadm36_VNM_2.shp")
 
+dist9919 <- read_dta("Consistent 2019 to 1999 wards with 1999 districts.dta")
+
 # VHLSS
 ## 2004
 ho1_04 <- read_dta(file = "VHLSS/2004/ho1.dta")
@@ -94,6 +96,10 @@ m2v_20 <- read_dta(file = "VHLSS/2020/VHLSS 2020/VHLSS 2020_Household Eng full/D
 m4a_20 <- read_dta(file = "VHLSS/2020/VHLSS 2020/VHLSS 2020_Household Eng full/Data VHLSS2020_HH_Eng/MUC4A.dta")
 m6b_20 <- read_dta(file = "VHLSS/2020/VHLSS 2020/VHLSS 2020_Household Eng full/Data VHLSS2020_HH_Eng/MUC6B.dta")
 wt20 <- read_dta(file = "VHLSS/2020/VHLSS 2020/VHLSS 2020_Household Eng full/Data VHLSS2020_HH_Eng/wt2020.dta")
+
+# Panel
+
+panel1018 <- read_dta(file = "Clean data/panel_final_10-18.dta")
 
 # LFS 
 lfs10 <- read_sav("LFS/Micr_LFS_2010-2014/LFS_2010_final_DCTDT_GUI.sav")
