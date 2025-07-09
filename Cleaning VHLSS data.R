@@ -78,9 +78,10 @@ vhlss04 <- list(m123a_04, m4a_04) %>%
          org2 = m4ac20,
          hhwt = wt45) %>% 
   select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban,
-         work, wagework, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
+         work, wagework, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal,
          occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt) %>% 
-  group_by(tinh, huyen, xa, diaban, hoso) 
+  left_join(dist0418) %>% 
+  left_join(umts2)
 
 save(vhlss04, file = ("Clean data/vhlss04.Rda"))
 write_dta(vhlss04, "Clean data/vhlss04.dta")
@@ -125,7 +126,8 @@ vhlss06 <- list(m1a_06, m2a_06, m4a_06) %>%
   select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban,
          work, wagework, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
          occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt) %>% 
-  group_by(tinh, huyen, xa, diaban, hoso) 
+  left_join(dist0418) %>% 
+  left_join(umts2)
 
 save(vhlss06, file = ("Clean data/vhlss06.Rda"))
 write_dta(vhlss06, "Clean data/vhlss06.dta")
@@ -171,7 +173,9 @@ vhlss08 <- list(m123a_08, m4a_08) %>%
   select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban, ethnicity,
          work, wagework, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
          occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt) %>% 
-  group_by(tinh, huyen, xa, diaban, hoso)
+  group_by(tinh, huyen, xa, diaban, hoso) %>% 
+  left_join(dist0418) %>% 
+  left_join(umts2)
 
 save(vhlss08, file = ("Clean data/vhlss08.Rda"))
 write_dta(vhlss08, "Clean data/vhlss08.dta")
@@ -188,7 +192,9 @@ vhlss10 <- list(m1a_10, m2a1_10, m4a1_10, m4a2_10, m4a3_10, m4a4_10) %>%
   select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban, ethnicity,
          work, wagework, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
          occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt) %>% 
-  group_by(tinh, huyen, xa, diaban, hoso) 
+  group_by(tinh, huyen, xa, diaban, hoso) %>% 
+  left_join(umts) %>% 
+  left_join(dist_cov10)
 
 save(vhlss10, file = ("Clean data/vhlss10.Rda"))
 write_dta(vhlss10, "Clean data/vhlss10.dta")
@@ -204,7 +210,9 @@ vhlss12 <- list(m1a_12, m2a_12) %>%
   select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban, ethnicity,
          work, wagework, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
          occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt) %>% 
-  group_by(tinh, huyen, xa, diaban, hoso) 
+  group_by(tinh, huyen, xa, diaban, hoso) %>% 
+  left_join(umts) %>% 
+  left_join(dist_cov12)
 
 save(vhlss12, file = ("Clean data/vhlss12.Rda"))
 write_dta(vhlss12, "Clean data/vhlss12.dta")
@@ -225,7 +233,9 @@ vhlss14 <- list(m1a_14, m2a_14, m4a_14) %>%
   select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban, ethnicity,
          work, wagework, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
          occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt) %>% 
-  group_by(tinh, huyen, xa, diaban, hoso) 
+  group_by(tinh, huyen, xa, diaban, hoso)  %>% 
+  left_join(umts) %>% 
+  left_join(dist_cov14)
 
 save(vhlss14, file = ("Clean data/vhlss14.Rda"))
 write_dta(vhlss14, "Clean data/vhlss14.dta")
@@ -276,7 +286,9 @@ vhlss16 <- list(m1a_16, m2ab_16, m4a_16) %>%
          hhwt = wt45) %>% 
   select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban, ethnicity,
          work, wagework, agri, manu, service, informal, informal2, agri_informal, nonagri_informal, manu_informal, service_informal, 
-         occ, org, ind, days, hours, inc, work2, occ2, org2, ind2, days2, hours2, hhwt)
+         occ, org, ind, days, hours, inc, work2, occ2, org2, ind2, days2, hours2, hhwt) %>% 
+  left_join(umts) %>% 
+  left_join(dist_cov16)
 
 save(vhlss16, file = ("Clean data/vhlss16.Rda"))
 write_dta(vhlss16, "Clean data/vhlss16.dta")
@@ -286,6 +298,12 @@ write_dta(vhlss16, "Clean data/vhlss16.dta")
 m1a_18 <- m1a_18 %>% rename(matv = m1ama)
 m2v_18 <- m2v_18 %>% rename(matv = m2vma)
 m4a_18 <- m4a_18 %>% rename(matv = m4ama)
+
+dist_cov18 <- dist_cov18 %>%
+  mutate(tinh = prov2018, huyen = dist2018) %>%
+  select(-distname2018) %>% 
+  rename(dist_coverage_share = coverage_share,
+         dist_coverage = coverage)
 
 vhlss18 <- list(m1a_18, m2v_18, m4a_18) %>% 
   reduce(merge) %>% 
@@ -328,7 +346,9 @@ vhlss18 <- list(m1a_18, m2v_18, m4a_18) %>%
   select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban, ethnicity,
          work, wagework, agri, service, manu, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
          occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt) %>% 
-  group_by(tinh, huyen, xa, diaban, hoso)
+  group_by(tinh, huyen, xa, diaban, hoso) %>% 
+  left_join(umts) %>% 
+  left_join(dist_cov18)
 
 save(vhlss18, file = ("Clean data/vhlss18.Rda"))
 write_dta(vhlss18, "Clean data/vhlss18.dta")
@@ -382,13 +402,19 @@ vhlss20 <- list(m1a_20, m2v_20, m4a_20) %>%
          work, wagework, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
          occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt)
 
-vhlss_all <- bind_rows(vhlss04, vhlss06, vhlss08, vhlss10, vhlss12, vhlss14, vhlss16, vhlss18, vhlss20) %>% 
+vhlss_all <- bind_rows(vhlss04, vhlss06, vhlss08, vhlss10, vhlss12, vhlss14, vhlss16, vhlss18) %>% 
   group_by(year, tinh, huyen, xa, diaban, hoso) %>% 
   mutate(hhid = cur_group_id(),
          children_u7 = sum(age < 7, na.rm = T),
          nchild = sum(age < 18, na.rm = T)) %>% 
   ungroup() %>% 
+  group_by(prov2018, dist2018) %>%
+  mutate(dist = cur_group_id()) %>% 
+  ungroup() %>% 
+  left_join(umts_coverage, by = c("tinh", "year")) %>% 
   mutate(
+    coverage_share = ifelse(is.na(coverage_share), 0, coverage_share),
+    coverage = ifelse(coverage_share > 0, 1, 0),
     work = ifelse(age < 16 & age > 64, NA, work),
     wagework = ifelse(work == 0 | is.na(work), NA, wagework),
     work2 = ifelse(age < 16 & age > 64 | work == 0, NA, work2),
@@ -399,105 +425,178 @@ vhlss_all <- bind_rows(vhlss04, vhlss06, vhlss08, vhlss10, vhlss12, vhlss14, vhl
     service = ifelse(work == 0, NA, service),
     agri_informal = ifelse(work == 0, NA, agri_informal),
     manu_informal = ifelse(work == 0, NA, manu_informal),
-    service_informal = ifelse(work == 0, NA, service_informal)
-  )
+    service_informal = ifelse(work == 0, NA, service_informal),
+    nonagri_informal = ifelse(work == 0, NA, nonagri_informal),
+    agri_informal2 = agri*informal,
+    manu_informal2 = manu*informal,
+    service_informal2 = service*informal,
+    agri_informal2 = ifelse(work == 0, NA, agri_informal2),
+    manu_informal2 = ifelse(work == 0, NA, manu_informal2),
+    service_informal2 = ifelse(work == 0, NA, service_informal2),
+    nonagri_informal2 = ifelse(agri_informal2 == 0 & work == 1, 1, 0),
+    nonagri_informal2 = ifelse(work == 0, NA, nonagri_informal2),
+    treat14 = ifelse(first_treated < 2014, 1, 0),
+    time_to_treated = year - first_treated,
+    year_treated2 = ifelse(treat14 == 0, 10000, first_treated)
+  ) %>% 
+  select(year, dist, tinh, huyen, xa, diaban, hoso, everything())
+
+save(vhlss_all, file = "Clean data/vhlss_all.Rda")
+write_dta(vhlss_all, "Clean data/vhlss_all.dta")
 
 sum_vhlss_fn <- function(i){
   i %>% 
     summarise(
-      n = sum(hhwt, na.rm = T),
-      work = sum(hhwt[work == 1], na.rm = T),
-      work2 = sum(hhwt[work2 == 1], na.rm = T),
-      informal = sum(hhwt[informal == 1], na.rm = T),
-      informal2 = sum(hhwt[informal2 == 1], na.rm = T),
-      agri = sum(hhwt[agri == 1], na.rm = T),
-      manu = sum(hhwt[manu == 1], na.rm = T),
-      service = sum(hhwt[service == 1], na.rm = T),
-      agri_informal = sum(hhwt[agri_informal == 1], na.rm = T),
-      manu_informal = sum(hhwt[manu_informal == 1], na.rm = T),
-      service_informal = sum(hhwt[service_informal == 1], na.rm = T),
-      nonagri_informal = sum(hhwt[nonagri_informal == 1], na.rm = T)
+      work = weighted.mean(work, hhwt, na.rm = T),
+      work2 = weighted.mean(work2, hhwt, na.rm = T),
+      informal = weighted.mean(informal, hhwt, na.rm = T),
+      informal2 = weighted.mean(informal2, hhwt, na.rm = T),
+      agri = weighted.mean(agri, hhwt, na.rm = T),
+      manu = weighted.mean(manu, hhwt, na.rm = T),
+      service = weighted.mean(service, hhwt, na.rm = T),
+      agri_informal = weighted.mean(agri_informal, hhwt, na.rm = T),
+      agri_informal2 = weighted.mean(agri_informal2, hhwt, na.rm = T),
+      manu_informal = weighted.mean(manu_informal, hhwt, na.rm = T),
+      manu_informal2 = weighted.mean(manu_informal2, hhwt, na.rm = T),
+      service_informal = weighted.mean(service_informal, hhwt, na.rm = T),
+      service_informal2 = weighted.mean(service_informal2, hhwt, na.rm = T),
+      nonagri_informal = weighted.mean(nonagri_informal, hhwt, na.rm = T),
+      nonagri_informal2 = weighted.mean(nonagri_informal2, hhwt, na.rm = T)
     )
 }
 
-sum_vhlss <- vhlss_all %>% 
+##################
+# District-level #
+##################
+
+###########
+# Summary #
+###########
+
+options(scipen = 999)
+sum_vhlss_all <- vhlss_all %>% 
+  filter(age > 19 & age < 65) %>% 
   group_by(year) %>% 
-  sum_vhlss_fn() %>% 
-  mutate(
-    lfp = work/n,
-    informal_perc = informal/work,
-    informal2_perc = informal2/work2,
-    agri_perc = agri/work,
-    manu_perc = manu/work,
-    service_perc = service/work,
-    agri_informal_perc = agri_informal/work,
-    manu_informal_perc = manu_informal/work,
-    service_informal_perc = service_informal/work,
-    nonagri_informal_perc = nonagri_informal/work
-  )
+  sum_vhlss_fn() 
 
 female_sum_vhlss <- vhlss_all %>% 
   filter(female == 1 & age > 19 & age < 65) %>% 
   group_by(year) %>% 
-  sum_vhlss_fn() %>% 
-  mutate(
-    flfp = work/n,
-    fwork2_perc = work2/work,
-    informal_perc = informal/work,
-    informal2_perc = informal2/work2,
-    agri_perc = agri/work,
-    manu_perc = manu/work,
-    service_perc = service/work,
-    agri_informal_perc = agri_informal/work,
-    manu_informal_perc = manu_informal/work,
-    service_informal_perc = service_informal/work,
-    nonagri_informal_perc = nonagri_informal/work
-  )
+  sum_vhlss_fn() 
 
 male_sum_vhlss <- vhlss_all %>% 
   filter(female == 0 & age > 19 & age < 65) %>% 
   group_by(year) %>% 
-  sum_vhlss_fn() %>% 
-  mutate(
-    mlfp = work/n,
-    mwork2_perc = work2/work,
-    informal_perc = informal/work,
-    informal2_perc = informal2/work2,
-    agri_informal_perc = agri_informal/work,
-    manu_informal_perc = manu_informal/work,
-    service_informal_perc = service_informal/work,
-    nonagri_informal_perc = nonagri_informal/work
-  )
+  sum_vhlss_fn()
 
 mothers_u7_sum_vhlss <- vhlss_all %>% 
   filter(female == 1 & children_u7 > 0) %>% 
   group_by(year) %>% 
-  sum_vhlss_fn() %>% 
-  mutate(
-    flfp = work/n,
-    fwork2_perc = work2/work,
-    informal_perc = informal/work,
-    informal2_perc = informal2/work2,
-    agri_informal_perc = agri_informal/work,
-    manu_informal_perc = manu_informal/work,
-    service_informal_perc = service_informal/work,
-    nonagri_informal_perc = nonagri_informal/work
-  )
+  sum_vhlss_fn()
 
 mothers_sum_vhlss <- vhlss_all %>% 
   filter(female == 1 & nchild > 0) %>% 
   group_by(year) %>% 
-  sum_vhlss_fn() %>% 
-  mutate(
-    flfp = work/n,
-    fwork2_perc = work2/work,
-    informal_perc = informal/work,
-    informal2_perc = informal2/work2,
-    agri_informal_perc = agri_informal/work,
-    manu_informal_perc = manu_informal/work,
-    service_informal_perc = service_informal/work,
-    nonagri_informal_perc = nonagri_informal/work
+  sum_vhlss_fn()
+
+vhlss_prov <- vhlss_all %>% 
+  filter(age > 19 & age < 65) %>% 
+  group_by(tinh, year,) %>% 
+  summarise(
+    work = weighted.mean(work, hhwt, na.rm = T),
+    informal = weighted.mean(informal, hhwt, na.rm = T),
+    agri = weighted.mean(agri, hhwt, na.rm = T),
+    manu = weighted.mean(manu, hhwt, na.rm = T),
+    service = weighted.mean(service, hhwt, na.rm = T),
+    agri_informal2 = weighted.mean(agri_informal2, hhwt, na.rm = T),
+    manu_informal2 = weighted.mean(manu_informal2, hhwt, na.rm = T),
+    service_informal2 = weighted.mean(service_informal2, hhwt, na.rm = T),
+    nonagri_informal2 = weighted.mean(nonagri_informal2, hhwt, na.rm = T)
   )
+
+vhlss_prov_wide <- vhlss_prov %>%
+  select(tinh, year, informal, agri_informal2, service_informal2, manu_informal2) %>%
+  pivot_wider(
+    names_from = year,
+    values_from = c(informal, agri_informal2, service_informal2, manu_informal2),
+    names_sep = "_"
+  ) %>% 
+  mutate(
+    informal_1018 = informal_2018-informal_2010,
+    agri_informal2_1018 = agri_informal2_2018-agri_informal2_2010,
+    manu_informal2_1018 = manu_informal2_2018-manu_informal2_2010,
+    service_informal2_1018 = service_informal2_2018-service_informal2_2010
+  )
+
+vhlss_prov_wide_shp <- vhlss_prov_wide %>% 
+  mutate(tinh = as.numeric(tinh),
+         NAME_1 = recode(tinh,
+                       '89' = 'An Giang',
+                       '77' = 'Bà Rịa - Vũng Tàu',
+                       '24' = 'Bắc Giang',
+                       '6' = 'Bắc Kạn',
+                       '95' = 'Bạc Liêu',
+                       '27' = 'Bắc Ninh',
+                       '83' = 'Bến Tre',
+                       '52' = 'Bình Định',
+                       '74' = 'Bình Dương',
+                       '70' = 'Bình Phước',
+                       '60' = 'Bình Thuận',
+                       '96' = 'Cà Mau',
+                       '92' = 'Cần Thơ',
+                       '4' = 'Cao Bằng',
+                       '48' = 'Đà Nẵng',
+                       '66' = 'Đắk Lắk',
+                       '67' = 'Đắk Nông',
+                       '11' = 'Điện Biên',
+                       '75' = 'Đồng Nai',
+                       '87' = 'Đồng Tháp',
+                       '64' = 'Gia Lai',
+                       '2' = 'Hà Giang',
+                       '35' = 'Hà Nam',
+                       '1' = 'Hà Nội',
+                       '42' = 'Hà Tĩnh',
+                       '30' = 'Hải Dương',
+                       '31' = 'Hải Phòng',
+                       '93' = 'Hậu Giang',
+                       '79' = 'Hồ Chí Minh',
+                       '17' = 'Hoà Bình',
+                       '33' = 'Hưng Yên',
+                       '56' = 'Khánh Hòa',
+                       '91' = 'Kiên Giang',
+                       '62' = 'Kon Tum',
+                       '12' = 'Lai Châu',
+                       '68' = 'Lâm Đồng',
+                       '20' = 'Lạng Sơn',
+                       '10' = 'Lào Cai',
+                       '80' = 'Long An',
+                       '36' = 'Nam Định',
+                       '40' = 'Nghệ An',
+                       '37' = 'Ninh Bình',
+                       '58' = 'Ninh Thuận',
+                       '25' = 'Phú Thọ',
+                       '54' = 'Phú Yên',
+                       '44' = 'Quảng Bình',
+                       '49' = 'Quảng Nam',
+                       '51' = 'Quảng Ngãi',
+                       '22' = 'Quảng Ninh',
+                       '45' = 'Quảng Trị',
+                       '94' = 'Sóc Trăng',
+                       '14' = 'Sơn La',
+                       '72' = 'Tây Ninh',
+                       '34' = 'Thái Bình',
+                       '19' = 'Thái Nguyên',
+                       '38' = 'Thanh Hóa',
+                       '46' = 'Thừa Thiên Huế',
+                       '82' = 'Tiền Giang',
+                       '84' = 'Trà Vinh',
+                       '8' = 'Tuyên Quang',
+                       '86' = 'Vĩnh Long',
+                       '26' = 'Vĩnh Phúc',
+                       '15' = 'Yên Bái',
+                       .default = NA_character_)) %>% 
+  left_join(vnmap1) %>% 
+  st_as_sf()
 
 ##########
 # Assets #
@@ -605,3 +704,16 @@ devices_sum <- bind_rows(devices04, devices06, devices08, devices10, devices12, 
     landline_perc = landline/n,
     computer_perc = computer/n
   )
+
+devices_long <- devices_sum %>%
+  select(year, mob_perc, landline_perc, computer_perc) %>%
+  pivot_longer(
+    cols = c(mob_perc, landline_perc, computer_perc),
+    names_to = "device",
+    values_to = "share"
+  )
+
+devices_long$device <- recode(devices_long$device,
+                              mob_perc = "Mobile Phone",
+                              landline_perc = "Landline",
+                              computer_perc = "Computer")
