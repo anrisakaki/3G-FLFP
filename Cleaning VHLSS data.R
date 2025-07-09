@@ -79,9 +79,7 @@ vhlss04 <- list(m123a_04, m4a_04) %>%
          hhwt = wt45) %>% 
   select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban,
          work, wagework, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal,
-         occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt) %>% 
-  left_join(dist0418) %>% 
-  left_join(umts2)
+         occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt)
 
 save(vhlss04, file = ("Clean data/vhlss04.Rda"))
 write_dta(vhlss04, "Clean data/vhlss04.dta")
