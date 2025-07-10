@@ -189,7 +189,72 @@ umts <- bind_rows(prov_cov10, prov_cov11, prov_cov12, prov_cov13, prov_cov14,
   group_by(tinh) %>%
   summarise(first_treated = min(as.integer(year)), .groups = "drop")
 
-umts2 <- umts %>% rename(prov2018 = tinh)
+umts2 <- umts %>% 
+  mutate(tinh = recode(tinh,
+                       '89' = 805,
+                       '77' = 717,
+                       '24' = 221,
+                       '6' = 207,
+                       '95' = 821,
+                       '27' = 106,
+                       '83' = 811,
+                       '52' = 507,
+                       '74' = 711,
+                       '70' = 707,
+                       '60' = 715,
+                       '96' = 823,
+                       '92' = 815,
+                       '4' = 203,
+                       '48' = 501,
+                       '66' = 605,
+                       '67' = 606,
+                       '11' = 302,
+                       '75' = 713,
+                       '87' = 803,
+                       '64' = 603,
+                       '2' = 201,
+                       '35' = 111,
+                       '1' = 101,
+                       '42' = 405,
+                       '30' = 107,
+                       '31' = 103,
+                       '93' = 816,
+                       '79' = 701,
+                       '17' = 305,
+                       '33' = 109,
+                       '56' = 511,
+                       '91' = 813,
+                       '62' = 601,
+                       '12' = 301,
+                       '68' = 607,
+                       '20' = 209,
+                       '10' = 205,
+                       '80' = 801,
+                       '36' = 113,
+                       '40' = 403,
+                       '37' = 117,
+                       '58' = 705,
+                       '25' = 217,
+                       '54' = 509,
+                       '44' = 407,
+                       '49' = 503,
+                       '51' = 505,
+                       '22' = 225,
+                       '45' = 409,
+                       '94' = 819,
+                       '14' = 303,
+                       '72' = 709,
+                       '34' = 115,
+                       '19' = 215,
+                       '38' = 401,
+                       '46' = 411,
+                       '82' = 807,
+                       '84' = 817,
+                       '8' = 211,
+                       '86' = 809,
+                       '26' = 104,
+                       '15' = 213,
+                       .default = NA_real_))
 
 prov_cov10 <- prov_cov10_shp %>% vhlss_provcov_fn() %>% mutate(year = 2010)
 prov_cov11 <- prov_cov11_shp %>% vhlss_provcov_fn() %>% mutate(year = 2011)
@@ -208,6 +273,7 @@ umts_coverage <- bind_rows(prov_cov10, prov_cov11, prov_cov12, prov_cov13, prov_
                            prov_cov20)
 
 save(umts, file = "Clean data/umts.Rda")
+save(umts2, file = "Clean data/umts2.Rda")
 write_dta(umts, "Clean data/umts.dta")
 save(umts_coverage, file = "Clean data/umts_coverage.Rda")
 write_dta(umts_coverage, "Clean data/umts_coverage.Rda")
@@ -440,7 +506,8 @@ dist_cov18 <- dist_cov18_shp %>%
   vhlss_distcov_fn() %>%
   rename(prov2018 = tinh,
          distname2018 = NAME_2) %>% 
-  full_join(dist18, by = c("prov2018", "distname2018"))
+  full_join(dist18, by = c("prov2018", "distname2018")) %>% 
+  mutate(year = 2018)
 
 dist_cov10 <- dist_cov10_shp %>%
   vhlss_distcov_fn() %>%
@@ -448,7 +515,8 @@ dist_cov10 <- dist_cov10_shp %>%
   rename(dist_coverage_share = coverage_share,
          dist_coverage = coverage) %>% 
   select(-c(NAME_2)) %>% 
-  select(tinh, huyen, everything())
+  select(tinh, huyen, everything()) %>% 
+  mutate(year = 2010)
 
 dist_cov11 <- dist_cov11_shp %>% vhlss_distcov_fn() %>% mutate(year = 2011)
 
@@ -458,7 +526,8 @@ dist_cov12 <- dist_cov12_shp  %>%
   rename(dist_coverage_share = coverage_share,
          dist_coverage = coverage) %>% 
   select(-c(NAME_2)) %>% 
-  select(tinh, huyen, everything())
+  select(tinh, huyen, everything()) %>% 
+  mutate(year = 2012)
 
 dist_cov13 <- dist_cov13_shp %>% vhlss_distcov_fn() %>% mutate(year = 2013)
 
@@ -468,7 +537,8 @@ dist_cov14 <- dist_cov14_shp %>%
   rename(dist_coverage_share = coverage_share,
          dist_coverage = coverage) %>% 
   select(-c(NAME_2)) %>% 
-  select(tinh, huyen, everything())
+  select(tinh, huyen, everything()) %>% 
+  mutate(year = 2014)
 
 dist_cov15 <- dist_cov15_shp %>% vhlss_distcov_fn() %>% mutate(year = 2015)
 
@@ -478,6 +548,20 @@ dist_cov16 <- dist_cov16_shp %>%
   rename(dist_coverage_share = coverage_share,
          dist_coverage = coverage) %>% 
   select(-c(NAME_2)) %>% 
-  select(tinh, huyen, everything())
+  select(tinh, huyen, everything()) %>% 
+  mutate(year = 2016)
 
 dist_cov17 <- dist_cov17_shp %>% vhlss_distcov_fn() %>% mutate(year = 2017)
+
+dist_cov18a <- dist_cov18 %>% rename(dist_coverage_share = coverage_share) %>% select(-distname2018) 
+
+umts_dist_a <- bind_rows(dist_cov10, dist_cov12, dist_cov14, dist_cov16, dist_cov18a) %>% 
+  filter(!is.na(prov2018)) %>% 
+  group_by(year) %>%
+  summarise(n = n(),
+            umts = sum(dist_coverage_share > 0, na.rm = T))
+
+umts_dist <- bind_rows(dist_cov10, dist_cov12, dist_cov14, dist_cov16, dist_cov18a) %>% 
+  filter(dist_coverage_share > 0 & !is.na(prov2018)) %>%
+  group_by(prov2018, dist2018) %>%
+  summarise(first_treated = min(year), .groups = "drop")
