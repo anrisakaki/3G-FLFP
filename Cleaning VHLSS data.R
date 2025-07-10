@@ -79,7 +79,9 @@ vhlss04 <- list(m123a_04, m4a_04) %>%
          hhwt = wt45) %>% 
   select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban,
          work, wagework, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal,
-         occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt)
+         occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt) %>% 
+  left_join(umts2) %>% 
+  mutate(first_treated = ifelse(tinh == 105, 2012, first_treated))
 
 save(vhlss04, file = ("Clean data/vhlss04.Rda"))
 write_dta(vhlss04, "Clean data/vhlss04.dta")
@@ -124,8 +126,8 @@ vhlss06 <- list(m1a_06, m2a_06, m4a_06) %>%
   select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban,
          work, wagework, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
          occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt) %>% 
-  left_join(dist0418) %>% 
-  left_join(umts2)
+  left_join(umts2) %>% 
+  mutate(first_treated = ifelse(tinh == 105, 2012, first_treated))
 
 save(vhlss06, file = ("Clean data/vhlss06.Rda"))
 write_dta(vhlss06, "Clean data/vhlss06.dta")
@@ -171,9 +173,9 @@ vhlss08 <- list(m123a_08, m4a_08) %>%
   select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban, ethnicity,
          work, wagework, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
          occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt) %>% 
-  group_by(tinh, huyen, xa, diaban, hoso) %>% 
-  left_join(dist0418) %>% 
-  left_join(umts2)
+  group_by(tinh, huyen, xa, diaban, hoso)  %>% 
+  left_join(umts2) %>% 
+  mutate(first_treated = ifelse(tinh == 105, 2012, first_treated))
 
 save(vhlss08, file = ("Clean data/vhlss08.Rda"))
 write_dta(vhlss08, "Clean data/vhlss08.dta")
@@ -191,8 +193,7 @@ vhlss10 <- list(m1a_10, m2a1_10, m4a1_10, m4a2_10, m4a3_10, m4a4_10) %>%
          work, wagework, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
          occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt) %>% 
   group_by(tinh, huyen, xa, diaban, hoso) %>% 
-  left_join(umts) %>% 
-  left_join(dist_cov10)
+  left_join(umts)
 
 save(vhlss10, file = ("Clean data/vhlss10.Rda"))
 write_dta(vhlss10, "Clean data/vhlss10.dta")
@@ -209,8 +210,7 @@ vhlss12 <- list(m1a_12, m2a_12) %>%
          work, wagework, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
          occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt) %>% 
   group_by(tinh, huyen, xa, diaban, hoso) %>% 
-  left_join(umts) %>% 
-  left_join(dist_cov12)
+  left_join(umts)
 
 save(vhlss12, file = ("Clean data/vhlss12.Rda"))
 write_dta(vhlss12, "Clean data/vhlss12.dta")
@@ -231,9 +231,8 @@ vhlss14 <- list(m1a_14, m2a_14, m4a_14) %>%
   select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban, ethnicity,
          work, wagework, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
          occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt) %>% 
-  group_by(tinh, huyen, xa, diaban, hoso)  %>% 
-  left_join(umts) %>% 
-  left_join(dist_cov14)
+  group_by(tinh, huyen, xa, diaban, hoso) %>% 
+  left_join(umts)
 
 save(vhlss14, file = ("Clean data/vhlss14.Rda"))
 write_dta(vhlss14, "Clean data/vhlss14.dta")
@@ -285,8 +284,7 @@ vhlss16 <- list(m1a_16, m2ab_16, m4a_16) %>%
   select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban, ethnicity,
          work, wagework, agri, manu, service, informal, informal2, agri_informal, nonagri_informal, manu_informal, service_informal, 
          occ, org, ind, days, hours, inc, work2, occ2, org2, ind2, days2, hours2, hhwt) %>% 
-  left_join(umts) %>% 
-  left_join(dist_cov16)
+  left_join(umts)
 
 save(vhlss16, file = ("Clean data/vhlss16.Rda"))
 write_dta(vhlss16, "Clean data/vhlss16.dta")
@@ -296,12 +294,6 @@ write_dta(vhlss16, "Clean data/vhlss16.dta")
 m1a_18 <- m1a_18 %>% rename(matv = m1ama)
 m2v_18 <- m2v_18 %>% rename(matv = m2vma)
 m4a_18 <- m4a_18 %>% rename(matv = m4ama)
-
-dist_cov18 <- dist_cov18 %>%
-  mutate(tinh = prov2018, huyen = dist2018) %>%
-  select(-distname2018) %>% 
-  rename(dist_coverage_share = coverage_share,
-         dist_coverage = coverage)
 
 vhlss18 <- list(m1a_18, m2v_18, m4a_18) %>% 
   reduce(merge) %>% 
@@ -345,8 +337,7 @@ vhlss18 <- list(m1a_18, m2v_18, m4a_18) %>%
          work, wagework, agri, service, manu, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
          occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt) %>% 
   group_by(tinh, huyen, xa, diaban, hoso) %>% 
-  left_join(umts) %>% 
-  left_join(dist_cov18)
+  left_join(umts)
 
 save(vhlss18, file = ("Clean data/vhlss18.Rda"))
 write_dta(vhlss18, "Clean data/vhlss18.dta")
@@ -406,9 +397,6 @@ vhlss_all <- bind_rows(vhlss04, vhlss06, vhlss08, vhlss10, vhlss12, vhlss14, vhl
          children_u7 = sum(age < 7, na.rm = T),
          nchild = sum(age < 18, na.rm = T)) %>% 
   ungroup() %>% 
-  group_by(prov2018, dist2018) %>%
-  mutate(dist = cur_group_id()) %>% 
-  ungroup() %>% 
   left_join(umts_coverage, by = c("tinh", "year")) %>% 
   mutate(
     coverage_share = ifelse(is.na(coverage_share), 0, coverage_share),
@@ -437,7 +425,7 @@ vhlss_all <- bind_rows(vhlss04, vhlss06, vhlss08, vhlss10, vhlss12, vhlss14, vhl
     time_to_treated = year - first_treated,
     year_treated2 = ifelse(treat14 == 0, 10000, first_treated)
   ) %>% 
-  select(year, dist, tinh, huyen, xa, diaban, hoso, everything())
+  select(year, tinh, huyen, xa, diaban, hoso, everything())
 
 save(vhlss_all, file = "Clean data/vhlss_all.Rda")
 write_dta(vhlss_all, "Clean data/vhlss_all.dta")
@@ -466,6 +454,68 @@ sum_vhlss_fn <- function(i){
 ##################
 # District-level #
 ##################
+
+dist_cov18 <- dist_cov18 %>%
+  mutate(tinh = prov2018, huyen = dist2018) %>%
+  select(-distname2018) %>% 
+  rename(dist_coverage_share = coverage_share,
+         dist_coverage = coverage)
+
+vhlss04_dist <- vhlss04 %>% 
+  select(-first_treated) %>% 
+  left_join(dist0418)
+
+vhlss06_dist <- vhlss06 %>% 
+  select(-first_treated) %>% 
+  left_join(dist0418)
+
+vhlss08_dist <- vhlss08 %>% 
+  select(-first_treated) %>% 
+  left_join(dist0418)
+
+vhlss10_dist <- vhlss10 %>% 
+  select(-first_treated) %>% 
+  left_join(dist_cov10)
+
+vhlss12_dist <- vhlss12 %>% 
+  select(-first_treated) %>% 
+  left_join(dist_cov12)
+
+vhlss14_dist <- vhlss14 %>% 
+  select(-first_treated) %>% 
+  left_join(dist_cov14)
+
+vhlss16_dist <- vhlss16 %>% 
+  select(-first_treated) %>% 
+  left_join(dist_cov16)
+
+vhlss18_dist <- vhlss18 %>% 
+  select(-first_treated) %>% 
+  left_join(dist_cov18)
+
+vhlss_all_dist <- bind_rows(vhlss04_dist, vhlss06_dist, vhlss08_dist, vhlss10_dist,
+                            vhlss12_dist, vhlss14_dist, vhlss16_dist, vhlss18_dist) %>% 
+  group_by(year, tinh, huyen, xa, diaban, hoso) %>% 
+  mutate(hhid = cur_group_id(),
+         children_u7 = sum(age < 7, na.rm = T),
+         nchild = sum(age < 18, na.rm = T)) %>% 
+  ungroup() %>% 
+  group_by(prov2018, dist2018) %>%
+  mutate(dist = cur_group_id()) %>% 
+  ungroup() %>% 
+  mutate(informal = ifelse(work == 0, NA, informal),
+         agri_informal2 = agri*informal,
+         manu_informal2 = manu*informal,
+         service_informal2 = service*informal,
+         agri_informal2 = ifelse(work == 0, NA, agri_informal2),
+         manu_informal2 = ifelse(work == 0, NA, manu_informal2),
+         service_informal2 = ifelse(work == 0, NA, service_informal2)) %>% 
+  select(year, prov2018, dist2018, dist, tinh, huyen, xa, diaban, hoso, everything()) %>% 
+  left_join(umts_dist) %>% 
+  mutate(time_to_treat = year - first_treated)
+
+save(vhlss_all_dist, file = "vhlss_all_dist.Rda")
+write_dta(vhlss_all_dist, "vhlss_all_dist.dta")
 
 ###########
 # Summary #
