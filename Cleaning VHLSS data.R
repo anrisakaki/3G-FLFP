@@ -503,13 +503,15 @@ vhlss_all_dist <- bind_rows(vhlss04_dist, vhlss06_dist, vhlss08_dist, vhlss10_di
   group_by(prov2018, dist2018) %>%
   mutate(dist = cur_group_id()) %>% 
   ungroup() %>% 
-  mutate(informal = ifelse(work == 0, NA, informal),
-         agri_informal2 = agri*informal,
-         manu_informal2 = manu*informal,
-         service_informal2 = service*informal,
-         agri_informal2 = ifelse(work == 0, NA, agri_informal2),
-         manu_informal2 = ifelse(work == 0, NA, manu_informal2),
-         service_informal2 = ifelse(work == 0, NA, service_informal2)) %>% 
+  mutate(formal = ifelse(work == 1 & informal == 0, 1, 0),
+         informal = ifelse(work == 0, NA, informal),
+         formal = ifelse(work == 0, NA, formal),
+         agri_informal = agri*informal,
+         manu_informal = manu*informal,
+         service_informal = service*informal,
+         agri_formal = agri*formal,
+         manu_formal = manu*formal,
+         service_formal = service*formal) %>% 
   select(year, prov2018, dist2018, dist, tinh, huyen, xa, diaban, hoso, everything()) %>% 
   left_join(umts_dist) %>% 
   mutate(time_to_treat = year - first_treated)
