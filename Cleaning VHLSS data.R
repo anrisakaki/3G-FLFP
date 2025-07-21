@@ -409,18 +409,14 @@ vhlss_all <- bind_rows(vhlss04, vhlss06, vhlss08, vhlss10, vhlss12, vhlss14, vhl
     agri = ifelse(work == 0, NA, agri),
     manu = ifelse(work == 0, NA, manu),
     service = ifelse(work == 0, NA, service),
+    agri_informal = agri*informal,
+    manu_informal = manu*informal,
+    service_informal = service*informal,
     agri_informal = ifelse(work == 0, NA, agri_informal),
     manu_informal = ifelse(work == 0, NA, manu_informal),
     service_informal = ifelse(work == 0, NA, service_informal),
+    nonagri_informal = ifelse(agri_informal == 0 & work == 1, 1, 0),
     nonagri_informal = ifelse(work == 0, NA, nonagri_informal),
-    agri_informal2 = agri*informal,
-    manu_informal2 = manu*informal,
-    service_informal2 = service*informal,
-    agri_informal2 = ifelse(work == 0, NA, agri_informal2),
-    manu_informal2 = ifelse(work == 0, NA, manu_informal2),
-    service_informal2 = ifelse(work == 0, NA, service_informal2),
-    nonagri_informal2 = ifelse(agri_informal2 == 0 & work == 1, 1, 0),
-    nonagri_informal2 = ifelse(work == 0, NA, nonagri_informal2),
     treat14 = ifelse(first_treated < 2014, 1, 0),
     time_to_treated = year - first_treated,
     year_treated2 = ifelse(treat14 == 0, 10000, first_treated)
@@ -440,14 +436,10 @@ sum_vhlss_fn <- function(i){
       agri = weighted.mean(agri, hhwt, na.rm = T),
       manu = weighted.mean(manu, hhwt, na.rm = T),
       service = weighted.mean(service, hhwt, na.rm = T),
-      agri_informal = weighted.mean(agri_informal, hhwt, na.rm = T),
-      agri_informal2 = weighted.mean(agri_informal2, hhwt, na.rm = T),
-      manu_informal = weighted.mean(manu_informal, hhwt, na.rm = T),
-      manu_informal2 = weighted.mean(manu_informal2, hhwt, na.rm = T),
-      service_informal = weighted.mean(service_informal, hhwt, na.rm = T),
-      service_informal2 = weighted.mean(service_informal2, hhwt, na.rm = T),
-      nonagri_informal = weighted.mean(nonagri_informal, hhwt, na.rm = T),
-      nonagri_informal2 = weighted.mean(nonagri_informal2, hhwt, na.rm = T)
+      agri_informal = weighted.mean(agri_informal2, hhwt, na.rm = T),
+      manu_informal = weighted.mean(manu_informal2, hhwt, na.rm = T),
+      service_informal = weighted.mean(service_informal2, hhwt, na.rm = T),
+      nonagri_informal = weighted.mean(nonagri_informal2, hhwt, na.rm = T)
     )
 }
 
@@ -516,8 +508,8 @@ vhlss_all_dist <- bind_rows(vhlss04_dist, vhlss06_dist, vhlss08_dist, vhlss10_di
   left_join(umts_dist) %>% 
   mutate(time_to_treat = year - first_treated)
 
-save(vhlss_all_dist, file = "vhlss_all_dist.Rda")
-write_dta(vhlss_all_dist, "vhlss_all_dist.dta")
+save(vhlss_all_dist, file = "Clean data/vhlss_all_dist.Rda")
+write_dta(vhlss_all_dist, "Clean data/vhlss_all_dist.dta")
 
 ###########
 # Summary #
@@ -558,10 +550,10 @@ vhlss_prov <- vhlss_all %>%
     agri = weighted.mean(agri, hhwt, na.rm = T),
     manu = weighted.mean(manu, hhwt, na.rm = T),
     service = weighted.mean(service, hhwt, na.rm = T),
-    agri_informal2 = weighted.mean(agri_informal2, hhwt, na.rm = T),
-    manu_informal2 = weighted.mean(manu_informal2, hhwt, na.rm = T),
-    service_informal2 = weighted.mean(service_informal2, hhwt, na.rm = T),
-    nonagri_informal2 = weighted.mean(nonagri_informal2, hhwt, na.rm = T)
+    agri_informal = weighted.mean(agri_informal, hhwt, na.rm = T),
+    manu_informal = weighted.mean(manu_informal, hhwt, na.rm = T),
+    service_informal = weighted.mean(service_informal, hhwt, na.rm = T),
+    nonagri_informal = weighted.mean(nonagri_informal, hhwt, na.rm = T)
   )
 
 vhlss_prov_wide <- vhlss_prov %>%
