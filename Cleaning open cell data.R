@@ -565,3 +565,6 @@ umts_dist <- bind_rows(dist_cov10, dist_cov12, dist_cov14, dist_cov16, dist_cov1
   filter(dist_coverage_share > 0 & !is.na(prov2018)) %>%
   group_by(prov2018, dist2018) %>%
   summarise(first_treated = min(year), .groups = "drop")
+
+save(umts_dist, file = "Clean data/umts_dist.Rda")
+write_dta(umts_dist, "Clean data/umts_dist.dta")
