@@ -15,8 +15,8 @@ dict = c("as.factor(female)" = "Female",
 # DiD
 
 vhlss_all_dist_did <- vhlss_all_dist %>% 
-  mutate(time_to_treat = ifelse(is.na(first_treated) | first_treated > 2016, -1000, time_to_treat),
-         first.treat.csdid = ifelse(is.na(first_treated) | first_treated > 2016, 0, first_treated),
+  mutate(time_to_treat = ifelse(is.na(first_treated), -1000, time_to_treat),
+         first.treat.csdid = ifelse(is.na(first_treated), 0, first_treated),
          first_treated2 = ifelse(time_to_treat == -1000, 10000, first_treated))
 
 vhlss_dist_did <- vhlss_all_dist_did %>% 
@@ -34,11 +34,15 @@ vhlss_dist_did <- vhlss_all_dist_did %>%
     agri_formal = weighted.mean(agri_formal, na.rm = T),
     manu_formal = weighted.mean(manu_formal, na.rm = T),
     service_formal = weighted.mean(service_formal, na.rm = T)
-  )
+  ) %>% 
+  mutate(coverage = ifelse(time_to_treat > -1, 1, 0),
+         coverage = ifelse(year < 2010, NA, coverage))
 
-##################
-# DISTRICT-LEVEL #
-##################
+save(vhlss_dist_did, file = "Clean data/vhlss_dist_did.Rda")
+
+####################################################
+# INDV-LEVEL - EXPLOITING DISTRICT LEVEL VARIATION #
+####################################################
 
 etable(list(
   feols(work ~ dist_coverage_share + age + age^2 + as.factor(female) + yrschool + nchild | 
@@ -64,14 +68,30 @@ etable(list(
   feols(service_formal ~ dist_coverage + age + age^2 + as.factor(female) + yrschool + nchild | 
           dist + year, subset(vhlss_all_dist, age > 19 & age < 65 & year > 2008), weights = ~hhwt, vcov = ~dist)), tex = T, dict = dict)
 
-# Work
+##################
+# DISTRICT-LEVEL #
+##################
+
+# TWFE
+
+etable(list(
+  feols(work ~ coverage | year + dist, vhlss_dist_did, vcov = ~dist),
+  feols(informal ~ coverage | year + dist, vhlss_dist_did, vcov = ~dist),
+  feols(agri_formal ~ coverage | year + dist, vhlss_dist_did, vcov = ~dist),
+  feols(manu_formal ~ coverage | year + dist, vhlss_dist_did, vcov = ~dist),
+  feols(service_formal ~ coverage | year + dist, vhlss_dist_did, vcov = ~dist)
+), tex = T)
+
+# EVENT STUDY
+
+## Work
 
 csdid_work_dist <- aggte(att_gt(yname = "work",
                                     gname = "first.treat.csdid",
                                     idname = "dist",
                                     tname = "year",
                                     control_group = "notyettreated",
-                                    data = subset(vhlss_dist_did, year < 2018)), type = "dynamic")
+                                    data = vhlss_dist_did), type = "dynamic")
 
 csdid_work_df <- data.frame(
   event_time = csdid_work_dist$egt,
@@ -81,7 +101,7 @@ csdid_work_df <- data.frame(
 )
 
 twfe_work <- feols(work ~ i(time_to_treat, ref = c(-2, -1000)) | 
-                         dist + year, subset(vhlss_dist_did, year < 2018), vcov = ~dist)
+                         dist + year, vhlss_dist_did, vcov = ~dist)
 twfe_work_df <- broom::tidy(twfe_work, conf.int = TRUE)
 twfe_work_df$event_time <- as.numeric(gsub("time_to_treat::", "", twfe_work_df$term))
 twfe_work_df <- twfe_work_df[, c("event_time", "estimate", "std.error")]
@@ -90,14 +110,14 @@ colnames(twfe_work_df) <- c("event_time", "att", "se", "model")
 
 work_did <- rbind(csdid_work_df, twfe_work_df)
 
-# Informality 
+## Informality 
 
 csdid_informal_dist <- aggte(att_gt(yname = "informal",
                          gname = "first.treat.csdid",
                          idname = "dist",
                          tname = "year",
                          control_group = "notyettreated",
-                         data = subset(vhlss_dist_did, year < 2018)), type = "dynamic")
+                         data = vhlss_dist_did), type = "dynamic")
 
 csdid_informal_df <- data.frame(
   event_time = csdid_informal_dist$egt,
@@ -107,7 +127,7 @@ csdid_informal_df <- data.frame(
 )
 
 twfe_informal <- feols(informal ~ i(time_to_treat, ref = c(-2, -1000)) | 
-        dist + year, subset(vhlss_dist_did, year < 2018), vcov = ~dist)
+        dist + year, vhlss_dist_did, vcov = ~dist)
 twfe_informal_df <- broom::tidy(twfe_informal, conf.int = TRUE)
 twfe_informal_df$event_time <- as.numeric(gsub("time_to_treat::", "", twfe_informal_df$term))
 twfe_informal_df <- twfe_informal_df[, c("event_time", "estimate", "std.error")]
@@ -116,7 +136,7 @@ colnames(twfe_informal_df) <- c("event_time", "att", "se", "model")
 
 informal_did <- rbind(csdid_informal_df, twfe_informal_df)
 
-# Agri informal 
+## Agri informal 
 
 csdid_agri_dist <- aggte(att_gt(yname = "agri_informal",
                                     gname = "first.treat.csdid",
@@ -140,7 +160,7 @@ colnames(twfe_agri_df) <- c("event_time", "att", "se", "model")
 
 agri_did <- rbind(csdid_agri_df, twfe_agri_df)
 
-# Manu formal
+## Manu formal
 
 csdid_manu_dist <- aggte(att_gt(yname = "manu_formal",
                                    gname = "first.treat.csdid",
@@ -166,7 +186,7 @@ colnames(twfe_manu_df) <- c("event_time", "att", "se", "model")
 
 manu_did <- rbind(csdid_manu_df, twfe_manu_df)
 
-# Service formal
+## Service formal
 
 csdid_service_dist <- aggte(att_gt(yname = "service_formal",
                                     gname = "first.treat.csdid",
