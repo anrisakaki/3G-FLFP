@@ -1,10 +1,6 @@
 ivid <- c("tinh", "huyen", "xa", "diaban", "hoso", "matv")
 hhid <- c("tinh", "huyen", "xa", "diaban", "hoso")
 
-#################
-# Labour market #
-#################
-
 clean_vhlss_fn <- function(i){
   
   i %>% 
@@ -83,10 +79,37 @@ vhlss04 <- list(m123a_04, m4a_04) %>%
   left_join(umts2) %>% 
   mutate(first_treated = ifelse(tinh == 105, 2012, first_treated))
 
+hhbus04 <- m4c1_04 %>% 
+  rename(busno = m4c1ma,
+         ind = m4c1c2,
+         erc = m4c1c8,
+         annual_rev = m4c1c11) %>% 
+  mutate(erc = ifelse(erc == 1, 1, 0),
+         year = 2004) %>% 
+  select(year, tinh, huyen, xa, diaban, hoso, busno, ind, erc, annual_rev) %>% 
+  left_join(dist0418) %>% 
+  merge(wt04, by = c("tinh", "huyen", "xa", "hoso"))
+
+save(hhbus04, file = ("Clean data/hhbus04.Rda"))
+write_dta(hhbus04, "Clean data/hhbus04.dta")
+
 save(vhlss04, file = ("Clean data/vhlss04.Rda"))
 write_dta(vhlss04, "Clean data/vhlss04.dta")
 
 # 2006 
+
+hhbus06 <-  m4c_06 %>% 
+  rename(busno = m4c1ma,
+         ind = m4c1c2,
+         erc = m4c1c15,
+         annual_rev = m4c1c18) %>% 
+  mutate(erc = ifelse(erc < 3, 1, 0),
+         diaban = as.numeric(diaban),
+         year = 2006) %>% 
+  select(year, tinh, huyen, xa, diaban, hoso, busno, ind, erc, annual_rev) %>% 
+  left_join(dist0418) %>% 
+  left_join(wt06)
+
 wt06 <- wt06 %>% select(tinh, huyen, xa, hoso, urban, rcpi, mcpi, wt45)
 
 vhlss06 <- list(m1a_06, m2a_06, m4a_06) %>% 
@@ -128,6 +151,9 @@ vhlss06 <- list(m1a_06, m2a_06, m4a_06) %>%
          occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt) %>% 
   left_join(umts2) %>% 
   mutate(first_treated = ifelse(tinh == 105, 2012, first_treated))
+
+save(hhbus06, file = ("Clean data/hhbus06.Rda"))
+write_dta(hhbus06, "Clean data/hhbus06.dta")
 
 save(vhlss06, file = ("Clean data/vhlss06.Rda"))
 write_dta(vhlss06, "Clean data/vhlss06.dta")
@@ -176,6 +202,20 @@ vhlss08 <- list(m123a_08, m4a_08) %>%
   group_by(tinh, huyen, xa, diaban, hoso)  %>% 
   left_join(umts2) %>% 
   mutate(first_treated = ifelse(tinh == 105, 2012, first_treated))
+
+hhbus08 <- m4c1_08 %>% 
+  rename(busno = m4c1ma1,
+         ind = m4c1c2,
+         erc = m4c1c15,
+         annual_rev = m4c1c18) %>% 
+  mutate(erc = ifelse(erc < 3, 1, 0),
+         year = 2008) %>% 
+  select(year, tinh, huyen, xa, diaban, hoso, busno, ind, erc, annual_rev) %>% 
+  left_join(dist0418) %>% 
+  left_join(wt08)
+
+save(hhbus08, file = ("Clean data/hhbus08.Rda"))
+write_dta(hhbus08, "Clean data/hhbus08.dta")
 
 save(vhlss08, file = ("Clean data/vhlss08.Rda"))
 write_dta(vhlss08, "Clean data/vhlss08.dta")
@@ -639,6 +679,66 @@ vhlss_prov_wide_shp <- vhlss_prov_wide %>%
                        .default = NA_character_)) %>% 
   left_join(vnmap1) %>% 
   st_as_sf()
+
+######################
+# HOUSEHOLD BUSINESS #
+######################
+
+hhbus12 <- m4c1_12 %>% 
+  rename(busno = m4c1ma,
+         ind = m4c1c2,
+         erc = m4c1c7,
+         annual_rev = m4c1c10) %>% 
+  mutate(erc = ifelse(erc < 3, 1, 0),
+         year = 2012) %>% 
+  select(year, tinh, huyen, xa, diaban, hoso, busno, ind, erc, annual_rev) %>% 
+  left_join(dist_cov12)
+
+hhbus14 <- m4c1_14 %>% 
+  rename(busno = m4c1ma,
+         ind = m4c1c2,
+         erc = m4c1c7,
+         annual_rev = m4c1c10) %>% 
+  mutate(erc = ifelse(erc < 3, 1, 0),
+         year = 2014) %>% 
+  select(year, tinh, huyen, xa, diaban, hoso, busno, ind, erc, annual_rev) %>% 
+  left_join(dist_cov14)
+
+hhbus16 <- m4c1_16 %>% 
+  filter(m4c1ma > 0) %>% 
+  rename(busno = m4c1ma,
+         ind = m4c1c2,
+         erc = m4c1c7,
+         annual_rev = m4c1c10) %>% 
+  mutate(erc = ifelse(erc < 3, 1, 0),
+         year = 2016) %>% 
+  select(year, tinh, huyen, xa, diaban, hoso, busno, ind, erc, annual_rev) %>% 
+  left_join(dist_cov16)
+
+hhbus18 <- m4c1_18 %>% 
+  filter(m4c1ma > 0) %>% 
+  rename(busno = m4c1ma,
+         ind = m4c1c2,
+         erc = m4c1c7,
+         annual_rev = m4c1c10) %>% 
+  mutate(erc = ifelse(erc < 3, 1, 0),
+         prov2018 = tinh,
+         dist2018 = huyen,
+         year = 2018) %>% 
+  select(year, tinh, huyen, prov2018, dist2018, xa, diaban, hoso, busno, ind, erc, annual_rev)%>% 
+  left_join(dist_cov18) %>% 
+  rename(dist_coverage_share = coverage_share,
+         dist_coverage = coverage) %>% 
+  select(-distname2018)
+
+hhbus_all <- bind_rows(hhbus04, hhbus06, hhbus08, hhbus10, hhbus12, hhbus14, hhbus16, hhbus18)
+save(hhbus_all, file = "hhbus_all.Rda")
+write_dta(hhbus_all, "hhbus_all.dta")
+
+hhbus_sum <- hhbus_all %>% 
+  group_by(year) %>% 
+  summarise(n = n(),
+            erc = mean(erc, na.rm = T))
 
 ##########
 # Assets #
