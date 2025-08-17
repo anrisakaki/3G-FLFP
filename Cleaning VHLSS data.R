@@ -85,8 +85,10 @@ hhbus04 <- m4c1_04 %>%
          erc = m4c1c8,
          annual_rev = m4c1c11) %>% 
   mutate(erc = ifelse(erc == 1, 1, 0),
+         manu = ifelse(ind > 9 & ind < 34, 1, 0),
+         service = ifelse(ind > 45, 1, 0),
          year = 2004) %>% 
-  select(year, tinh, huyen, xa, diaban, hoso, busno, ind, erc, annual_rev) %>% 
+  select(year, tinh, huyen, xa, diaban, hoso, busno, ind, manu, service, erc, annual_rev) %>% 
   left_join(dist0418) %>% 
   merge(wt04) %>% 
   rename(hhwt = wt45)
@@ -106,8 +108,10 @@ hhbus06 <-  m4c_06 %>%
          annual_rev = m4c1c18) %>% 
   mutate(erc = ifelse(erc < 3, 1, 0),
          diaban = as.numeric(diaban),
+         manu = ifelse(ind > 9 & ind < 34, 1, 0),
+         service = ifelse(ind > 45, 1, 0),
          year = 2006) %>% 
-  select(year, tinh, huyen, xa, diaban, hoso, busno, ind, erc, annual_rev) %>% 
+  select(year, tinh, huyen, xa, diaban, hoso, busno, ind, manu, service, erc, annual_rev) %>% 
   left_join(dist0418) %>% 
   merge(wt06) %>% 
   rename(hhwt = wt45)
@@ -211,8 +215,10 @@ hhbus08 <- m4c1_08 %>%
          erc = m4c1c15,
          annual_rev = m4c1c18) %>% 
   mutate(erc = ifelse(erc < 3, 1, 0),
+         manu = ifelse(ind > 9 & ind < 34, 1, 0),
+         service = ifelse(ind > 43, 1, 0),
          year = 2008) %>% 
-  select(year, tinh, huyen, xa, diaban, hoso, busno, ind, erc, annual_rev) %>% 
+  select(year, tinh, huyen, xa, diaban, hoso, busno, ind, manu, service, erc, annual_rev) %>% 
   left_join(dist0418) %>% 
   merge(wt08) %>% 
   rename(hhwt = wt45) %>% 
@@ -245,8 +251,10 @@ hhbus10 <- m4c1_10 %>%
          erc = m4c1c7,
          annual_rev = m4c1c10) %>% 
   mutate(erc = ifelse(erc < 3, 1, 0),
+         manu = ifelse(ind > 9 & ind < 34, 1, 0),
+         service = ifelse(ind > 43, 1, 0),
          year = 2010) %>% 
-  select(year, tinh, huyen, xa, diaban, hoso, busno, ind, erc, annual_rev) %>% 
+  select(year, tinh, huyen, xa, diaban, hoso, busno, ind, manu, service, erc, annual_rev) %>% 
   left_join(dist_cov10) %>% 
   merge(wt10) %>% 
   rename(hhwt = wt9)
@@ -277,8 +285,10 @@ hhbus12 <- m4c1_12 %>%
          erc = m4c1c7,
          annual_rev = m4c1c10) %>% 
   mutate(erc = ifelse(erc < 3, 1, 0),
+         manu = ifelse(ind > 9 & ind < 34, 1, 0),
+         service = ifelse(ind > 43, 1, 0),
          year = 2012) %>% 
-  select(year, tinh, huyen, xa, diaban, hoso, busno, ind, erc, annual_rev) %>% 
+  select(year, tinh, huyen, xa, diaban, hoso, busno, ind, manu, service, erc, annual_rev) %>% 
   left_join(dist_cov12) %>% 
   merge(wt12) %>% 
   rename(hhwt = wt9) %>% 
@@ -315,8 +325,10 @@ hhbus14 <- m4c1_14 %>%
          erc = m4c1c7,
          annual_rev = m4c1c10) %>% 
   mutate(erc = ifelse(erc < 3, 1, 0),
+         manu = ifelse(ind > 9 & ind < 34, 1, 0),
+         service = ifelse(ind > 43, 1, 0),
          year = 2014) %>% 
-  select(year, tinh, huyen, xa, diaban, hoso, busno, ind, erc, annual_rev) %>% 
+  select(year, tinh, huyen, xa, diaban, hoso, busno, ind, service, manu, erc, annual_rev) %>% 
   left_join(dist_cov14) %>% 
   merge(wt14) %>% 
   rename(hhwt = wt45)
@@ -383,8 +395,11 @@ hhbus16 <- m4c1_16 %>%
          erc = m4c1c7,
          annual_rev = m4c1c10) %>% 
   mutate(erc = ifelse(erc < 3, 1, 0),
+         agri = ifelse(ind < 4, 1, 0),
+         manu = ifelse(ind > 9 & ind < 34, 1, 0),
+         service = ifelse(ind > 43, 1, 0),
          year = 2016) %>% 
-  select(year, tinh, huyen, xa, diaban, hoso, busno, ind, erc, annual_rev) %>% 
+  select(year, tinh, huyen, xa, diaban, hoso, busno, ind, manu, service, erc, annual_rev) %>% 
   left_join(dist_cov16) %>% 
   merge(wt16) %>% 
   rename(hhwt = wt45)
@@ -454,12 +469,13 @@ hhbus18 <- m4c1_18 %>%
   mutate(erc = ifelse(erc < 3, 1, 0),
          prov2018 = tinh,
          dist2018 = huyen,
+         agri = ifelse(ind < 4, 1, 0),
+         manu = ifelse(ind > 9 & ind < 34, 1, 0),
+         service = ifelse(ind > 43, 1, 0),
          year = 2018) %>% 
-  select(year, tinh, huyen, prov2018, dist2018, xa, diaban, hoso, busno, ind, erc, annual_rev)%>% 
+  select(year, tinh, huyen, prov2018, dist2018, xa, diaban, hoso, busno, ind, manu, service, erc, annual_rev)%>% 
   left_join(dist_cov18) %>% 
-  rename(dist_coverage_share = coverage_share,
-         dist_coverage = coverage) %>% 
-  select(-distname2018) %>% 
+  select(-dist2018) %>% 
   left_join(wt18) %>% 
   rename(hhwt = wt36)
 
@@ -468,55 +484,6 @@ write_dta(hhbus18, "Clean data/hhbus18.dta")
 
 save(vhlss18, file = ("Clean data/vhlss18.Rda"))
 write_dta(vhlss18, "Clean data/vhlss18.dta")
-
-# 2020
-
-wt20 <- wt20 %>% select(tinh, huyen, xa, diaban, ttnt, wt36, wt45) %>% distinct()
-m1a_20 <- m1a_20 %>% rename(matv = m1ama)
-m2v_20 <- m2v_20 %>% rename(matv = m2vma)
-m4a_20 <- m4a_20 %>% rename(matv = m4ama)
-
-vhlss20 <- list(m1a_20, m2v_20, m4a_20) %>% 
-  reduce(merge, by = ivid) %>% 
-  merge(ho1_20, by = hhid) %>% 
-  merge(wt20, by = c("tinh", "huyen", "xa", "diaban", "ttnt")) %>% 
-  mutate(female = ifelse(m1ac2 == 2, 1, 0),
-         internet = ifelse(m1ac15 == 1, 1, 0),
-         wagework = ifelse(m4ac1a == 1, 1, 0),
-         work = ifelse(m4ac2 == 1, 1, 0),
-         work2 = ifelse(m4ac14 == 1, 1, 0),
-         inc = m4ac11 + m4ac12a + m4ac12b,
-         yrschool = as.numeric(m2vc1),
-         m4ac4 = ifelse(m4ac4 > 99, 1, m4ac4),
-         urban = ifelse(ttnt == 1, 1, 0),
-         agri = ifelse(m4ac4 < 4, 1, 0),
-         manu = ifelse(m4ac4 > 9 & m4ac4 < 34, 1, 0),
-         service = ifelse(m4ac4 > 43, 1, 0),
-         informal = ifelse(m4ac8a < 3, 1, 0),
-         informal2 = ifelse(m4ac20 < 3, 1, 0),
-         agri_informal = ifelse(m4ac8a == 1 & work == 1, 1, 0),
-         manu_informal = ifelse(manu == 1 & m4ac8a == 2 & work == 1, 1, 0),
-         service_informal = ifelse(service == 1 & m4ac8a == 2 & work == 1, 1, 0),
-         nonagri_informal = ifelse(m4ac8a == 2 & work == 1, 1, 0),
-         year = 2020) %>% 
-  rename(age = m1ac5,
-         marst = m1ac8,
-         educattain = m2vc2a,
-         days = m4ac6,
-         days2 = m4ac18,
-         hours = m4ac7,
-         hours2 = m4ac19,
-         occ = m4ac3,
-         occ2 = m4ac15,
-         ind = m4ac4,
-         ind2 = m4ac16,
-         org = m4ac8a,
-         org2 = m4ac20,
-         ethnicity = dantoc,
-         hhwt = wt36) %>% 
-  select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban, ethnicity,
-         work, wagework, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
-         occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt)
 
 vhlss_all <- bind_rows(vhlss04, vhlss06, vhlss08, vhlss10, vhlss12, vhlss14, vhlss16, vhlss18) %>% 
   group_by(year, tinh, huyen, xa, diaban, hoso) %>% 
@@ -553,7 +520,15 @@ vhlss_all <- bind_rows(vhlss04, vhlss06, vhlss08, vhlss10, vhlss12, vhlss14, vhl
 save(vhlss_all, file = "Clean data/vhlss_all.Rda")
 write_dta(vhlss_all, "Clean data/vhlss_all.dta")
 
-hhbus_all <- bind_rows(hhbus04, hhbus06, hhbus08, hhbus10, hhbus12, hhbus14, hhbus16, hhbus18)
+hhbus_all <- bind_rows(hhbus04, hhbus06, hhbus08, hhbus10, hhbus12, hhbus14, hhbus16, hhbus18) %>% 
+  mutate(manu_erc = manu*erc,
+         service_erc = service*erc) %>% 
+  group_by(prov2018, dist2018) %>% 
+  mutate(distid = cur_group_id()) %>% 
+  select(-c(wtcpi, wt45, wt9, wt36, cpi, ksms, kydt, ttnt)) %>% 
+  left_join(umts_dist) %>% 
+  mutate(time_to_treat = year - first_treated) 
+
 save(hhbus_all, file = "hhbus_all.Rda")
 write_dta(hhbus_all, "hhbus_all.dta")
 
@@ -624,6 +599,63 @@ vhlss_all_dist <- bind_rows(vhlss04_dist, vhlss06_dist, vhlss08_dist, vhlss10_di
 
 save(vhlss_all_dist, file = "Clean data/vhlss_all_dist.Rda")
 write_dta(vhlss_all_dist, "Clean data/vhlss_all_dist.dta")
+
+# summarising at district level 
+vhlss_dist_did_sum <- function(i){
+  i %>% 
+    mutate(time_to_treat = ifelse(is.na(first_treated), -1000, time_to_treat),
+           first.treat.csdid = ifelse(is.na(first_treated), 0, first_treated),
+           first_treated2 = ifelse(time_to_treat == -1000, 10000, first_treated)) %>% 
+    group_by(year, dist, time_to_treat, first_treated2, first.treat.csdid) %>% 
+    summarise(
+      work = weighted.mean(work, hhwt, na.rm = T),
+      informal = weighted.mean(informal, hhwt, na.rm = T),
+      agri = weighted.mean(agri, hhwt, na.rm = T),
+      manu = weighted.mean(manu, hhwt, na.rm = T),
+      service = weighted.mean(service, hhwt, na.rm = T),
+      agri_informal = weighted.mean(agri_informal, hhwt, na.rm = T),
+      manu_informal = weighted.mean(manu_informal, hhwt, na.rm = T),
+      service_informal = weighted.mean(service_informal, hhwt, na.rm = T),
+      agri_formal = weighted.mean(agri_formal, hhwt, na.rm = T),
+      manu_formal = weighted.mean(manu_formal, hhwt, na.rm = T),
+      service_formal = weighted.mean(service_formal, hhwt, na.rm = T)
+    ) %>% 
+    mutate(coverage = ifelse(time_to_treat > -1, 1, 0),
+           coverage = ifelse(year < 2010, NA, coverage))
+}
+
+
+vhlss_dist_did <- vhlss_all_dist %>% 
+  filter(age > 19 & age < 65) %>% 
+  vhlss_dist_did_sum()
+
+vhlss_f_dist_did <- vhlss_all_dist %>% 
+  filter(age > 19 & age < 65 & female == 1) %>% 
+  vhlss_dist_did_sum()
+
+vhlss_m_dist_did <- vhlss_all_dist %>% 
+  filter(age > 19 & age < 65 & female == 0) %>% 
+  vhlss_dist_did_sum()
+
+save(vhlss_dist_did, file = "Clean data/vhlss_dist_did.Rda")
+
+vhlss_hhbus_did <- hhbus_all %>% 
+  mutate(time_to_treat = ifelse(is.na(first_treated), -1000, time_to_treat),
+         first.treat.csdid = ifelse(is.na(first_treated), 0, first_treated),
+         first_treated2 = ifelse(time_to_treat == -1000, 10000, first_treated)) %>% 
+  group_by(year, distid, time_to_treat, first_treated2, first.treat.csdid) %>% 
+  summarise(
+    erc = weighted.mean(erc, hhwt, na.rm = T),
+    manu = weighted.mean(manu, hhwt, na.rm = T),
+    service = weighted.mean(service, hhwt, na.rm = T),
+    manu_erc = weighted.mean(manu_erc, hhwt, na.rm = T),
+    service_erc = weighted.mean(service_erc, hhwt, na.rm = T),
+    annual_rev = weighted.mean(annual_rev, hhwt, na.rm = T)
+  ) %>% 
+  mutate(coverage = ifelse(time_to_treat > -1, 1, 0),
+         coverage = ifelse(year < 2010, NA, coverage))
+
+save(vhlss_hhbus_did, file = "Clean data/vhlss_hhbus_did.Rda")
 
 ###########
 # Summary #
