@@ -6,6 +6,8 @@ clean_vhlss_fn <- function(i){
   i %>% 
   mutate(female = ifelse(m1ac2 == 2, 1, 0),
          wagework = ifelse(m4ac1a == 1, 1, 0),
+         oab_agri = ifelse(m4ac1b == 1, 1, 0),
+         oab_nonagri = ifelse(m4ac1c == 1, 1, 0),
          agri_hh = ifelse(m4ac1b == 1, 1, 0),
          service_hh = ifelse(m4ac1c == 1, 1, 0),
          work = ifelse(m4ac2 == 1, 1, 0),
@@ -58,6 +60,8 @@ vhlss04 <- list(m123a_04, m4a_04) %>%
          manu_informal = ifelse(manu == 1 & informal == 1 & work == 1, 1, 0),
          service_informal = ifelse(service ==1 & informal == 1 & work == 1, 1, 0),
          nonagri_informal = ifelse(informal == 1 & work == 1 & m4ac5 > 5, 1, 0),
+         oab_agri = ifelse(m4ac1b == 1, 1, 0),
+         oab_nonagri = ifelse(m4ac1c == 1, 1, 0),
          year = 2004) %>% 
   rename(age = m1ac5,
          marst = m1ac6,
@@ -74,7 +78,7 @@ vhlss04 <- list(m123a_04, m4a_04) %>%
          org2 = m4ac20,
          hhwt = wt45) %>% 
   select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban,
-         work, wagework, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal,
+         work, wagework, oab_agri, oab_nonagri, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal,
          occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt) %>% 
   left_join(umts2) %>% 
   mutate(first_treated = ifelse(tinh == 105, 2012, first_treated))
@@ -124,6 +128,8 @@ vhlss06 <- list(m1a_06, m2a_06, m4a_06) %>%
   mutate(diaban = as.numeric(diaban),
          female = ifelse(m1ac2 == 2, 1, 0),
          wagework = ifelse(m4ac1a == 1, 1, 0),
+         oab_agri = ifelse(m4ac1b == 1, 1, 0),
+         oab_nonagri = ifelse(m4ac1c == 1, 1, 0),
          work = ifelse(m4ac2 == 1, 1, 0),
          work2 = ifelse(m4ac13 == 1, 1, 0),
          inc = m4ac11 + m4ac12f,
@@ -153,7 +159,7 @@ vhlss06 <- list(m1a_06, m2a_06, m4a_06) %>%
          org2 = m4ac20,
          hhwt = wt45) %>% 
   select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban,
-         work, wagework, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
+         work, wagework, oab_agri, oab_nonagri, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
          occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt) %>% 
   left_join(umts2) %>% 
   mutate(first_treated = ifelse(tinh == 105, 2012, first_treated))
@@ -172,6 +178,8 @@ vhlss08 <- list(m123a_08, m4a_08) %>%
   merge(wt08) %>% 
   mutate(female = ifelse(m1ac2 == 2, 1, 0),
          wagework = ifelse(m4ac1a == 1, 1, 0),
+         oab_agri = ifelse(m4ac1b == 1, 1, 0),
+         oab_nonagri = ifelse(m4ac1c == 1, 1, 0),
          work = ifelse(m4ac2 == 1, 1, 0),
          work2 = ifelse(m4ac13 == 1, 1, 0),
          inc = m4ac11 + m4ac12a + m4ac12b,
@@ -203,7 +211,7 @@ vhlss08 <- list(m123a_08, m4a_08) %>%
          ethnicity = dantoc,
          hhwt = wt9) %>% 
   select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban, ethnicity,
-         work, wagework, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
+         work, wagework, oab_agri, oab_nonagri, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
          occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt) %>% 
   group_by(tinh, huyen, xa, diaban, hoso)  %>% 
   left_join(umts2) %>% 
@@ -240,7 +248,7 @@ vhlss10 <- list(m1a_10, m2a1_10, m4a1_10, m4a2_10, m4a3_10, m4a4_10) %>%
   mutate(year = 2010,
          hhwt = wt9) %>% 
   select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban, ethnicity,
-         work, wagework, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
+         work, wagework, oab_agri, oab_nonagri, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
          occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt) %>% 
   group_by(tinh, huyen, xa, diaban, hoso) %>% 
   left_join(umts)
@@ -274,7 +282,7 @@ vhlss12 <- list(m1a_12, m2a_12) %>%
   mutate(year = 2012,
          hhwt = wt9) %>% 
   select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban, ethnicity,
-         work, wagework, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
+         work, wagework, oab_agri, oab_nonagri, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
          occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt) %>% 
   group_by(tinh, huyen, xa, diaban, hoso) %>% 
   left_join(umts)
@@ -314,7 +322,7 @@ vhlss14 <- list(m1a_14, m2a_14, m4a_14) %>%
   mutate(year = 2014,
          hhwt = wt45) %>% 
   select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban, ethnicity,
-         work, wagework, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
+         work, wagework, oab_agri, oab_nonagri, agri, manu, service, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
          occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt) %>% 
   group_by(tinh, huyen, xa, diaban, hoso) %>% 
   left_join(umts)
@@ -352,6 +360,8 @@ vhlss16 <- list(m1a_16, m2ab_16, m4a_16) %>%
   mutate(female = ifelse(m1ac2 == 2, 1, 0),
          internet = ifelse(m1ac16 == 1, 1, 0),
          wagework = ifelse(m4ac1a == 1, 1, 0),
+         oab_agri = ifelse(m4ac1b == 1, 1, 0),
+         oab_nonagri = ifelse(m4ac1b == 1, 1, 0),
          work = ifelse(m4ac2 == 1, 1, 0),
          work2 = ifelse(m4ac17 == 1, 1, 0),
          inc = m4ac11 + m4ac12a + m4ac12b,
@@ -384,7 +394,7 @@ vhlss16 <- list(m1a_16, m2ab_16, m4a_16) %>%
          ethnicity = dantoc,
          hhwt = wt45) %>% 
   select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban, ethnicity,
-         work, wagework, agri, manu, service, informal, informal2, agri_informal, nonagri_informal, manu_informal, service_informal, 
+         work, wagework, oab_agri, oab_nonagri, agri, manu, service, informal, informal2, agri_informal, nonagri_informal, manu_informal, service_informal, 
          occ, org, ind, days, hours, inc, work2, occ2, org2, ind2, days2, hours2, hhwt) %>% 
   left_join(umts)
 
@@ -423,6 +433,8 @@ vhlss18 <- list(m1a_18, m2v_18, m4a_18) %>%
   mutate(female = ifelse(m1ac2 == 2, 1, 0),
          internet = ifelse(m1ac16 == 1, 1, 0),
          wagework = ifelse(m4ac1a == 1, 1, 0),
+         oab_agri = ifelse(m4ac1b == 1, 1, 0),
+         oab_nonagri = ifelse(m4ac1c == 1, 1, 0),
          work = ifelse(m4ac2 == 1, 1, 0),
          work2 = ifelse(m4ac17 == 1, 1, 0),
          inc = m4ac11 + m4ac12a + m4ac12b,
@@ -455,7 +467,7 @@ vhlss18 <- list(m1a_18, m2v_18, m4a_18) %>%
          ethnicity = dantoc,
          hhwt = wt36) %>% 
   select(year, tinh, huyen, xa, diaban, hoso, matv, female, age, marst, yrschool, educattain, urban, ethnicity,
-         work, wagework, agri, service, manu, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
+         work, wagework, oab_agri, oab_nonagri, agri, service, manu, informal, agri_informal, nonagri_informal, manu_informal, service_informal, 
          occ, org, ind, days, hours, inc, work2, informal2, occ2, org2, ind2, days2, hours2, hhwt) %>% 
   group_by(tinh, huyen, xa, diaban, hoso) %>% 
   left_join(umts)
@@ -511,6 +523,9 @@ vhlss_all <- bind_rows(vhlss04, vhlss06, vhlss08, vhlss10, vhlss12, vhlss14, vhl
     service_informal = ifelse(work == 0, NA, service_informal),
     nonagri_informal = ifelse(agri_informal == 0 & work == 1, 1, 0),
     nonagri_informal = ifelse(work == 0, NA, nonagri_informal),
+    wagework = ifelse(work == 0, NA, wagework),
+    oab_agri = ifelse(work == 0, NA, oab_agri),
+    oab_nonagri = ifelse(work == 0, NA, oab_nonagri),
     treat14 = ifelse(first_treated < 2014, 1, 0),
     time_to_treated = year - first_treated,
     year_treated2 = ifelse(treat14 == 0, 10000, first_treated)
