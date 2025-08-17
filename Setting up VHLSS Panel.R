@@ -108,8 +108,9 @@ ivid14 <- ivid1014 %>%
 
 ivid1014 <- bind_rows(ivid10, ivid12, ivid14) 
 
-save(ivid1014, file = ("Clean data/vhlss1014_iv_panel.Rda"))
-
 vhlss1014 <- vhlss_all_dist %>% 
   filter(year > 2009 & year < 2015) %>% 
   merge(ivid1014)
+
+save(ivid1014, file = ("Clean data/vhlss1014_iv_panel.Rda"))
+save(vhlss1014, file = ("Clean data/vhlss1014_panel.Rda"))
