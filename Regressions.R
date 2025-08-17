@@ -1,3 +1,6 @@
+load("Clean data/vhlss_all_dist.Rda")
+load("Clean data/vhlss1014_panel.Rda")
+
 dict = c("as.factor(female)" = "Female",
          "coverage_share" = "3G Coverage share",
          "age" = "Age",
@@ -14,59 +17,22 @@ dict = c("as.factor(female)" = "Female",
 
 # DiD
 
-vhlss_all_dist_did <- vhlss_all_dist %>% 
-  mutate(time_to_treat = ifelse(is.na(first_treated), -1000, time_to_treat),
-         first.treat.csdid = ifelse(is.na(first_treated), 0, first_treated),
+vhlss1014 <- vhlss1014 %>% 
+  mutate(time_to_treat = ifelse(is.na(first_treated) | first_treated > 2014, -1000, time_to_treat),
+         first.treat.csdid = ifelse(is.na(first_treated) | first_treated > 2014, 0, first_treated),
          first_treated2 = ifelse(time_to_treat == -1000, 10000, first_treated))
-
-vhlss_dist_did <- vhlss_all_dist_did %>% 
-  filter(age > 19 & age < 65) %>% 
-  group_by(year, dist, time_to_treat, first_treated2, first.treat.csdid) %>% 
-  summarise(
-    work = weighted.mean(work, hhwt, na.rm = T),
-    informal = weighted.mean(informal, hhwt, na.rm = T),
-    agri = weighted.mean(agri, hhwt, na.rm = T),
-    manu = weighted.mean(manu, hhwt, na.rm = T),
-    service = weighted.mean(service, hhwt, na.rm = T),
-    agri_informal = weighted.mean(agri_informal, na.rm = T),
-    manu_informal = weighted.mean(manu_informal, na.rm = T),
-    service_informal = weighted.mean(service_informal, na.rm = T),
-    agri_formal = weighted.mean(agri_formal, na.rm = T),
-    manu_formal = weighted.mean(manu_formal, na.rm = T),
-    service_formal = weighted.mean(service_formal, na.rm = T)
-  ) %>% 
-  mutate(coverage = ifelse(time_to_treat > -1, 1, 0),
-         coverage = ifelse(year < 2010, NA, coverage))
-
-save(vhlss_dist_did, file = "Clean data/vhlss_dist_did.Rda")
 
 ####################################################
 # INDV-LEVEL - EXPLOITING DISTRICT LEVEL VARIATION #
 ####################################################
 
 etable(list(
-  feols(work ~ dist_coverage_share + age + age^2 + as.factor(female) + yrschool + nchild | 
-          dist + year, subset(vhlss_all_dist, age > 19 & age < 65 & year > 2008), weights = ~hhwt, vcov = ~dist),
-  feols(informal ~ dist_coverage_share + age + age^2 + as.factor(female) + yrschool + nchild | 
-          dist + year, subset(vhlss_all_dist, age > 19 & age < 65 & year > 2008), weights = ~hhwt, vcov = ~dist),
-  feols(agri_formal ~ dist_coverage_share + age + age^2 + as.factor(female) + yrschool + nchild | 
-          dist + year, subset(vhlss_all_dist, age > 19 & age < 65 & year > 2008), weights = ~hhwt, vcov = ~dist),
-  feols(manu_formal ~ dist_coverage_share + age + age^2 + as.factor(female) + yrschool + nchild | 
-          dist + year, subset(vhlss_all_dist, age > 19 & age < 65 & year > 2008), weights = ~hhwt, vcov = ~dist),
-  feols(service_formal ~ dist_coverage_share + age + age^2 + as.factor(female) + yrschool + nchild | 
-          dist + year, subset(vhlss_all_dist, age > 19 & age < 65 & year > 2008), weights = ~hhwt, vcov = ~dist)), tex = T, dict = dict)
-
-etable(list(
-  feols(work ~ dist_coverage + age + age^2 + as.factor(female) + yrschool + nchild | 
-          dist + year, subset(vhlss_all_dist, age > 19 & age < 65 & year > 2008), weights = ~hhwt, vcov = ~dist),
-  feols(informal ~ dist_coverage + age + age^2 + as.factor(female) + yrschool + nchild | 
-          dist + year, subset(vhlss_all_dist, age > 19 & age < 65 & year > 2008), weights = ~hhwt, vcov = ~dist),
-  feols(agri_formal ~ dist_coverage + age + age^2 + as.factor(female) + yrschool + nchild | 
-          dist + year, subset(vhlss_all_dist, age > 19 & age < 65 & year > 2008), weights = ~hhwt, vcov = ~dist),
-  feols(manu_formal ~ dist_coverage + age + age^2 + as.factor(female) + yrschool + nchild | 
-          dist + year, subset(vhlss_all_dist, age > 19 & age < 65 & year > 2008), weights = ~hhwt, vcov = ~dist),
-  feols(service_formal ~ dist_coverage + age + age^2 + as.factor(female) + yrschool + nchild | 
-          dist + year, subset(vhlss_all_dist, age > 19 & age < 65 & year > 2008), weights = ~hhwt, vcov = ~dist)), tex = T, dict = dict)
+  feols(work ~ dist_coverage | ivid + year, subset(vhlss1014, age > 19 & age < 65), weights = ~hhwt, vcov = ~dist),
+  feols(informal ~ dist_coverage | ivid + year, subset(vhlss1014, age > 19 & age < 65), weights = ~hhwt, vcov = ~dist),
+  feols(agri_formal ~ dist_coverage | ivid + year, subset(vhlss1014, age > 19 & age < 65), weights = ~hhwt, vcov = ~dist),
+  feols(manu_formal ~ dist_coverage | ivid + year, subset(vhlss1014, age > 19 & age < 65), weights = ~hhwt, vcov = ~dist),
+  feols(service_formal ~ dist_coverage | ivid + year, subset(vhlss1014, age > 19 & age < 65), weights = ~hhwt, vcov = ~dist)), 
+  tex = T, dict = dict)
 
 ##################
 # DISTRICT-LEVEL #
@@ -152,6 +118,8 @@ csdid_agri_df <- data.frame(
   model = "C&S"
 )
 
+twfe_agri <- feols(agri_informal ~ i(time_to_treat, ref = c(-2, -1000)) | 
+                         dist + year, vhlss_dist_did, vcov = ~dist)
 twfe_agri_df <- broom::tidy(twfe_agri, conf.int = TRUE)
 twfe_agri_df$event_time <- as.numeric(gsub("time_to_treat::", "", twfe_agri_df$term))
 twfe_agri_df <- twfe_agri_df[, c("event_time", "estimate", "std.error")]
@@ -211,6 +179,8 @@ twfe_service_df$model <- "TWFE"
 colnames(twfe_service_df) <- c("event_time", "att", "se", "model")
 
 service_did <- rbind(csdid_service_df, twfe_service_df)
+
+# Female vs male 
 
 ##################
 # PROVINCE-LEVEL #
