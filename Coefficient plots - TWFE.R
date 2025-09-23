@@ -1,10 +1,34 @@
-setFixest_coefplot(dict = dict, grid = F, zero.par = list( type="dotted", lty=2), main = "")
+load("Clean data/vhlss_dist_did.Rda")
+load("Clean data/vhlss_m_dist_did.Rda")
+load("Clean data/vhlss_f_dist_did.Rda")
+
+setFixest_coefplot(grid = F, zero.par = list( type="dotted", lty=2), main = "")
+
+vhlss_dist_did <- vhlss_dist_did %>%
+  mutate(
+    treat = ifelse(time_to_treat > -1000, 1, 0)
+  )
 
 # Work
 png("Results/work_twfe.png")
 iplot(feols(work ~ i(time_to_treat, ref = c(-2, -1000)) | 
               dist + year, vhlss_dist_did, vcov = ~dist), xlab = "Years to treatment")
 dev.off()
+
+iplot(feols(work ~ i(ytt, ref = -1) | 
+              prov_year, lfs_sum_prov, vcov = ~tinh), xlab = "Years to treatment")
+
+iplot(feols(formal ~ i(ytt, ref = -1) | 
+              prov_year, lfs_sum_prov, vcov = ~tinh), xlab = "Years to treatment")
+
+iplot(feols(agri_informal ~ i(ytt, ref = -1) | 
+              prov_year, lfs_sum_prov, vcov = ~tinh), xlab = "Years to treatment")
+
+iplot(feols(manu_formal ~ i(ytt, ref = -1) | 
+              prov_year, lfs_sum_prov, vcov = ~tinh), xlab = "Years to treatment")
+
+iplot(feols(nonagri_formal ~ i(ytt, ref = -1) | 
+              prov_year, lfs_sum_prov, vcov = ~tinh), xlab = "Years to treatment")
 
 png("Results/work_mf_twfe.png")
 iplot(
