@@ -107,18 +107,15 @@ write_dta(vhlss04, "Clean data/vhlss04.dta")
 
 hhbus06 <-  m4c_06 %>% 
   rename(busno = m4c1ma,
-         ind = m4c1c2,
+         ind_hhbus = m4c1c2,
          erc = m4c1c15,
          annual_rev = m4c1c18) %>% 
   mutate(erc = ifelse(erc < 3, 1, 0),
          diaban = as.numeric(diaban),
-         manu = ifelse(ind > 9 & ind < 34, 1, 0),
-         service = ifelse(ind > 45, 1, 0),
+         manu = ifelse(ind_hhbus > 9 & ind_hhbus < 34, 1, 0),
+         service = ifelse(ind_hhbus > 45, 1, 0),
          year = 2006) %>% 
-  select(year, tinh, huyen, xa, diaban, hoso, busno, ind, manu, service, erc, annual_rev) %>% 
-  left_join(dist0418) %>% 
-  merge(wt06) %>% 
-  rename(hhwt = wt45)
+  select(year, tinh, huyen, xa, diaban, hoso, busno, ind_hhbus, manu, service, erc, annual_rev) 
 
 wt06 <- wt06 %>% select(tinh, huyen, xa, hoso, urban, rcpi, mcpi, wt45)
 
