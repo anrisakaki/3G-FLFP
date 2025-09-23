@@ -14,6 +14,10 @@ library(lubridate)
 library(units)
 library(purrr)
 library(did)
+library(raster)
+library(exactextractr)
+library(terra)
+library(tools)
 
 rm(list=ls())
 
@@ -22,7 +26,39 @@ opencell <- read.csv("Vietnam_Cell_tower.csv")
 vnmap1 <- read_sf("VNShapefile/gadm36_VNM_1.shp")
 vnmap2 <- read_sf("VNShapefile/gadm36_VNM_2.shp")
 
+vnmap_nat <- st_read("VNShapefile/gadm36_VNM_0.shp")
+vnmap_prov <- st_read("VNShapefile/gadm36_VNM_1.shp")
+vnmap_dist <- st_read("VNShapefile/gadm36_VNM_2.shp")
+
 dist9919 <- read_dta("Consistent 2019 to 1999 wards with 1999 districts.dta")
+
+# Collins Bartholomew 
+cb13 <- st_read("Collins Bartholomew/CB QGIS/CB2013_vn_vectorised.shp")
+cb14 <- st_read("Collins Bartholomew/CB QGIS/CB2014_vn_vectorised.shp")
+cb15 <- st_read("Collins Bartholomew/CB QGIS/CB2015_vn_vectorised.shp")
+cb16 <- st_read("Collins Bartholomew/CB QGIS/CB2016_vn_vectorised.shp")
+cb17 <- st_read("Collins Bartholomew/CB QGIS/CB2017_vn_vectorised.shp")
+cb18 <- st_read("Collins Bartholomew/CB QGIS/CB2018_vn_vectorised.shp")
+cb19 <- st_read("Collins Bartholomew/CB QGIS/CB2019_vn_vectorised.shp")
+cb20 <- st_read("Collins Bartholomew/CB QGIS/CB2020_vn_vectorised.shp")
+
+cb13_int <- st_read("Collins Bartholomew/CB QGIS/CB2013_vn_intersected.shp")
+cb14_int <- st_read("Collins Bartholomew/CB QGIS/CB2014_vn_intersected.shp")
+cb15_int <- st_read("Collins Bartholomew/CB QGIS/CB2015_vn_intersected.shp")
+cb16_int <- st_read("Collins Bartholomew/CB QGIS/CB2016_vn_intersected.shp")
+cb17_int <- st_read("Collins Bartholomew/CB QGIS/CB2017_vn_intersected.shp")
+cb18_int <- st_read("Collins Bartholomew/CB QGIS/CB2018_vn_intersected.shp")
+cb19_int <- st_read("Collins Bartholomew/CB QGIS/CB2019_vn_intersected.shp")
+cb20_int <- st_read("Collins Bartholomew/CB QGIS/CB2020_vn_intersected.shp")
+
+cb13_int_prov <- st_read("Collins Bartholomew/CB QGIS/CB2013_vn_intersected_prov.shp")
+cb14_int_prov <- st_read("Collins Bartholomew/CB QGIS/CB2014_vn_intersected_prov.shp")
+cb15_int_prov <- st_read("Collins Bartholomew/CB QGIS/CB2015_vn_intersected_prov.shp")
+cb16_int_prov <- st_read("Collins Bartholomew/CB QGIS/CB2016_vn_intersected_prov.shp")
+cb17_int_prov <- st_read("Collins Bartholomew/CB QGIS/CB2017_vn_intersected_prov.shp")
+cb18_int_prov <- st_read("Collins Bartholomew/CB QGIS/CB2018_vn_intersected_prov.shp")
+cb19_int_prov <- st_read("Collins Bartholomew/CB QGIS/CB2019_vn_intersected_prov.shp")
+cb20_int_prov <- st_read("Collins Bartholomew/CB QGIS/CB2020_vn_intersected_prov.shp")
 
 # VHLSS
 ## 2004
@@ -101,13 +137,13 @@ m6b_18 <- read_dta(file = "VHLSS/2018/2 - Data/1 - Households/MUC6B.dta")
 wt18 <- read_dta(file = "VHLSS/2018/2 - Data/1 - Households/wt18.dta")
 
 ## 2020 
-ho1_20 <- read_dta(file = "VHLSS/2020/VHLSS 2020/VHLSS 2020_Household Eng full/Data VHLSS2020_HH_Eng/HO1.dta")
-m1a_20 <- read_dta(file = "VHLSS/2020/VHLSS 2020/VHLSS 2020_Household Eng full/Data VHLSS2020_HH_Eng/MUC1A.dta")
-m2v_20 <- read_dta(file = "VHLSS/2020/VHLSS 2020/VHLSS 2020_Household Eng full/Data VHLSS2020_HH_Eng/MUC2V.dta")
-m4a_20 <- read_dta(file = "VHLSS/2020/VHLSS 2020/VHLSS 2020_Household Eng full/Data VHLSS2020_HH_Eng/MUC4A.dta")
-m4c1_20 <- read_dta(file = "VHLSS/2020/VHLSS 2020/VHLSS 2020_Household Eng full/Data VHLSS2020_HH_Eng/MUC4C1.dta")
-m6b_20 <- read_dta(file = "VHLSS/2020/VHLSS 2020/VHLSS 2020_Household Eng full/Data VHLSS2020_HH_Eng/MUC6B.dta")
-wt20 <- read_dta(file = "VHLSS/2020/VHLSS 2020/VHLSS 2020_Household Eng full/Data VHLSS2020_HH_Eng/wt2020.dta")
+ho1_20 <- read_dta(file = "VHLSS/2020/VHLSS 2020_Household Eng full/Data VHLSS2020_HH_Eng/HO1.dta")
+m1a_20 <- read_dta(file = "VHLSS/2020/VHLSS 2020_Household Eng full/Data VHLSS2020_HH_Eng/MUC1A.dta")
+m2v_20 <- read_dta(file = "VHLSS/2020/VHLSS 2020_Household Eng full/Data VHLSS2020_HH_Eng/MUC2V.dta")
+m4a_20 <- read_dta(file = "VHLSS/2020/VHLSS 2020_Household Eng full/Data VHLSS2020_HH_Eng/MUC4A.dta")
+m4c1_20 <- read_dta(file = "VHLSS/2020/VHLSS 2020_Household Eng full/Data VHLSS2020_HH_Eng/MUC4C1.dta")
+m6b_20 <- read_dta(file = "VHLSS/2020/VHLSS 2020_Household Eng full/Data VHLSS2020_HH_Eng/MUC6B.dta")
+wt20 <- read_dta(file = "VHLSS/2020/VHLSS 2020_Household Eng full/Data VHLSS2020_HH_Eng/wt2020.dta")
 
 # Panel
 
