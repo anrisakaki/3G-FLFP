@@ -20,7 +20,90 @@ gdf$lon <- st_coordinates(st_transform(gdf, crs = 4326))[, "X"]
 gdf$lat <- st_coordinates(st_transform(gdf, crs = 4326))[, "Y"]
 
 prov_umts <- gdf %>%
-  filter(radio == "UMTS" & range < 100000)
+  filter(radio == "UMTS" & range < 100000 & year_created > 2009) 
+
+####################
+# PROVINCE-MONTHLY #
+####################
+vnmap1_32648 <- st_transform(vnmap1, st_crs(gdf))
+prov_points <- st_join(prov_umts, vnmap1_32648["NAME_1"])
+
+prov_umts_month <- prov_points %>%
+  st_drop_geometry() %>%
+  group_by(NAME_1) %>%
+  summarise(
+    first_year = min(year_created, na.rm = TRUE),
+    first_month = month_created[which.min(year_created*12 + month_created)]
+  ) %>% 
+  rename(tinh = NAME_1) %>% 
+  mutate(tinh = recode(tinh,
+                       'An Giang' = 89,
+                       'Bà Rịa - Vũng Tàu' = 77,
+                       'Bắc Giang' = 24,
+                       'Bắc Kạn' = 6,
+                       'Bạc Liêu' = 95,
+                       'Bắc Ninh' = 27,
+                       'Bến Tre' = 83,
+                       'Bình Định' = 52,
+                       'Bình Dương' = 74,
+                       'Bình Phước' = 70,
+                       'Bình Thuận' = 60,
+                       'Cà Mau' = 96,
+                       'Cần Thơ' = 92,
+                       'Cao Bằng' = 4,
+                       'Đà Nẵng' = 48,
+                       'Đắk Lắk' = 66,
+                       'Đắk Nông' = 67,
+                       'Điện Biên' = 11,
+                       'Đồng Nai' = 75,
+                       'Đồng Tháp' = 87,
+                       'Gia Lai' = 64,
+                       'Hà Giang' = 2,
+                       'Hà Nam' = 35,
+                       'Hà Nội' = 1,
+                       'Hà Tĩnh' = 42,
+                       'Hải Dương' = 30,
+                       'Hải Phòng' = 31,
+                       'Hậu Giang' = 93,
+                       'Hồ Chí Minh' = 79,
+                       'Hoà Bình' = 17,
+                       'Hưng Yên' = 33,
+                       'Khánh Hòa' = 56,
+                       'Kiên Giang' = 91,
+                       'Kon Tum' = 62,
+                       'Lai Châu' = 12,
+                       'Lâm Đồng' = 68,
+                       'Lạng Sơn' = 20,
+                       'Lào Cai' = 10,
+                       'Long An' = 80,
+                       'Nam Định' = 36,
+                       'Nghệ An' = 40,
+                       'Ninh Bình' = 37,
+                       'Ninh Thuận' = 58,
+                       'Phú Thọ' = 25,
+                       'Phú Yên' = 54,
+                       'Quảng Bình' = 44,
+                       'Quảng Nam' = 49,
+                       'Quảng Ngãi' = 51,
+                       'Quảng Ninh' = 22,
+                       'Quảng Trị' = 45,
+                       'Sóc Trăng' = 94,
+                       'Sơn La' = 14,
+                       'Tây Ninh' = 72,
+                       'Thái Bình' = 34,
+                       'Thái Nguyên' = 19,
+                       'Thanh Hóa' = 38,
+                       'Thừa Thiên Huế' = 46,
+                       'Tiền Giang' = 82,
+                       'Trà Vinh' = 84,
+                       'Tuyên Quang' = 8,
+                       'Vĩnh Long' = 86,
+                       'Vĩnh Phúc' = 26,
+                       'Yên Bái' = 15,
+                       .default = NA_real_)) %>% 
+  filter(!is.na(tinh))
+
+save(prov_umts_month, file = "Clean data/prov_umts_month.Rda")
 
 #############################
 # PROVINCE - LEVEL COVERAGE #
@@ -568,3 +651,5 @@ umts_dist <- bind_rows(dist_cov10, dist_cov12, dist_cov14, dist_cov16, dist_cov1
 
 save(umts_dist, file = "Clean data/umts_dist.Rda")
 write_dta(umts_dist, "Clean data/umts_dist.dta")
+
+# Cleaning open cell data for LFS 
