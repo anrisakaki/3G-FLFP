@@ -33,7 +33,7 @@ vhlss_dist_did_sum <- function(i){
     mutate(time_to_treat = ifelse(is.na(first_treated), -1000, time_to_treat),
            first.treat.csdid = ifelse(is.na(first_treated), 0, first_treated),
            first_treated2 = ifelse(time_to_treat == -1000, 10000, first_treated)) %>% 
-    group_by(year, dist, time_to_treat, first_treated2, first.treat.csdid) %>% 
+    group_by(year, prov2018, dist2018, dist, time_to_treat, first_treated2, first.treat.csdid) %>% 
     summarise(
       work = weighted.mean(work, hhwt, na.rm = T),
       wagework = weighted.mean(wagework, hhwt, na.rm = T),
