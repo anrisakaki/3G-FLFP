@@ -329,25 +329,6 @@ median_coverage17_oci <- dist_cov17 %>%
   summarise(med_share_3G_OCI = median(share_3G_OCI)) %>% 
   pull(med_share_3G_OCI)
 
-oci_dist_1016 <- bind_rows(dist_cov10, dist_cov11, dist_cov12, dist_cov13,
-                           dist_cov14, dist_cov15, dist_cov16) %>% 
-  select(year, ID_2, share_3G_OCI) %>% 
-  mutate(share_3G_OCI = ifelse(is.na(share_3G_OCI), 0, share_3G_OCI)) %>% 
-  group_by(ID_2) %>% 
-  mutate(
-    mean_3G_OCI = ifelse(any(share_3G_OCI >= mean_coverage16_oci), 1, 0),
-    med_3G_OCI  = ifelse(any(share_3G_OCI >= median_coverage16_oci), 1, 0),
-    year_mean_OCI = ifelse(any(share_3G_OCI >= mean_coverage16_oci),
-                           min(year[share_3G_OCI >= mean_coverage16_oci], na.rm = T),
-                           NA),
-    year_med_OCI = ifelse(any(share_3G_OCI >= median_coverage16_oci),
-                          min(year[share_3G_OCI >= median_coverage16_oci], na.rm = T),
-                          NA),
-    year_OCI = ifelse(any(share_3G_OCI > 0),
-                      min(year[share_3G_OCI > 0], na.rm = TRUE),
-                      NA)
-  )
-
 oci_dist_1017 <- bind_rows(dist_cov10, dist_cov11, dist_cov12, dist_cov13,
                            dist_cov14, dist_cov15, dist_cov16, dist_cov17) %>% 
   select(year, ID_2, share_3G_OCI) %>% 
