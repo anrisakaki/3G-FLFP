@@ -299,54 +299,50 @@ compute_3G_coverage_dist <- function(umts, vnmap2, year_range, proj_crs) {
   return(dist_cov)
 }
 
-dists <- vnmap2 %>% st_drop_geometry() %>% ungroup %>% select(ID_2) %>% distinct() 
+dists <- vnmap2 %>% st_drop_geometry() %>% ungroup() %>% select(ID_2) %>% distinct()
 
-dist_cov10 <- compute_3G_coverage_dist(umts, vnmap2, c(2010, 2010), proj_crs) %>% st_drop_geometry() %>% full_join(dists) %>% mutate(year = 2010) 
-dist_cov11 <- compute_3G_coverage_dist(umts, vnmap2, c(2010, 2011), proj_crs) %>% st_drop_geometry() %>% full_join(dists) %>% mutate(year = 2011) 
-dist_cov12 <- compute_3G_coverage_dist(umts, vnmap2, c(2010, 2012), proj_crs) %>% st_drop_geometry() %>% full_join(dists) %>% mutate(year = 2012) 
-dist_cov13 <- compute_3G_coverage_dist(umts, vnmap2, c(2010, 2013), proj_crs) %>% st_drop_geometry() %>% full_join(dists) %>% mutate(year = 2013) 
-dist_cov14 <- compute_3G_coverage_dist(umts, vnmap2, c(2010, 2014), proj_crs) %>% st_drop_geometry() %>% full_join(dists) %>% mutate(year = 2014) 
-dist_cov15 <- compute_3G_coverage_dist(umts, vnmap2, c(2010, 2015), proj_crs) %>% st_drop_geometry() %>% full_join(dists) %>% mutate(year = 2015) 
-dist_cov16 <- compute_3G_coverage_dist(umts, vnmap2, c(2010, 2016), proj_crs) %>% st_drop_geometry() %>% full_join(dists) %>% mutate(year = 2016) 
-dist_cov17 <- compute_3G_coverage_dist(umts, vnmap2, c(2010, 2017), proj_crs) %>% st_drop_geometry() %>% full_join(dists) %>% mutate(year = 2017) 
-dist_cov18 <- compute_3G_coverage_dist(umts, vnmap2, c(2010, 2018), proj_crs) %>% st_drop_geometry() %>% full_join(dists) %>% mutate(year = 2018) 
+build_dist_cov_year <- function(year_end, umts, vnmap2, dists, proj_crs) {
+  compute_3G_coverage_dist(umts, vnmap2, c(2010, year_end), proj_crs) %>%
+    full_join(dists, by = "ID_2") %>%
+    mutate(year = year_end)
+}
 
-mean_coverage16_oci <- dist_cov16 %>% 
-  mutate(share_3G_OCI = ifelse(is.na(share_3G_OCI), 0, share_3G_OCI)) %>% 
-  summarise(mean_share_3G_OCI = mean(share_3G_OCI)) %>% 
+assign_oci_treatment <- function(df, mean_cutoff, med_cutoff) {
+  df %>%
+    select(year, ID_2, share_3G_OCI) %>%
+    mutate(share_3G_OCI = coalesce(share_3G_OCI, 0)) %>%
+    group_by(ID_2) %>%
+    mutate(
+      mean_3G_OCI = ifelse(any(share_3G_OCI >= mean_cutoff), 1, 0),
+      med_3G_OCI = ifelse(any(share_3G_OCI >= med_cutoff), 1, 0),
+      year_mean_OCI = ifelse(any(share_3G_OCI >= mean_cutoff),
+                             min(year[share_3G_OCI >= mean_cutoff], na.rm = TRUE),
+                             NA),
+      year_med_OCI = ifelse(any(share_3G_OCI >= med_cutoff),
+                            min(year[share_3G_OCI >= med_cutoff], na.rm = TRUE),
+                            NA),
+      year_OCI = ifelse(any(share_3G_OCI > 0),
+                        min(year[share_3G_OCI > 0], na.rm = TRUE),
+                        NA)
+    )
+}
+
+dist_cov_yearly <- map_dfr(2010:2018, build_dist_cov_year, umts = umts, vnmap2 = vnmap2, dists = dists, proj_crs = proj_crs)
+
+mean_coverage17_oci <- dist_cov_yearly %>%
+  filter(year == 2017) %>%
+  mutate(share_3G_OCI = coalesce(share_3G_OCI, 0)) %>%
+  summarise(mean_share_3G_OCI = mean(share_3G_OCI)) %>%
   pull(mean_share_3G_OCI)
-median_coverage16_oci <- dist_cov16 %>% 
-  mutate(share_3G_OCI = ifelse(is.na(share_3G_OCI), 0, share_3G_OCI)) %>% 
-  summarise(med_share_3G_OCI = median(share_3G_OCI)) %>% 
+median_coverage17_oci <- dist_cov_yearly %>%
+  filter(year == 2017) %>%
+  mutate(share_3G_OCI = coalesce(share_3G_OCI, 0)) %>%
+  summarise(med_share_3G_OCI = median(share_3G_OCI)) %>%
   pull(med_share_3G_OCI)
 
-mean_coverage17_oci <- dist_cov17 %>% 
-  mutate(share_3G_OCI = ifelse(is.na(share_3G_OCI), 0, share_3G_OCI)) %>% 
-  summarise(mean_share_3G_OCI = mean(share_3G_OCI)) %>% 
-  pull(mean_share_3G_OCI)
-median_coverage17_oci <- dist_cov17 %>% 
-  mutate(share_3G_OCI = ifelse(is.na(share_3G_OCI), 0, share_3G_OCI)) %>% 
-  summarise(med_share_3G_OCI = median(share_3G_OCI)) %>% 
-  pull(med_share_3G_OCI)
-
-oci_dist_1017 <- bind_rows(dist_cov10, dist_cov11, dist_cov12, dist_cov13,
-                           dist_cov14, dist_cov15, dist_cov16, dist_cov17) %>% 
-  select(year, ID_2, share_3G_OCI) %>% 
-  mutate(share_3G_OCI = ifelse(is.na(share_3G_OCI), 0, share_3G_OCI)) %>% 
-  group_by(ID_2) %>% 
-  mutate(
-    mean_3G_OCI = ifelse(any(share_3G_OCI >= mean_coverage17_oci), 1, 0),
-    med_3G_OCI  = ifelse(any(share_3G_OCI >= median_coverage17_oci), 1, 0),
-    year_mean_OCI = ifelse(any(share_3G_OCI >= mean_coverage17_oci),
-                           min(year[share_3G_OCI >= mean_coverage17_oci], na.rm = T),
-                           NA),
-    year_med_OCI = ifelse(any(share_3G_OCI >= median_coverage17_oci),
-                          min(year[share_3G_OCI >= median_coverage17_oci], na.rm = T),
-                          NA),
-    year_OCI = ifelse(any(share_3G_OCI > 0),
-                      min(year[share_3G_OCI > 0], na.rm = TRUE),
-                      NA)
-  )
+oci_dist_1017 <- dist_cov_yearly %>%
+  filter(year <= 2017) %>%
+  assign_oci_treatment(mean_cutoff = mean_coverage17_oci, med_cutoff = median_coverage17_oci)
 save(oci_dist_1017, file = "Clean data/oci_dist_1017.Rda")
 write_dta(oci_dist_1017, "Clean data/oci_dist_1017.dta")
 
@@ -374,32 +370,48 @@ cb_dist_1218 <- cb_1218_shp %>%
   st_drop_geometry() %>%
   select(ID_2, starts_with("share_"))
 
-cb.10 <- cb_dist_1218 %>% select(ID_2) %>% mutate(year = 2010, share_3G_CB = 0)
-cb.11 <- cb_dist_1218 %>% select(ID_2) %>% mutate(year = 2011, share_3G_CB = 0)
-cb.12 <- cb_dist_1218 %>% select(ID_2, share_3G_12) %>% mutate(year = 2012) %>% rename(share_3G_CB = share_3G_12)
-cb.13 <- cb_dist_1218 %>% select(ID_2, share_3G_13) %>% mutate(year = 2013) %>% rename(share_3G_CB = share_3G_13)
-cb.14 <- cb_dist_1218 %>% select(ID_2, share_3G_14) %>% mutate(year = 2014) %>% rename(share_3G_CB = share_3G_14)
-cb.15 <- cb_dist_1218 %>% select(ID_2, share_3G_15) %>% mutate(year = 2015) %>% rename(share_3G_CB = share_3G_15)
-cb.16 <- cb_dist_1218 %>% select(ID_2, share_3G_15) %>% mutate(year = 2016) %>% rename(share_3G_CB = share_3G_15)
-cb.17 <- cb_dist_1218 %>% select(ID_2, share_3G_15) %>% mutate(year = 2017) %>% rename(share_3G_CB = share_3G_15)
-cb.18 <- cb_dist_1218 %>% select(ID_2, share_3G_15) %>% mutate(year = 2018) %>% rename(share_3G_CB = share_3G_15)
+build_cb_year <- function(year_value, cb_dist_1218) {
+  if (year_value < 2012) {
+    return(cb_dist_1218 %>% select(ID_2) %>% mutate(year = year_value, share_3G_CB = 0))
+  }
 
-mean_coverage17_cb <- mean(cb.17$share_3G_CB, na.rm = T)
-median_coverage17_cb <- median(cb.17$share_3G_CB, na.rm = T)
+  source_col <- ifelse(year_value <= 2015, paste0("share_3G_", substr(year_value, 3, 4)), "share_3G_15")
+  cb_dist_1218 %>%
+    select(ID_2, all_of(source_col)) %>%
+    mutate(year = year_value) %>%
+    rename(share_3G_CB = all_of(source_col))
+}
 
-cb_dist_1017 <- bind_rows(cb.10, cb.11, cb.12, cb.13, cb.14, cb.15, cb.16, cb.17) %>% 
-  group_by(ID_2) %>% 
-  mutate(
-    mean_3G_CB = ifelse(any(share_3G_CB >= mean_coverage17_cb), 1, 0),
-    med_3G_CB  = ifelse(any(share_3G_CB >= median_coverage17_cb), 1, 0),
-    year_mean_CB = ifelse(any(share_3G_CB >= mean_coverage17_cb),
-                          min(year[share_3G_CB >= mean_coverage17_cb], na.rm = T),
-                          NA),
-    year_med_CB = ifelse(any(share_3G_CB >= median_coverage17_cb),
-                         min(year[share_3G_CB >= median_coverage17_cb], na.rm = T),
-                         NA),
-    share_3G_CB = ifelse(year < 2012, NA, share_3G_CB)
-  )
+assign_cb_treatment <- function(df, mean_cutoff, med_cutoff) {
+  df %>%
+    group_by(ID_2) %>%
+    mutate(
+      mean_3G_CB = ifelse(any(share_3G_CB >= mean_cutoff), 1, 0),
+      med_3G_CB = ifelse(any(share_3G_CB >= med_cutoff), 1, 0),
+      year_mean_CB = ifelse(any(share_3G_CB >= mean_cutoff),
+                            min(year[share_3G_CB >= mean_cutoff], na.rm = TRUE),
+                            NA),
+      year_med_CB = ifelse(any(share_3G_CB >= med_cutoff),
+                           min(year[share_3G_CB >= med_cutoff], na.rm = TRUE),
+                           NA),
+      share_3G_CB = ifelse(year < 2012, NA, share_3G_CB)
+    )
+}
+
+cb_dist_yearly <- map_dfr(2010:2018, build_cb_year, cb_dist_1218 = cb_dist_1218)
+
+mean_coverage17_cb <- cb_dist_yearly %>%
+  filter(year == 2017) %>%
+  summarise(mean_share_3G_CB = mean(share_3G_CB, na.rm = TRUE)) %>%
+  pull(mean_share_3G_CB)
+median_coverage17_cb <- cb_dist_yearly %>%
+  filter(year == 2017) %>%
+  summarise(med_share_3G_CB = median(share_3G_CB, na.rm = TRUE)) %>%
+  pull(med_share_3G_CB)
+
+cb_dist_1017 <- cb_dist_yearly %>%
+  filter(year <= 2017) %>%
+  assign_cb_treatment(mean_cutoff = mean_coverage17_cb, med_cutoff = median_coverage17_cb)
 
 save(cb_dist_1017, file = "Clean data/cb_dist_1017.Rda")
 write_dta(cb_dist_1017, "Clean data/cb_dist_1017.dta")
