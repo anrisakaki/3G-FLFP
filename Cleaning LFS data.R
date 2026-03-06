@@ -393,17 +393,18 @@ lfs_treat_fn <- function(i){
     distinct() %>% 
     ungroup() %>% 
     filter(!is.na(mean_3G_OCI)) %>% 
-    mutate(coverage_mean_OCI = ifelse(year >= year_mean_OCI, 1, 0),
-           coverage_med_OCI = ifelse(year >= year_med_OCI, 1, 0),
-           ytt_OCI = year - year_OCI,
+    mutate(ytt_OCI = year - year_OCI,
            ytt_mean_OCI = year - year_mean_OCI,
            ytt_med_OCI = year - year_med_OCI,
            ytt_mean_CB = year - year_mean_CB,
            ytt_med_CB = year - year_med_CB,
-           across(starts_with("ytt"), ~replace(., is.na(.), 0)),
-           across(starts_with("year"), ~replace(., is.na(.), 0))) %>% 
+           across(starts_with("ytt"), ~replace(., is.na(.), -1000)),
+           across(starts_with("year"), ~replace(., is.na(.), 0)),
+           coverage_mean_OCI = ifelse(year_mean_OCI > 0 & year >= year_mean_OCI, 1, 0),
+           coverage_med_OCI = ifelse(year_med_OCI > 0 & year >= year_med_OCI, 1, 0)) %>% 
     select(year, ID_2, tinh, huyen, ends_with("_OCI"), ends_with("_CB"), everything()) 
 }
+
 # Age groups 
 
 lfs_sum_dist_all <- lfs_all %>% 
@@ -472,7 +473,7 @@ lfs_sum_dist <- list(lfs_sum_dist_all, lfs_sum_dist_20_29, lfs_sum_dist_30_39, l
          ytt_med_OCI = year - year_med_OCI,
          ytt_mean_CB = year - year_mean_CB,
          ytt_med_CB = year - year_med_CB,
-         across(starts_with("ytt"), ~replace(., is.na(.), 0)),
+         across(starts_with("ytt"), ~replace(., is.na(.), -1000)),
          across(starts_with("year"), ~replace(., is.na(.), 0))) %>% 
   select(year, ID_2, tinh, huyen, ends_with("_OCI"), ends_with("_CB"), everything()) 
 
@@ -544,7 +545,7 @@ lfs_sum_dist_f <- list(lfs_sum_dist_all_f, lfs_sum_dist_20_29_f, lfs_sum_dist_30
          ytt_med_OCI = year - year_med_OCI,
          ytt_mean_CB = year - year_mean_CB,
          ytt_med_CB = year - year_med_CB,
-         across(starts_with("ytt"), ~replace(., is.na(.), 0)),
+         across(starts_with("ytt"), ~replace(., is.na(.), -1000)),
          across(starts_with("year"), ~replace(., is.na(.), 0))) %>% 
   select(year, ID_2, tinh, huyen, ends_with("_OCI"), ends_with("_CB"), everything()) 
 
@@ -616,7 +617,7 @@ lfs_sum_dist_m <- list(lfs_sum_dist_all_m, lfs_sum_dist_20_29_m, lfs_sum_dist_30
          ytt_med_OCI = year - year_med_OCI,
          ytt_mean_CB = year - year_mean_CB,
          ytt_med_CB = year - year_med_CB,
-         across(starts_with("ytt"), ~replace(., is.na(.), 0)),
+         across(starts_with("ytt"), ~replace(., is.na(.), -1000)),
          across(starts_with("year"), ~replace(., is.na(.), 0))) %>% 
   select(year, ID_2, tinh, huyen, ends_with("_OCI"), ends_with("_CB"), everything()) 
 
@@ -654,7 +655,7 @@ lfs_sum_dist_ddd <- bind_rows(
     ytt_med_OCI = year - year_med_OCI,
     ytt_mean_CB = year - year_mean_CB,
     ytt_med_CB = year - year_med_CB,
-    across(starts_with("ytt"), ~ replace(., is.na(.), 0)),
+    across(starts_with("ytt"), ~ replace(., is.na(.), -1000)),
     across(starts_with("year"), ~ replace(., is.na(.), 0)),
     post_med_OCI = ifelse(ytt_med_OCI >= 0, 1, 0),
     treatpost_med_OCI = post_med_OCI * med_3G_OCI
@@ -688,7 +689,7 @@ lfs_sum_dist_f_ddd <- bind_rows(
     ytt_med_OCI = year - year_med_OCI,
     ytt_mean_CB = year - year_mean_CB,
     ytt_med_CB = year - year_med_CB,
-    across(starts_with("ytt"), ~ replace(., is.na(.), 0)),
+    across(starts_with("ytt"), ~ replace(., is.na(.), -1000)),
     across(starts_with("year"), ~ replace(., is.na(.), 0)),
     post_med_OCI = ifelse(ytt_med_OCI >= 0, 1, 0),
     treatpost_med_OCI = post_med_OCI * med_3G_OCI
@@ -717,7 +718,7 @@ lfs_sum_dist_m_ddd <- bind_rows(
     ytt_med_OCI = year - year_med_OCI,
     ytt_mean_CB = year - year_mean_CB,
     ytt_med_CB = year - year_med_CB,
-    across(starts_with("ytt"), ~ replace(., is.na(.), 0)),
+    across(starts_with("ytt"), ~ replace(., is.na(.), -1000)),
     across(starts_with("year"), ~ replace(., is.na(.), 0)),
     post_med_OCI = ifelse(ytt_med_OCI >= 0, 1, 0),
     treatpost_med_OCI = post_med_OCI * med_3G_OCI
