@@ -388,6 +388,22 @@ lfs_sum_dist_fn <- function(i){
     )
 }
 
+lfs_treat_fn <- function(i){
+  i %>%
+    distinct() %>% 
+    ungroup() %>% 
+    filter(!is.na(mean_3G_OCI)) %>% 
+    mutate(coverage_mean_OCI = ifelse(year >= year_mean_OCI, 1, 0),
+           coverage_med_OCI = ifelse(year >= year_med_OCI, 1, 0),
+           ytt_OCI = year - year_OCI,
+           ytt_mean_OCI = year - year_mean_OCI,
+           ytt_med_OCI = year - year_med_OCI,
+           ytt_mean_CB = year - year_mean_CB,
+           ytt_med_CB = year - year_med_CB,
+           across(starts_with("ytt"), ~replace(., is.na(.), 0)),
+           across(starts_with("year"), ~replace(., is.na(.), 0))) %>% 
+    select(year, ID_2, tinh, huyen, ends_with("_OCI"), ends_with("_CB"), everything()) 
+}
 # Age groups 
 
 lfs_sum_dist_all <- lfs_all %>% 
