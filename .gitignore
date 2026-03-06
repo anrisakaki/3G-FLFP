@@ -1,0 +1,29 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+# Large raw/derived datasets
+Raw Data/
+Clean data/
+
+# Common large data/binary formats
+*.dta
+*.rda
+*.RData
+*.rds
+*.csv.gz
+*.zip
+*.rar
+*.7z
+*.parquet
+*.feather
+*.gpkg
+*.shp
+*.shx
+*.dbf
+*.cpg
+*.prj
+*.tif
+*.tiff
+*.nc
