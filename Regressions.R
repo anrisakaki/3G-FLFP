@@ -66,7 +66,7 @@ csdid_work_df <- data.frame(
   model = "C&S"
 )
 
-twfe_work <- feols(work ~ i(time_to_treat, ref = c(-2, -1000)) | 
+twfe_work <- feols(work ~ i(time_to_treat, ref = c(-1, -1000)) | 
                          dist + year, vhlss_dist_did, vcov = ~dist)
 twfe_work_df <- broom::tidy(twfe_work, conf.int = TRUE)
 twfe_work_df$event_time <- as.numeric(gsub("time_to_treat::", "", twfe_work_df$term))
@@ -92,7 +92,7 @@ csdid_informal_df <- data.frame(
   model = "C&S"
 )
 
-twfe_informal <- feols(informal ~ i(time_to_treat, ref = c(-2, -1000)) | 
+twfe_informal <- feols(informal ~ i(time_to_treat, ref = c(-1, -1000)) | 
         dist + year, vhlss_dist_did, vcov = ~dist)
 twfe_informal_df <- broom::tidy(twfe_informal, conf.int = TRUE)
 twfe_informal_df$event_time <- as.numeric(gsub("time_to_treat::", "", twfe_informal_df$term))
@@ -118,7 +118,7 @@ csdid_agri_df <- data.frame(
   model = "C&S"
 )
 
-twfe_agri <- feols(agri_informal ~ i(time_to_treat, ref = c(-2, -1000)) | 
+twfe_agri <- feols(agri_informal ~ i(time_to_treat, ref = c(-1, -1000)) | 
                          dist + year, vhlss_dist_did, vcov = ~dist)
 twfe_agri_df <- broom::tidy(twfe_agri, conf.int = TRUE)
 twfe_agri_df$event_time <- as.numeric(gsub("time_to_treat::", "", twfe_agri_df$term))
@@ -136,7 +136,7 @@ csdid_manu_dist <- aggte(att_gt(yname = "manu_formal",
                                    tname = "year",
                                    control_group = "notyettreated",
                                    data = vhlss_dist_did), type = "dynamic")
-twfe_manu <- feols(manu_formal ~ i(time_to_treat, ref = c(-2, -1000)) | 
+twfe_manu <- feols(manu_formal ~ i(time_to_treat, ref = c(-1, -1000)) | 
                         dist + year, vhlss_dist_did, vcov = ~dist)
 
 csdid_manu_df <- data.frame(
@@ -162,7 +162,7 @@ csdid_service_dist <- aggte(att_gt(yname = "service_formal",
                                     tname = "year",
                                     control_group = "notyettreated",
                                     data = vhlss_dist_did), type = "dynamic")
-twfe_service <- feols(service_formal ~ i(time_to_treat, ref = c(-2, -1000)) | 
+twfe_service <- feols(service_formal ~ i(time_to_treat, ref = c(-1, -1000)) | 
                          dist + year, vhlss_dist_did, vcov = ~dist)
 
 csdid_service_df <- data.frame(
