@@ -191,7 +191,7 @@ lfs14 <- lfs14 %>%
     agri = ifelse(ind < 500, 1, 0),
     manu = ifelse(ind > 990 & ind < 3500, 1, 0),
     service = ifelse(ind > 4500, 1, 0),
-    nonagri = ifelse(org < 3 & ind > 500, 1, 0),
+    nonagri = ifelse(ind > 500, 1, 0),
     hhbus = ifelse(org < 3, 1, 0),
     erc = ifelse(C27A == 1, 1, 0),
     taxid = ifelse(C27B == 1, 1, 0),
@@ -297,7 +297,7 @@ lfs17 <- lfs17 %>%
          wt = weight_final_2019) %>% 
   mutate(
     female = ifelse(C3 == 2, 1, 0),
-    work = ifelse(C16 == 1 | C17 == 1 | C18 == 1 | C21 == 1| C23 == 1, 1, 0),
+    work = ifelse(C16 == 1 | C17 == 1 | C18 == 1 | C21 == 1 | C22 == 1, 1, 0),
     unpaid = ifelse(C18 == 1, 1, 0),
     agri = ifelse(ind < 500, 1, 0),
     manu = ifelse(ind > 990 & ind < 3500, 1, 0),
@@ -305,11 +305,12 @@ lfs17 <- lfs17 %>%
     nonagri = ifelse(ind > 500, 1, 0),
     hhbus = ifelse(org < 4, 1, 0),
     socinsur = ifelse(C34 == 1, 1, 0),
-    erc = ifelse(C28 == 1, 1, 0),,
+    erc = ifelse(C28 == 1, 1, 0),
+    inc = NA_real_,
     year = 2017
   ) %>% 
   dplyr::select(year, tinh, huyen, hoso, STT, monthint, age, female, marst, educattain, work, unpaid, occ, org,
-                ind, emp, hhbus, agri, manu, service, nonagri, erc, socinsur, wt) 
+                ind, emp, hhbus, agri, manu, service, nonagri, erc, socinsur, inc, wt) 
 
 lfs18 <- lfs18 %>% 
   rename(tinh = TINH,
@@ -327,7 +328,7 @@ lfs18 <- lfs18 %>%
          wt = Weight_final_2019) %>% 
   mutate(
     female = ifelse(C3 == 2, 1, 0),
-    work = ifelse(C21 == 1 | C22 == 1 | C23 == 1 | C26 == 1| C28 == 1, 1, 0),
+    work = ifelse(C21 == 1 | C22 == 1 | C23 == 1 | C26 == 1 | C27 == 1, 1, 0),
     unpaid = ifelse(C22 == 1, 1, 0),
     agri = ifelse(ind < 500, 1, 0),
     manu = ifelse(ind > 990 & ind < 3500, 1, 0),
@@ -335,11 +336,12 @@ lfs18 <- lfs18 %>%
     nonagri = ifelse(ind > 500, 1, 0),
     hhbus = ifelse(org < 4, 1, 0),
     socinsur = ifelse(C34 == 1, 1, 0),
-    erc = ifelse(C28 == 1, 1, 0),,
+    erc = ifelse(C28 == 1, 1, 0),
+    inc = NA_real_,
     year = 2018
   ) %>% 
   dplyr::select(year, tinh, huyen, hoso, STT, monthint, age, female, marst, educattain, work, unpaid, occ, org,
-                ind, emp, hhbus, agri, manu, service, nonagri, erc, socinsur, wt) 
+                ind, emp, hhbus, agri, manu, service, nonagri, erc, socinsur, inc, wt) 
 
 
 lfs_all <- bind_rows(lfs10, lfs11, lfs12, lfs13, lfs14, lfs15, lfs16, lfs17, lfs18) %>% 
