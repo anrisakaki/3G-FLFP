@@ -14,6 +14,8 @@ library(lubridate)
 library(units)
 library(purrr)
 library(did)
+library(terra)
+library(exactextractr)
 
 rm(list=ls())
 
@@ -24,27 +26,22 @@ vnmap2 <- read_sf("Raw data/VNShapefile/gadm36_VNM_2.shp")
 
 dist9919 <- read_dta("Raw data/Consistent 2019 to 1999 wards with 1999 districts.dta")
 
+wards_rural <- read.csv("Raw Data/rural_urban_wards.csv")
+
 # Collins Bartholomew 
-cb13 <- st_read("Clean data/Collins Bartholomew/MCE_VN3G_2013.shp")
-cb14 <- st_read("Clean data/Collins Bartholomew/MCE_VN3G_2014.shp")
-cb15 <- st_read("Clean data/Collins Bartholomew/MCE_VN3G_2015.shp")
-cb16 <- st_read("Clean data/Collins Bartholomew/MCE_VN3G_2016.shp")
-cb17 <- st_read("Clean data/Collins Bartholomew/MCE_VN3G_2017.shp")
-cb18 <- st_read("Clean data/Collins Bartholomew/MCE_VN3G_2018.shp")
-cb19 <- st_read("Clean data/Collins Bartholomew/MCE_VN3G_2019.shp")
-cb20 <- st_read("Clean data/Collins Bartholomew/MCE_VN3G_2020.shp")
+cb11 <- rast("Raw Data/Collins Bartholomew/hc904nr7037/MCE_Global3G_2011.tif")
+cb12 <- rast("Raw Data/Collins Bartholomew/wx910xj1289/MCE_Global3G_2012.tif")
+cb13 <- rast("Raw Data/Collins Bartholomew/dg771jv6579/MCE_Global3G_2013.tif")
+cb14 <- rast("Raw Data/Collins Bartholomew/pd038fr9690/MCE_Global3G_2014.tif")
+cb15 <- rast("Raw Data/Collins Bartholomew/pd038fr9690/MCE_Global3G_2015.tif")
+cb16 <- rast("Raw Data/Collins Bartholomew/ky819sb7704/MCE_Global3G_2016.tif")
+cb17 <- rast("Raw Data/Collins Bartholomew/by170qy6709/MCE_Global3G_2017.tif")
 
-cb13_int_prov <- st_read("Clean data/Collins Bartholomew/CB2013_vn_intersected_prov.shp")
-cb14_int_prov <- st_read("Clean data/Collins Bartholomew/MCE_VN3G_2014_prov.shp")
-cb15_int_prov <- st_read("Clean data/Collins Bartholomew/MCE_VN3G_2015_prov.shp")
-cb16_int_prov <- st_read("Clean data/Collins Bartholomew/MCE_VN3G_2016_prov.shp")
-cb17_int_prov <- st_read("Clean data/Collins Bartholomew/MCE_VN3G_2017_prov.shp")
-cb18_int_prov <- st_read("Clean data/Collins Bartholomew/MCE_VN3G_2018_prov.shp")
-cb19_int_prov <- st_read("Clean data/Collins Bartholomew/MCE_VN3G_2019_prov.shp")
-cb20_int_prov <- st_read("Clean data/Collins Bartholomew/MCE_VN3G_2020_prov.shp")
-
-cb19_4G_int_prov <- st_read("Raw Data/Collins Bartholomew/CB QGIS/CB2019_4G_vn_intersected_prov.shp")
-cb20_4G_int_prov <- st_read("Raw Data/Collins Bartholomew/CB QGIS/CB2020_4G_vn_intersected_prov.shp")
+# Population data
+pop_files <- list.files("Raw Data/Population Data", pattern = "\\.tif$", full.names = TRUE)
+pop_years <- as.integer(sub(".*vnm_ppp_(\\d{4})\\.tif$", "\\1", pop_files))
+pop_list <- lapply(pop_files, terra::rast)
+names(pop_list) <- paste0("pop", substr(pop_years, 3, 4))
 
 # VHLSS
 ## 2004
@@ -136,6 +133,11 @@ wt20 <- read_dta(file = "Raw data/VHLSS/2020/VHLSS 2020_Household Eng full/Data 
 panel1018 <- read_dta(file = "Clean data/panel_final_10-18.dta")
 
 # LFS 
+lfs10_distid <- read.csv("Raw Data/LFS/lfs_dist_10.csv")
+lfs11_distid <- read.csv("Raw Data/LFS/lfs_dist_11.csv")
+lfs12_distid <- read.csv("Raw Data/LFS/lfs_dist_12.csv")
+lfs13_distid <- read.csv("Raw Data/LFS/lfs_dist_13.csv")
+
 lfs10 <- read_sav("Raw data/LFS/Micr_LFS_2010-2014/LFS_2010_final_DCTDT_GUI.sav")
 lfs11 <- read_sav("Raw data/LFS/Micr_LFS_2010-2014/LFS_2011_final_DCTDT_GUI.sav")
 lfs12 <- read_sav("Raw data/LFS/Micr_LFS_2010-2014/LFS_2012_final_DCTDT_GUI.sav")
