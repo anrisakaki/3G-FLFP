@@ -133,15 +133,68 @@ cb18_cov_dist <- cb18_int %>% cb_dist_cov_fn() %>% left_join(dist18, by = c("NAM
 cb19_cov_dist <- cb19_int %>% cb_dist_cov_fn() %>% mutate(year = 2019)
 cb20_cov_dist <- cb20_int %>% cb_dist_cov_fn() %>% left_join(dist18, by = c("NAME_2" = "distname2018", "NAME_1")) %>% mutate(year = 2020, tinh = prov2018, huyen = dist2018)
 
-cb_3G_1320 <- bind_rows(cb13_cov_dist, cb14_cov_dist, cb15_cov_dist, cb16_cov_dist, 
-                        cb17_cov_dist, cb18_cov_dist, cb19_cov_dist, cb20_cov_dist) %>% 
-  dplyr::select(-c(prov2018, dist2018, tinh, huyen, dist_cov, dist_area)) 
+# Population coverage by district
 
-cb_3G_vhlss <- bind_rows(cb14_cov_dist, cb16_cov_dist, cb18_cov_dist, cb20_cov_dist) %>% 
-  group_by(GID_2) %>% 
-  mutate(distid = cur_group_id()) %>% 
-  ungroup() %>% 
-  dplyr::select(-c(prov2018, dist2018, GID_2, dist_cov, dist_area)) 
+# Get population raster for a given year
+pop_for_year <- function(yr) {
+  pop_list[[paste0("pop", substr(as.character(yr), 3, 4))]]
+}
+
+# Total population per district from raster
+dist_total_pop_fn <- function(pop_raster) {
+  pop_proj <- terra::project(pop_raster, terra::crs(vnmap2))
+  pop_vals <- terra::extract(pop_proj, terra::vect(vnmap2), fun = sum, na.rm = TRUE)
+  vnmap2 %>%
+    st_drop_geometry() %>%
+    dplyr::select(GID_2) %>%
+    mutate(total_pop = pop_vals[, 2])
+}
+
+# Population within 3G coverage area per district
+cb_pop_cov_fn <- function(cb_int, pop_raster) {
+  pop_proj <- terra::project(pop_raster, terra::crs(cb_int))
+  pop_vals <- terra::extract(pop_proj, terra::vect(cb_int), fun = sum, na.rm = TRUE)
+  cb_int %>%
+    st_drop_geometry() %>%
+    dplyr::select(GID_2) %>%
+    mutate(pop_covered = pop_vals[, 2]) %>%
+    group_by(GID_2) %>%
+    summarise(pop_covered = sum(pop_covered, na.rm = TRUE), .groups = "drop")
+}
+
+cb_pop_years <- list(
+  list(cb_int = cb13_int, year = 2013),
+  list(cb_int = cb14_int, year = 2014),
+  list(cb_int = cb15_int, year = 2015),
+  list(cb_int = cb16_int, year = 2016),
+  list(cb_int = cb17_int, year = 2017)
+)
+
+pop_cov_dist <- map_dfr(cb_pop_years, function(x) {
+  pop_raster  <- pop_for_year(x$year)
+  total_pop   <- dist_total_pop_fn(pop_raster)
+  covered_pop <- cb_pop_cov_fn(x$cb_int, pop_raster)
+  total_pop %>%
+    left_join(covered_pop, by = "GID_2") %>%
+    mutate(
+      pop_covered   = replace_na(pop_covered, 0),
+      pop_cov_share = pop_covered / total_pop,
+      year = x$year
+    ) %>%
+    dplyr::select(GID_2, year, pop_cov_share)
+})
+
+cb_3G_1320 <- bind_rows(cb13_cov_dist, cb14_cov_dist, cb15_cov_dist, cb16_cov_dist,
+                        cb17_cov_dist, cb18_cov_dist, cb19_cov_dist, cb20_cov_dist) %>%
+  dplyr::select(-c(prov2018, dist2018, tinh, huyen, dist_cov, dist_area)) %>%
+  left_join(pop_cov_dist, by = c("GID_2", "year"))
+
+cb_3G_vhlss <- bind_rows(cb14_cov_dist, cb16_cov_dist, cb18_cov_dist, cb20_cov_dist) %>%
+  left_join(pop_cov_dist, by = c("GID_2", "year")) %>%
+  group_by(GID_2) %>%
+  mutate(distid = cur_group_id()) %>%
+  ungroup() %>%
+  dplyr::select(-c(prov2018, dist2018, GID_2, dist_cov, dist_area))
 
 save(cb_3G_1320, file = "Clean data/cb_3G_1320.Rda")
 write_dta(cb_3G_1320, "Clean data/cb_3G_1320.dta")
