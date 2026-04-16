@@ -465,17 +465,7 @@ lfs_sum_dist_50_64 <- lfs_all %>%
 lfs_sum_dist <- list(lfs_sum_dist_all, lfs_sum_dist_20_29, lfs_sum_dist_30_39, lfs_sum_dist_40_49,
                      lfs_sum_dist_50_59, lfs_sum_dist_60_64, lfs_sum_dist_20_49, lfs_sum_dist_50_64, dist_3G, export_ctrl) %>% 
   reduce(full_join) %>% 
-  distinct() %>% 
-  ungroup() %>% 
-  filter(!is.na(mean_3G_OCI)) %>% 
-  mutate(ytt_OCI = year - year_OCI,
-         ytt_mean_OCI = year - year_mean_OCI,
-         ytt_med_OCI = year - year_med_OCI,
-         ytt_mean_CB = year - year_mean_CB,
-         ytt_med_CB = year - year_med_CB,
-         across(starts_with("ytt"), ~replace(., is.na(.), -1000)),
-         across(starts_with("year"), ~replace(., is.na(.), 0))) %>% 
-  select(year, ID_2, tinh, huyen, ends_with("_OCI"), ends_with("_CB"), everything()) 
+  lfs_treat_fn()
 
 # Female 
 
@@ -537,17 +527,7 @@ lfs_sum_dist_50_64_f <- lfs_all %>%
 lfs_sum_dist_f <- list(lfs_sum_dist_all_f, lfs_sum_dist_20_29_f, lfs_sum_dist_30_39_f, lfs_sum_dist_40_49_f,
                        lfs_sum_dist_50_59_f, lfs_sum_dist_60_64_f, lfs_sum_dist_20_49_f, lfs_sum_dist_50_64_f, dist_3G, export_ctrl) %>% 
   reduce(full_join) %>% 
-  distinct() %>% 
-  ungroup() %>% 
-  filter(!is.na(mean_3G_OCI)) %>% 
-  mutate(ytt_OCI = year - year_OCI,
-         ytt_mean_OCI = year - year_mean_OCI,
-         ytt_med_OCI = year - year_med_OCI,
-         ytt_mean_CB = year - year_mean_CB,
-         ytt_med_CB = year - year_med_CB,
-         across(starts_with("ytt"), ~replace(., is.na(.), -1000)),
-         across(starts_with("year"), ~replace(., is.na(.), 0))) %>% 
-  select(year, ID_2, tinh, huyen, ends_with("_OCI"), ends_with("_CB"), everything()) 
+  lfs_treat_fn()
 
 # Male 
 
@@ -609,17 +589,7 @@ lfs_sum_dist_50_64_m <- lfs_all %>%
 lfs_sum_dist_m <- list(lfs_sum_dist_all_m, lfs_sum_dist_20_29_m, lfs_sum_dist_30_39_m, lfs_sum_dist_40_49_m,
                        lfs_sum_dist_50_59_m, lfs_sum_dist_60_64_m, lfs_sum_dist_20_49_m, lfs_sum_dist_50_64_m, dist_3G, export_ctrl) %>% 
   reduce(full_join) %>% 
-  distinct() %>% 
-  ungroup() %>% 
-  filter(!is.na(mean_3G_OCI)) %>% 
-  mutate(ytt_OCI = year - year_OCI,
-         ytt_mean_OCI = year - year_mean_OCI,
-         ytt_med_OCI = year - year_med_OCI,
-         ytt_mean_CB = year - year_mean_CB,
-         ytt_med_CB = year - year_med_CB,
-         across(starts_with("ytt"), ~replace(., is.na(.), -1000)),
-         across(starts_with("year"), ~replace(., is.na(.), 0))) %>% 
-  select(year, ID_2, tinh, huyen, ends_with("_OCI"), ends_with("_CB"), everything()) 
+  lfs_treat_fn()
 
 save(lfs_sum_dist_m, file = "Clean data/lfs_sum_dist_m.Rda")
 write_dta(lfs_sum_dist_m, "Clean data/lfs_sum_dist_m.dta")

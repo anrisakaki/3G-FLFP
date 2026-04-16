@@ -2,6 +2,11 @@
 .Rhistory
 .RData
 .Ruserdata
+.RDataTmp
+
+# Non-R project files
+*.Rproj
+*.csv
 
 # Large raw/derived datasets
 Raw Data/

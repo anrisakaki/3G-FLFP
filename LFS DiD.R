@@ -14,19 +14,13 @@ dict = c("share_3G_OCI" = "3G Coverage",
          "service" = "Services",
          "taxid" = "Tax ID",
          "erc" = "ERC",
-         "accounting" = "Accounting",
          "socinsur" = "Social Insurance",
          "ID_2" = "District",
          "coverage_OCI" = "3G Coverage")
 
-add_coverage <- function(df) {
-  df %>%
-    mutate(coverage_OCI = ifelse(year_med_OCI > 0 & year >= year_med_OCI, 1, 0))
-}
-
 run_twfe_table <- function(df, outcomes, out_file) {
   models <- lapply(outcomes, function(outcome) {
-    fml <- as.formula(paste0(outcome, " ~ i(coverage_OCI) | ID_2 + year"))
+    fml <- as.formula(paste0(outcome, " ~ i(coverage_mean_OCI) | ID_2 + year"))
     feols(fml, df, vcov = ~ID_2)
   })
 
@@ -39,8 +33,8 @@ run_twfe_table <- function(df, outcomes, out_file) {
 }
 
 plot_event_study <- function(df_twfe, df_sunab, outcome, out_file) {
-  fml_twfe <- as.formula(paste0(outcome, " ~ i(ytt_mean_OCI, mean_3G_OCI, ref = -1) + lnexport_all | ID_2 + year"))
-  fml_sunab <- as.formula(paste0(outcome, " ~ sunab(year_mean_OCI, year) | ID_2 + year"))
+  fml_twfe <- as.formula(paste0(outcome, " ~ i(ytt_mean_OCI, mean_3G_OCI, ref = c(-1, -1000)) + lnexport_all | ID_2 + year"))
+  fml_sunab <- as.formula(paste0(outcome, " ~ sunab(year_mean_OCI, year) + lnexport_all | ID_2 + year"))
 
   png(out_file)
   iplot(
@@ -54,10 +48,6 @@ plot_event_study <- function(df_twfe, df_sunab, outcome, out_file) {
   dev.off()
 }
 
-lfs_sum_dist <- add_coverage(lfs_sum_dist)
-lfs_sum_dist_m <- add_coverage(lfs_sum_dist_m)
-lfs_sum_dist_f <- add_coverage(lfs_sum_dist_f)
-
 run_twfe_table(
   lfs_sum_dist,
   c("agri", "manu", "service"),
@@ -66,13 +56,13 @@ run_twfe_table(
 
 run_twfe_table(
   lfs_sum_dist_f,
-  c("work", "agri", "manu", "service", "hhbus", "taxid", "accounting", "socinsur"),
+  c("work", "agri", "manu", "service"),
   "C:/Users/Anri Sakakibara/Dropbox/Apps/Overleaf/3G in Vietnam/Results/LFS_TWFE_OCI_f.tex"
 )
 
 run_twfe_table(
   lfs_sum_dist_m,
-  c("work", "agri", "manu", "service", "hhbus", "taxid", "accounting", "socinsur"),
+  c("agri", "manu", "service"),
   "C:/Users/Anri Sakakibara/Dropbox/Apps/Overleaf/3G in Vietnam/Results/LFS_TWFE_OCI_m.tex"
 )
 
@@ -105,33 +95,14 @@ plot_event_study(default_f, lfs_sum_dist_f, "agri", file.path(fig_dir, "agri_mea
 plot_event_study(default_f, lfs_sum_dist_f, "manu", file.path(fig_dir, "manu_mean_OCI_f.jpeg"))
 plot_event_study(default_f, lfs_sum_dist_f, "service", file.path(fig_dir, "service_mean_OCI_f.jpeg"))
 plot_event_study(default_f, lfs_sum_dist_f, "hhbus", file.path(fig_dir, "hhbus_mean_OCI_f.jpeg"))
-plot_event_study(
-  subset(lfs_sum_dist_f, ytt_mean_OCI > -6 & ytt_mean_OCI < 4),
-  subset(lfs_sum_dist_f, ytt_mean_OCI > -6 & ytt_mean_OCI < 4),
-  "socinsur",
-  file.path(fig_dir, "socinsur_mean_OCI_f.jpeg")
-)
-plot_event_study(
-  subset(lfs_sum_dist_f, ytt_mean_OCI > -6 & ytt_mean_OCI < 3),
-  subset(lfs_sum_dist_f, ytt_mean_OCI > -6 & ytt_mean_OCI < 3),
-  "taxid",
-  file.path(fig_dir, "taxid_mean_OCI_f.jpeg")
-)
+plot_event_study(lfs_sum_dist_f, lfs_sum_dist_f, "taxid", file.path(fig_dir, "taxid_mean_OCI_f.jpeg"))
+plot_event_study(lfs_sum_dist_f, lfs_sum_dist_f, "socinsur", file.path(fig_dir, "socinsur_mean_OCI_f.jpeg"))
+
 
 plot_event_study(default_m, lfs_sum_dist_m, "work", file.path(fig_dir, "work_mean_OCI_m.jpeg"))
 plot_event_study(default_m, lfs_sum_dist_m, "agri", file.path(fig_dir, "agri_mean_OCI_m.jpeg"))
 plot_event_study(default_m, lfs_sum_dist_m, "manu", file.path(fig_dir, "manu_mean_OCI_m.jpeg"))
 plot_event_study(default_m, lfs_sum_dist_m, "service", file.path(fig_dir, "service_mean_OCI_m.jpeg"))
 plot_event_study(default_m, lfs_sum_dist_m, "hhbus", file.path(fig_dir, "hhbus_mean_OCI_m.jpeg"))
-plot_event_study(
-  subset(lfs_sum_dist_m, ytt_mean_OCI > -6 & ytt_mean_OCI < 4),
-  subset(lfs_sum_dist_m, ytt_mean_OCI > -6 & ytt_mean_OCI < 4),
-  "socinsur",
-  file.path(fig_dir, "socinsur_mean_OCI_m.jpeg")
-)
-plot_event_study(
-  subset(lfs_sum_dist_m, ytt_mean_OCI > -6 & ytt_mean_OCI < 3),
-  subset(lfs_sum_dist_m, ytt_mean_OCI > -6 & ytt_mean_OCI < 3),
-  "taxid",
-  file.path(fig_dir, "taxid_mean_OCI_m.jpeg")
-)
+plot_event_study(lfs_sum_dist_m, lfs_sum_dist_m, "taxid", file.path(fig_dir, "taxid_mean_OCI_m.jpeg"))
+plot_event_study(lfs_sum_dist_m, lfs_sum_dist_m, "socinsur", file.path(fig_dir, "socinsur_mean_OCI_m.jpeg"))
