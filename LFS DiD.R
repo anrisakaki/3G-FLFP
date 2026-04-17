@@ -95,30 +95,13 @@ plot_event_study(default_f, lfs_sum_dist_f, "agri", file.path(fig_dir, "agri_mea
 plot_event_study(default_f, lfs_sum_dist_f, "manu", file.path(fig_dir, "manu_mean_OCI_f.jpeg"))
 plot_event_study(default_f, lfs_sum_dist_f, "service", file.path(fig_dir, "service_mean_OCI_f.jpeg"))
 plot_event_study(default_f, lfs_sum_dist_f, "hhbus", file.path(fig_dir, "hhbus_mean_OCI_f.jpeg"))
-
-iplot(list(
-  feols(taxid ~ i(ytt_mean_OCI, mean_3G_OCI, ref = c(-1, -1000)) + lnexport_all | ID_2 + year, subset(lfs_sum_dist_f, ytt_mean_OCI < 3), vcov = ~ID_2),
-  feols(taxid ~ sunab(year_mean_OCI, year) + lnexport_all | ID_2 + year, subset(lfs_sum_dist_f, ytt_mean_OCI < 3), vcov = ~ID_2)
-))
-
-iplot(list(
-  feols(socinsur ~ i(ytt_mean_OCI, mean_3G_OCI, ref = c(-1, -1000)) + lnexport_all | ID_2 + year, subset(lfs_sum_dist_f, ytt_mean_OCI < 6), vcov = ~ID_2),
-  feols(socinsur ~ sunab(year_mean_OCI, year) + lnexport_all | ID_2 + year, subset(lfs_sum_dist_f, ytt_mean_OCI < 6), vcov = ~ID_2)
-))
-
+plot_event_study(subset(lfs_sum_dist_f, ytt_mean_OCI > -7 & ytt_mean_OCI < 3 | ytt_mean_OCI == -1000), lfs_sum_dist_m, "taxid", file.path(fig_dir, "taxid_mean_OCI_f.jpeg"))
+plot_event_study(subset(lfs_sum_dist_f, ytt_mean_OCI > -7 & ytt_mean_OCI < 6 | ytt_mean_OCI == -1000), lfs_sum_dist_m, "socinsur", file.path(fig_dir, "socinsur_mean_OCI_f.jpeg"))
 
 plot_event_study(default_m, lfs_sum_dist_m, "work", file.path(fig_dir, "work_mean_OCI_m.jpeg"))
 plot_event_study(default_m, lfs_sum_dist_m, "agri", file.path(fig_dir, "agri_mean_OCI_m.jpeg"))
 plot_event_study(default_m, lfs_sum_dist_m, "manu", file.path(fig_dir, "manu_mean_OCI_m.jpeg"))
 plot_event_study(default_m, lfs_sum_dist_m, "service", file.path(fig_dir, "service_mean_OCI_m.jpeg"))
 plot_event_study(default_m, lfs_sum_dist_m, "hhbus", file.path(fig_dir, "hhbus_mean_OCI_m.jpeg"))
-
-iplot(list(
-  feols(taxid ~ i(ytt_mean_OCI, mean_3G_OCI, ref = c(-1, -1000)) + lnexport_all | ID_2 + year, subset(lfs_sum_dist_m, ytt_mean_OCI < 3), vcov = ~ID_2),
-  feols(taxid ~ sunab(year_mean_OCI, year) + lnexport_all | ID_2 + year, subset(lfs_sum_dist_f, ytt_mean_OCI < 3), vcov = ~ID_2)
-))
-
-iplot(list(
-  feols(socinsur ~ i(ytt_mean_OCI, mean_3G_OCI, ref = c(-1, -1000)) + lnexport_all | ID_2 + year, subset(lfs_sum_dist_m, ytt_mean_OCI < 6), vcov = ~ID_2),
-  feols(socinsur ~ sunab(year_mean_OCI, year) + lnexport_all | ID_2 + year, subset(lfs_sum_dist_f, ytt_mean_OCI < 6), vcov = ~ID_2)
-))
+plot_event_study(subset(lfs_sum_dist_m, ytt_mean_OCI > -7 & ytt_mean_OCI < 3 | ytt_mean_OCI == -1000), lfs_sum_dist_m, "taxid", file.path(fig_dir, "taxid_mean_OCI_m.jpeg"))
+plot_event_study(subset(lfs_sum_dist_m, ytt_mean_OCI > -7 & ytt_mean_OCI < 6 | ytt_mean_OCI == -1000), lfs_sum_dist_m, "socinsur", file.path(fig_dir, "socinsur_mean_OCI_m.jpeg"))
