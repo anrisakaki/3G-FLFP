@@ -43,6 +43,9 @@ pop_years <- as.integer(sub(".*vnm_ppp_(\\d{4})\\.tif$", "\\1", pop_files))
 pop_list <- lapply(pop_files, terra::rast)
 names(pop_list) <- paste0("pop", substr(pop_years, 3, 4))
 
+# Export data
+export_ctrl <- read_dta(file = "Clean data/province level/export_province_year_isic4.dta")
+
 # VHLSS
 ## 2004
 ho1_04 <- read_dta(file = "Raw data/VHLSS/2004/ho1.dta")
@@ -137,10 +140,12 @@ lfs10_distid <- read.csv("Raw Data/LFS/lfs_dist_10.csv")
 lfs11_distid <- read.csv("Raw Data/LFS/lfs_dist_11.csv")
 lfs12_distid <- read.csv("Raw Data/LFS/lfs_dist_12.csv")
 lfs13_distid <- read.csv("Raw Data/LFS/lfs_dist_13.csv")
+lfs14_distid <- read.csv("Raw Data/LFS/lfs_dist_14.csv")
 
 lfs10 <- read_sav("Raw data/LFS/Micr_LFS_2010-2014/LFS_2010_final_DCTDT_GUI.sav")
 lfs11 <- read_sav("Raw data/LFS/Micr_LFS_2010-2014/LFS_2011_final_DCTDT_GUI.sav")
-lfs12 <- read_sav("Raw data/LFS/Micr_LFS_2010-2014/LFS_2012_final_DCTDT_GUI.sav")
+lfs12 <- read_sav("Raw data/LFS/Micr_LFS_2010-2014/LFS-2012-add_var_weight_goc.sav")
+lfs12.a <- read_sav("Raw data/LFS/Micr_LFS_2010-2014/LFS_2012_final_DCTDT_GUI.sav")
 lfs13 <- read_sav("Raw data/LFS/Micr_LFS_2010-2014/LFS_2013_final_DCTDT_GUI.sav")
 lfs14 <- read_sav("Raw data/LFS/Micr_LFS_2010-2014/LFS_2014_final_DCTDT_GUI.sav")
 lfs15 <- read_dta(file = "Raw data/LFS/LFS_2015_final_full.dta")
