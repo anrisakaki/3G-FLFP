@@ -464,7 +464,10 @@ lfs_sum_dist_50_64 <- lfs_all %>%
 
 lfs_sum_dist <- list(lfs_sum_dist_all, lfs_sum_dist_20_29, lfs_sum_dist_30_39, lfs_sum_dist_40_49,
                      lfs_sum_dist_50_59, lfs_sum_dist_60_64, lfs_sum_dist_20_49, lfs_sum_dist_50_64, dist_3G, export_ctrl) %>% 
-  reduce(full_join) %>% 
+  reduce(merge) 
+
+
+%>% 
   lfs_treat_fn()
 
 # Female 
