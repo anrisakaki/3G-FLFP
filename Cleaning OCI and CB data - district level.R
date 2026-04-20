@@ -2,11 +2,11 @@ ruralid <- wards_rural %>%
   mutate(
     type = word(wardname, 1),
     wardname = wardname %>%
-      str_remove("^(Phường|Thị|Xã.)\\s*") %>%
+      str_remove("^(Phường|Thị|Xã\\.)\\s*") %>%
       str_trim(),
     urban = ifelse(type == "Xã", 0, 1),
     distname = distname %>%
-      str_remove("^(Quận|Huyện|Thành phố|Thị xã|TP|Thị Xã|Thành Phố|TP.)\\s*") %>%
+      str_remove("^(Quận|Huyện|Thành phố|Thị xã|TP|Thị Xã|Thành Phố|TP\\.)\\s*") %>%
       str_trim(),
     provname = provname %>%
       str_remove("^(Tỉnh|Thành phố)\\s*") %>%
@@ -22,203 +22,53 @@ ruralid <- wards_rural %>%
     NAME_2 = distname,
     NAME_1 = provname) %>% 
   mutate(
-    NAME_1 = case_when(
-    NAME_1 == "Đắk Nông" ~ "Đăk Nông",
-    NAME_1 == "Hồ Chí Minh" ~ "Hồ Chí Minh city",
-    NAME_1 == "Hoà Bình" ~ "Hòa Bình",
-    NAME_1 == "Thừa Thiên Huế" ~ "Thừa Thiên - Huế",
-    TRUE ~ NAME_1
-  ),
-  NAME_2 = case_when(
-    NAME_2 == "Châu Đốc" ~ "Chau Doc",
-    NAME_2 == "Long Xuyên" ~ "Long Xuyen Township",
-    NAME_2 == "Bà Rịa" ~ "Ba Ria",
-    NAME_2 == "Bắc Kạn" ~ "Bac Kan",
-    NAME_2 == "Na Rì" ~ "Na Ri",
-    NAME_2 == "Hoà Bình" ~ "Hòa Bình",
+    NAME_2 = case_when(
     NAME_2 == "Quy Nhơn" ~ "Qui Nhơn",
-    NAME_2 == "Vân Canh" ~ "Van Canh",
-    NAME_2 == "Dầu Tiếng" ~ "Dau Tieng",
-    NAME_2 == "Dĩ An" ~ "Di An",
-    NAME_2 == "Bù Đốp" ~ "Bu Dop",
-    NAME_2 == "Đồng Phú" ~ "Đồng Phù",
-    NAME_2 == "Đồng Xoài" ~ "Dong Xoai",
-    NAME_2 == "Phú Quí" ~ "Phú Quý",
-    NAME_2 == "Tánh Linh" ~ "Tanh Linh",
-    NAME_2 == "Bình Thuỷ" ~ "Bình Thủy",
-    NAME_2 == "Phục Hoà" ~ "Phục Hòa",
-    NAME_2 == "Quảng Uyên" ~ "Quảng Yên",
-    NAME_2 == "Hòa Vang" ~ "Hoà Vang",
-    NAME_2 == "Buôn Ma Thuột" ~ "Buon Ma Thuot",
-    NAME_2 == "Krông A Na" ~ "Krông Ana",
-    NAME_2 == "Krông Búk" ~ "Krông Buk",
-    NAME_2 == "Krông Pắc" ~ "Krông Pắk",
-    NAME_2 == "Lắk" ~ "Lăk",
-    NAME_2 == "M'Đrắk" ~ "M'Đrăk",
-    NAME_2 == "Đắk Song" ~ "Dak Song",
-    NAME_2 == "Điện Biên Phủ" ~ "Điên Biên Phủ",
-    NAME_2 == "Biên Hòa" ~ "Bien Hoa",
-    NAME_2 == "Đăk Đoa" ~ "Đắk Đoa",
-    NAME_2 == "Đăk Pơ" ~ "Đắk Pơ",
-    NAME_2 == "KBang" ~ "K'Bang",
-    NAME_2 == "Ba Vì" ~ "Ba Vi",
-    NAME_2 == "Ứng Hòa" ~ "Ứng Hoà",
-    NAME_2 == "Kiến Thuỵ" ~ "Kiến Thụy",
-    NAME_2 == "Thuỷ Nguyên" ~ "Thủy Nguyên",
-    NAME_2 == "Vạn Ninh" ~ "Van Ninh",
-    NAME_2 == "Đắk Glei" ~ "Đăk Glei",
-    NAME_2 == "Đắk Hà" ~ "Đăk Hà",
-    NAME_2 == "Đắk Tô" ~ "Đăk Tô",
-    NAME_2 == "Đắk Mil" ~ "Đăk Mil",
-    NAME_2 == "Đắk R'Lấp" ~ "Đăk R'Lấp",
-    NAME_2 == "Than Uyên" ~ "Thanh Uyen",
-    NAME_2 == "Văn Lãng" ~ "Vãn Lãng",
-    NAME_2 == "Tân Thạnh" ~ "Tân Thành",
-    NAME_2 == "Thạnh Hóa" ~ "Thanh Hóa",
-    NAME_2 == "Thái Hoà" ~ "Thái Hòa",
-    NAME_2 == "Phú Hoà" ~ "Phú Hòa",
-    NAME_2 == "Tuy Hoà" ~ "Tuy Hoa",
-    NAME_2 == "Tuyên Hóa" ~ "Tuyen Hoa",
-    NAME_2 == "Tây Giang" ~ "Tay Giang",
-    NAME_2 == "Thạnh Trị" ~ "Thanh Trì",
-    NAME_2 == "Định Hóa" ~ "Định Hoá",
-    NAME_2 == "Bỉm Sơn" ~ "Bim Son",
-    NAME_2 == "Ngọc Lặc" ~ "Ngọc Lạc",
-    NAME_2 == "Thanh Hóa" ~ "Thanh Hóa City",
-    NAME_2 == "Gò Công" ~ "Go Cong",
-    NAME_2 == "Chiêm Hóa" ~ "Chiêm Hoá",
-    NAME_2 == "Tam Dương" ~ "Tam Đường",
-    NAME_2 == "Mù Căng Chải" ~ "Mù Căng Trai",
-    NAME_2 == "Tân Sơn" ~ "Thanh Sơn",
-    NAME_2 == 'Lạc Thủy' ~ 'Lạc Thuỷ',
-    NAME_2 == 'Yên Thủy' ~ 'Yên Thuỷ',
-    NAME_2 == 'Tân Uyên' ~ 'Yên Thuỷ',
-    NAME_2 == 'Phù Ninh' ~ 'Phú Ninh',
-    TRUE ~ NAME_2),
-  NAME_2 = ifelse(NAME_2 == "Tân Phú" & NAME_1 == "Hồ Chí Minh city", "Tan Phu", NAME_2),
-  NAME_2 = ifelse(NAME_2 == "Bình Tân" & NAME_1 == "Hồ Chí Minh city", "Binh Tan", NAME_2),
+    TRUE ~ NAME_2)
   ) %>% 
   distinct()
 
 vnmap2 <- vnmap2 %>% 
   mutate(NAME_2 = NAME_2 %>%
-           str_remove("^(Quận|Huyện|Thành phố|Thị xã|TP|Thị Xã|Thành Phố|TP.)\\s*") %>%
+           str_remove("^(Quận|Huyện|Thành phố|Thị xã|TP|Thị Xã|Thành Phố|TP\\.)\\s*") %>%
+           str_remove(" \\(Thành phố\\)$") %>%
+           str_remove(" \\(Thị xã\\)$") %>%
            str_trim(),
-         NAME_2 = ifelse(NAME_2 == "Cao Lanh", "Cao Lãnh", NAME_2),
-         NAME_2 = ifelse(NAME_2 == "Tam Dao", "Tam Đảo", NAME_2),
-         NAME_2 = ifelse(NAME_1 == "Cao Bằng" & NAME_2 == "Hoà An", "Cao Bằng", NAME_2)) %>% 
+         NAME_2 = case_when(
+           NAME_2 == 'Bắc Từ Liêm' ~ 'Từ Liêm',
+           NAME_2 == 'Nam Từ Liêm' ~ 'Từ Liêm',
+           NAME_2 == 'Mỏ Cày Bắc' ~ 'Mỏ Cày Nam',
+           NAME_2 == 'Bắc Tân Uyên' ~ 'Tân Uyên',
+           TRUE ~ NAME_2
+         ),
+         NAME_2 = ifelse(NAME_2 == "Hoà An" & NAME_1 == "Cao Bằng", "Cao Bằng", NAME_2)
+         ) %>% 
   group_by(NAME_1, NAME_2) %>%
   summarise(geometry = st_union(geometry), .groups = "drop") %>% 
   group_by(NAME_1, NAME_2) %>% 
   mutate(ID_2 = cur_group_id()) %>% 
-  left_join(ruralid) %>% 
+  merge(ruralid) %>% 
   distinct() %>% 
-  mutate(
-    urban = ifelse(NAME_2 == "Mỏ Cày", 0, urban),
-    NAME_1 = case_when(
-      NAME_1 == 'Bà Rịa - Vũng Tàu' ~ 'Bà Rịa-Vũng Tàu',
-      NAME_1 == "Hồ Chí Minh city" ~ "Tp Hồ Chí Minh",
-      NAME_1 == "Thừa Thiên - Huế" ~ "Thừa Thiên-Huế",
-      NAME_1 == "Thanh Hóa" ~ "Thanh Hoá",
-      NAME_1 == "Khánh Hòa" ~ "Khánh Hoà",
-      NAME_1 == "Hòa Bình" ~ "Hoà Bình",
-      NAME_1 == "Đăk Nông" ~ "Đắk Nông",
-      TRUE ~ NAME_1),
-    NAME_2 = case_when(
-      NAME_2 == 'Chiêm Hoá' ~ 'Chiêm Hóa',
-      NAME_2 == 'Thanh Trì' ~ 'Thạnh Trị',
-      NAME_2 == 'Tam Đường' ~ 'Tam Dương',
-      NAME_2 == 'Van Ninh' ~ 'Vạn Ninh',
-      NAME_2 == 'Tam Dao' ~ 'Tam Đảo',
-      NAME_2 == 'Mù Căng Chải' ~ 'Mù Căng Trai',
-      NAME_2 == 'Đăk Glei' ~ 'Đắk Glei',
-      NAME_2 == 'Đăk Tô' ~ 'Đắk Tô',
-      NAME_2 == 'Binh Tan' ~ 'Bình Tân',
-      NAME_2 == 'Tan Phu' ~ 'Tân Phú',
-      NAME_2 == 'Go Cong' ~ 'Gò Công',
-      NAME_2 == 'Đăk Hà' ~ 'Đắk Hà',
-      NAME_2 == 'Thanh Uyen' ~ 'Than Uyên',
-      NAME_2 == 'Mù Căng Trai' ~ 'Mù Căng Chải',
-      NAME_2 == 'Vãn Lãng' ~ 'Văn Lãng',
-      NAME_2 == 'Tân Thành' ~ 'Tân Thạnh',
-      NAME_2 == 'Tanh Linh' ~ 'Tánh Linh',
-      NAME_2 == 'Thanh Hóa' ~ 'Thạnh Hóa',
-      NAME_2 == 'Thái Hòa' ~ 'Thái Hoà',
-      NAME_2 == 'Tuy Hoa' ~ 'Tuy Hoà',
-      NAME_2 == 'Phú Hòa' ~ 'Phú Hoà',
-      NAME_2 == 'Tuyen Hoa' ~ 'Tuyên Hóa',
-      NAME_2 == 'Tay Giang' ~ 'Tây Giang',
-      NAME_2 == 'Định Hoá' ~ 'Định Hóa',
-      NAME_2 == 'Bim Son' ~ 'Bỉm Sơn',
-      NAME_2 == 'Ngọc Lạc' ~ 'Ngọc Lặc',
-      NAME_2 == 'Thanh Hóa City' ~ 'Thanh Hóa',
-      NAME_2 == 'Cao Lãnh (Thành phố)' ~ 'Cao Lãnh',
-      NAME_2 == 'Na Ri' ~ 'Na Rì',
-      NAME_2 == 'Bac Kan' ~ 'Bắc Kạn',
-      NAME_2 == 'Ba Ria' ~ 'Bà Rịa',
-      NAME_2 == 'Long Xuyen Township' ~ 'Long Xuyên',
-      NAME_2 == 'Hoà Bình' ~ 'Hòa Bình',
-      NAME_2 == 'Lạc Thuỷ' ~ 'Lạc Thủy',
-      NAME_2 == 'Yên Thuỷ' ~ 'Yên Thủy',
-      NAME_2 == 'Mỏ Cày' ~ 'Mỏ Cày Nam',
-      NAME_2 == 'Van Canh' ~ 'Vân Canh',
-      NAME_2 == 'Di An' ~ 'Dĩ An',
-      NAME_2 == 'Dau Tieng' ~ 'Dầu Tiếng',
-      NAME_2 == 'Bu Dop' ~ 'Bù Đốp',
-      NAME_2 == 'Dong Xoai' ~ 'Đồng Xoài',
-      NAME_2 == 'Bình Thủy' ~ 'Bình Thuỷ',
-      NAME_2 == 'Phục Hòa' ~ 'Phục Hoà',
-      NAME_2 == 'Quảng Yên' ~ 'Quảng Uyên',
-      NAME_2 == 'Hoà Vang' ~ 'Hòa Vang',
-      NAME_2 == 'Buon Ma Thuot' ~ 'Buôn Ma Thuột',
-      NAME_2 == 'Krông Pắk' ~ 'Krông Pắc',
-      NAME_2 == 'Krông Ana' ~ 'Krông A Na',
-      NAME_2 == 'Lăk' ~ 'Lắk',
-      NAME_2 == "M'Đrăk" ~ "M'Đrắk",
-      NAME_2 == "Điên Biên Phủ" ~ "Điện Biên Phủ",
-      NAME_2 == "Bien Hoa" ~ "Biên Hòa",
-      NAME_2 == "Đắk Đoa" ~ "Đăk Đoa",
-      NAME_2 == "Đắk Pơ" ~ "Đăk Pơ",
-      NAME_2 == "K'Bang" ~ "KBang",
-      NAME_2 == "Ứng Hoà" ~ "Ứng Hòa",
-      NAME_2 == "Ba Vi" ~ "Ba Vì",
-      NAME_2 == "Thủy Nguyên" ~ "Thuỷ Nguyên",
-      NAME_2 == "Krông Buk" ~ "Krông Búk",
-      NAME_2 == "Đăk Mil" ~ "Đắk Mil",
-      NAME_2 == "Đăk R'Lấp" ~ "Đắk R'Lấp",
-      NAME_2 == "Dak Song" ~ "Đắk Song",
-      NAME_2 == "Kiến Thụy" ~ "Kiến Thuỵ",
-      NAME_2 == 'Chau Doc' ~ 'Châu Đốc',
-      NAME_2 == 'Hồng Ngự (Thị xã)' ~ 'Hồng Ngự',
-      NAME_2 == 'Long Mỹ (Thị xã)' ~ 'Long Mỹ',
-      NAME_2 == 'Kỳ Anh (Thị xã)' ~ 'Kỳ Anh',
-      NAME_2 == 'Cai Lậy (Thị xã)' ~ 'Cai Lậy',
-      NAME_2 == 'Duyên Hải (Thị xã)' ~ 'Duyên Hải',
-      NAME_2 == "Thành Phố Bắc Kạn" ~ "Bắc Kạn",
-      NAME_2 == "Đồng Phú" ~ "Đồng Phù",
-      NAME_2 == "Thị Xã Buôn Hồ" ~ "Buôn Hồ",
-      NAME_2 == "Thị Xã Mường Lay" ~ "Mường Lay",
-      NAME_2 == "Chư Pưh" ~ "Ia Pa",
-      NAME_2 == "Nam Từ Liêm" ~ "Từ Liêm",
-      NAME_2 == "Bắc Từ Liêm" ~ "Từ Liêm",
-      NAME_2 == "Bắc Tân Uyên" ~ "Tân Uyên",
-      NAME_2 == "Thành Phố Đồng Hới" ~ "Đồng Hới",
-      NAME_2 == "Mù Căng Trai" ~ "Mù Căng Chải",
-      TRUE ~ NAME_2)
-  ) %>% 
-  mutate(NAME_2 = ifelse(NAME_2 == "Tân Thạnh" & NAME_1 == "Bà Rịa-Vũng Tàu", "Tân Thành", NAME_2),
-         NAME_2 = ifelse(NAME_2 == "Hòa Bình" & NAME_1 == "Bạc Liêu", "Hoà Bình", NAME_2),
-         NAME_2 = ifelse(NAME_2 == "Thạnh Trị" & NAME_1 == "Hà Nội", "Thanh Trì", NAME_2),
-         NAME_2 = ifelse(NAME_2 == "Tam Dương" & NAME_1 == "Lai Châu", "Tam Đường", NAME_2),
-         NAME_2 = ifelse(NAME_2 == "Phù Ninh" & NAME_1 == "Quảng Nam", "Phú Ninh", NAME_2),
-         NAME_2 = ifelse(NAME_2 == "Phú Ninh" & NAME_1 == "Phú Thọ", "Phù Ninh", NAME_2),
-         NAME_2 = ifelse(NAME_2 == "Thạnh Hóa" & NAME_1 == "Thanh Hoá", "Thanh Hóa", NAME_2)) %>% 
   filter(!is.na(ID_2)) 
 
 vnmap2_dist <- vnmap2 %>%
   st_drop_geometry() %>%
   select(ID_2, NAME_1, NAME_2) %>%
-  distinct() 
+  distinct() %>% 
+  mutate(
+    NAME_1 = case_when(
+      NAME_1 == 'Bà Rịa - Vũng Tàu'~ 'Bà Rịa-Vũng Tàu',
+      NAME_1 == 'Khánh Hòa'~ 'Khánh Hoà',
+      NAME_1 == 'Thanh Hóa'~ 'Thanh Hoá',
+      NAME_1 == 'Thừa Thiên Huế'~ 'Thừa Thiên-Huế',
+      NAME_1 == 'Hồ Chí Minh'~ 'Tp Hồ Chí Minh',
+      TRUE ~ NAME_1
+    ),
+    NAME_2 = case_when(
+      NAME_2 == 'Đồng Phú'~ "Đồng Phù",
+      TRUE ~ NAME_2
+    )
+  )
 
 distid <- lfs11_distid %>%
   select(provname, distname, tinh, huyen) %>%
@@ -227,15 +77,16 @@ distid <- lfs11_distid %>%
     huyen = ifelse(tinh == 87 & huyen == 866, 873, huyen),
     huyen = ifelse(tinh == 4 & huyen == 51, 40, huyen)
   ) %>% 
+  distinct() %>% 
   rename(NAME_1 = provname,
          NAME_2 = distname) %>% 
-  distinct() %>% 
   mutate(
     NAME_2 = NAME_2 %>%
-      str_remove("^(Quận|Huyện|Thành phố|Thị xã|TP|Thị Xã|Thành Phố|TP.)\\s*") %>%
+      str_remove("^(Quận|Huyện|Thành phố|Thị xã|TP|Thị Xã|Thành Phố|TP\\.)\\s*") %>%
       str_trim()
   ) %>% 
   full_join(vnmap2_dist) %>% 
+  distinct() %>% 
   filter(!is.na(tinh),
          !is.na(ID_2)) %>% 
   select(-c(NAME_1, NAME_2)) %>% 
@@ -340,44 +191,7 @@ build_dist_cov_year <- function(year_end, umts, vnmap2, dists, proj_crs) {
     mutate(year = year_end)
 }
 
-assign_oci_treatment <- function(df, mean_cutoff, med_cutoff) {
-  df %>%
-    select(year, ID_2, share_3G_OCI, any_of("ppn_3G_OCI")) %>%
-    mutate(share_3G_OCI = coalesce(share_3G_OCI, 0),
-           ppn_3G_OCI   = coalesce(ppn_3G_OCI, 0)) %>%
-    group_by(ID_2) %>%
-    mutate(
-      mean_3G_OCI = ifelse(any(ppn_3G_OCI >= mean_cutoff), 1, 0),
-      med_3G_OCI  = ifelse(any(ppn_3G_OCI >= med_cutoff), 1, 0),
-      year_mean_OCI = ifelse(any(ppn_3G_OCI >= mean_cutoff),
-                             min(year[ppn_3G_OCI >= mean_cutoff], na.rm = TRUE),
-                             NA),
-      year_med_OCI  = ifelse(any(ppn_3G_OCI >= med_cutoff),
-                             min(year[ppn_3G_OCI >= med_cutoff], na.rm = TRUE),
-                             NA),
-      year_OCI = ifelse(any(ppn_3G_OCI > 0),
-                        min(year[ppn_3G_OCI > 0], na.rm = TRUE),
-                        NA)
-    )
-}
-
-dist_cov_yearly <- map_dfr(2010:2018, build_dist_cov_year, umts = umts, vnmap2 = vnmap2, dists = dists, proj_crs = proj_crs)
-
-median_coverage17_oci <- dist_cov_yearly %>%
-  filter(year == 2017) %>%
-  mutate(ppn_3G_OCI = coalesce(ppn_3G_OCI, 0)) %>%
-  summarise(ppn_3G_OCI = median(ppn_3G_OCI)) %>%
-  pull(ppn_3G_OCI)
-
-mean_coverage17_oci <- dist_cov_yearly %>%
-  filter(year == 2017) %>%
-  mutate(ppn_3G_OCI = coalesce(ppn_3G_OCI, 0)) %>%
-  summarise(ppn_3G_OCI = mean(ppn_3G_OCI)) %>%
-  pull(ppn_3G_OCI)
-
-oci_dist_1017 <- dist_cov_yearly %>%
-  filter(year <= 2017) %>%
-  assign_oci_treatment(mean_cutoff = mean_coverage17_oci, med_cutoff = median_coverage17_oci)
+oci_dist_1017 <- map_dfr(2008:2017, build_dist_cov_year, umts = umts, vnmap2 = vnmap2, dists = dists, proj_crs = proj_crs)
 
 save(oci_dist_1017, file = "Clean data/oci_dist_1017.Rda")
 write_dta(oci_dist_1017, "Clean data/oci_dist_1017.dta")
@@ -440,42 +254,11 @@ build_cb_year <- function(year_value, cb_dist_1217, vnmap2) {
   result %>% left_join(pop_df, by = "ID_2")
 }
 
-assign_cb_treatment <- function(df, mean_cutoff, med_cutoff) {
-  df %>%
-    group_by(ID_2) %>%
-    mutate(
-      mean_3G_CB = ifelse(any(ppn_3G_CB >= mean_cutoff, na.rm = TRUE), 1, 0),
-      med_3G_CB  = ifelse(any(ppn_3G_CB >= med_cutoff, na.rm = TRUE), 1, 0),
-      year_mean_CB = ifelse(any(ppn_3G_CB >= mean_cutoff, na.rm = TRUE),
-                            min(year[ppn_3G_CB >= mean_cutoff], na.rm = TRUE),
-                            NA),
-      year_med_CB  = ifelse(any(ppn_3G_CB >= med_cutoff, na.rm = TRUE),
-                            min(year[ppn_3G_CB >= med_cutoff], na.rm = TRUE),
-                            NA),
-      share_3G_CB = ifelse(year < 2012, NA, share_3G_CB),
-      ppn_3G_CB   = ifelse(year < 2012, NA, ppn_3G_CB)
-    )
-}
-
-cb_dist_yearly <- map_dfr(2010:2017, build_cb_year, cb_dist_1217 = cb_dist_1217, vnmap2 = vnmap2) %>%
+cb_dist_1017 <- map_dfr(2008:2017, build_cb_year, cb_dist_1217 = cb_dist_1217, vnmap2 = vnmap2) %>%
   group_by(ID_2) %>%
   arrange(year) %>%
   mutate(share_3G_CB = cummax(replace_na(share_3G_CB, 0)),
          ppn_3G_CB   = cummax(replace_na(ppn_3G_CB, 0))) %>%
-  ungroup()
-
-mean_coverage17_cb <- cb_dist_yearly %>%
-  filter(year == 2017) %>%
-  summarise(mean_ppn_3G_CB  = mean(ppn_3G_CB , na.rm = TRUE)) %>%
-  pull(mean_ppn_3G_CB)
-median_coverage17_cb <- cb_dist_yearly %>%
-  filter(year == 2017) %>%
-  summarise(med_ppn_3G_CB = median(ppn_3G_CB, na.rm = TRUE)) %>%
-  pull(med_ppn_3G_CB)
-
-cb_dist_1017 <- cb_dist_yearly %>%
-  filter(year <= 2017) %>%
-  assign_cb_treatment(mean_cutoff = mean_coverage17_cb, med_cutoff = median_coverage17_cb) %>%
   ungroup()
 
 save(cb_dist_1017, file = "Clean data/cb_dist_1017.Rda")
@@ -504,7 +287,7 @@ dist_3G_shp$year_med_OCI <- forcats::fct_na_value_to_level(
   level = "Control"
 )
 
-sum_year_3G <- dist_3G %>% group_by(year) %>% summarise(median = median(share_3G_OCI*100), mean = mean(share_3G_OCI*100))
+sum_year_3G <- dist_3G %>% group_by(year) %>% summarise(median = median(ppn_3G_OCI*100), mean = mean(ppn_3G_OCI*100))
 
 ggplot() +
   geom_sf(data = dplyr::filter(dist_3G_shp, !is.na(year_OCI)), aes(fill = as.factor(year_OCI)), color = NA) +  
