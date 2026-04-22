@@ -272,6 +272,55 @@ dist_3G <- list(cb_dist_1017, oci_dist_1017, distid) %>%
   distinct() %>% 
   select(year, ID_2, tinh, huyen, ends_with("_OCI"), ends_with("_CB")) 
 
+median_coverage17_oci <- dist_3G %>%
+  filter(year == 2017) %>%
+  mutate(ppn_3G_OCI = coalesce(ppn_3G_OCI, 0)) %>%
+  summarise(ppn_3G_OCI = median(ppn_3G_OCI)) %>%
+  pull(ppn_3G_OCI)
+
+mean_coverage17_oci <- dist_3G %>%
+  filter(year == 2017) %>%
+  mutate(ppn_3G_OCI = coalesce(ppn_3G_OCI, 0)) %>%
+  summarise(ppn_3G_OCI = mean(ppn_3G_OCI)) %>%
+  pull(ppn_3G_OCI)
+
+median_coverage17_cb <- dist_3G %>%
+  filter(year == 2017) %>%
+  mutate(ppn_3G_CB = coalesce(ppn_3G_CB, 0)) %>%
+  summarise(ppn_3G_CB = median(ppn_3G_CB)) %>%
+  pull(ppn_3G_CB)
+
+mean_coverage17_cb <- dist_3G %>%
+  filter(year == 2017) %>%
+  mutate(ppn_3G_CB = coalesce(ppn_3G_CB, 0)) %>%
+  summarise(ppn_3G_CB = mean(ppn_3G_CB)) %>%
+  pull(ppn_3G_CB)
+
+dist_3G <- dist_3G %>% 
+  mutate(ppn_3G_OCI   = coalesce(ppn_3G_OCI, 0),
+         share_3G_OCI = coalesce(share_3G_OCI, 0)) %>%
+  group_by(ID_2) %>%
+  mutate(
+    mean_3G_OCI   = ifelse(any(ppn_3G_OCI >= mean_coverage17_oci), 1, 0),
+    med_3G_OCI    = ifelse(any(ppn_3G_OCI >= median_coverage17_oci), 1, 0),
+    year_mean_OCI = ifelse(any(ppn_3G_OCI >= mean_coverage17_oci),
+                           min(year[ppn_3G_OCI >= mean_coverage17_oci], na.rm = TRUE), NA),
+    year_med_OCI  = ifelse(any(ppn_3G_OCI >= median_coverage17_oci),
+                           min(year[ppn_3G_OCI >= median_coverage17_oci], na.rm = TRUE), NA),
+    year_OCI      = ifelse(any(ppn_3G_OCI > 0),
+                           min(year[ppn_3G_OCI > 0], na.rm = TRUE), NA),
+    
+    mean_3G_CB   = ifelse(any(ppn_3G_CB >= mean_coverage17_cb), 1, 0),
+    med_3G_CB    = ifelse(any(ppn_3G_CB >= median_coverage17_cb), 1, 0),
+    year_mean_CB = ifelse(any(ppn_3G_CB >= mean_coverage17_cb),
+                           min(year[ppn_3G_CB >= mean_coverage17_cb], na.rm = TRUE), NA),
+    year_med_CB  = ifelse(any(ppn_3G_CB >= median_coverage17_cb),
+                           min(year[ppn_3G_CB >= median_coverage17_cb], na.rm = TRUE), NA),
+    year_CB      = ifelse(any(ppn_3G_CB > 0),
+                           min(year[ppn_3G_CB > 0], na.rm = TRUE), NA)
+  ) %>%
+  ungroup()
+
 save(dist_3G, file = "Clean data/dist_3G.Rda")
 write_dta(dist_3G, "Clean data/dist_3G.dta")
 
@@ -333,51 +382,6 @@ ggplot() +
 ggsave("C:/Users/Anri Sakakibara/Dropbox/Apps/Overleaf/3G in Vietnam/Figures/Descriptive Stats/OCI_map.png", width = 7, height = 14)
 
 ggplot() +
-  geom_sf(data = dist_3G_shp, aes(fill = as.factor(year_med_OCI)), color = NA) +  
-  scale_fill_manual(
-    name = "Year treated",
-    values = c(
-      "2017" = "#f3ff82",  
-      "2016" = "#abeb88",  
-      "2015" = "#67d294",  
-      "2014" = "#17b79c",  
-      "2013" = "#009a9c", 
-      "2012" = "#007c92", 
-      "2011" = "#005e7d",  
-      "2010" = "#1f4260",
-      "Control" = "grey80"
-    ),
-    labels = c(
-      "2010" = "2010 (N = 2)",
-      "2011" = "2011 (N = 6)",
-      "2012" = "2012 (N = 17)",
-      "2013" = "2013 (N = 67)",
-      "2014" = "2014 (N = 39)",
-      "2015" = "2015 (N = 138)",
-      "2016" = "2016 (N = 39)",
-      "2017" = "2017 (N = 25)",
-      "Control" = " Control (N = 329)")
-  )+
-  geom_sf(data = vnmap2, fill = NA, color = "black", size = 0.2) +
-  labs(fill = "Year treated") +
-  theme_minimal() + 
-  theme(
-    plot.background = element_blank(),
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(),
-    panel.border = element_blank(),
-    legend.title = element_text(size = 16),
-    legend.text = element_text(size = 14),
-    axis.title.x = element_blank(),
-    axis.title.y = element_blank(),
-    axis.text.x  = element_blank(),
-    axis.text.y  = element_blank(),
-    axis.ticks   = element_blank(),
-    axis.line    = element_blank()
-  )
-ggsave("C:/Users/Anri Sakakibara/Dropbox/Apps/Overleaf/3G in Vietnam/Figures/Descriptive Stats/med_OCI_map.png", width = 7, height = 14)
-
-ggplot() +
   geom_sf(data = dist_3G_shp, aes(fill = as.factor(year_mean_OCI)), color = NA) +  
   scale_fill_manual(
     name = "Year treated",
@@ -393,15 +397,15 @@ ggplot() +
       "Control" = "grey80"
     ),
     labels = c(
-      "2010" = "2010 (N = 4)",
-      "2011" = "2011 (N = 3)",
+      "2010" = "2010 (N = 2)",
+      "2011" = "2011 (N = 11)",
       "2012" = "2012 (N = 51)",
-      "2013" = "2013 (N = 92)",
+      "2013" = "2013 (N = 122)",
       "2014" = "2014 (N = 53)",
-      "2015" = "2015 (N = 179)",
-      "2016" = "2016 (N = 56)",
-      "2017" = "2017 (N = 22)",
-      "Control" = " Control (N = 191)")
+      "2015" = "2015 (N = 215)",
+      "2016" = "2016 (N = 60)",
+      "2017" = "2017 (N = 25)",
+      "Control" = " Control (N = 135)")
   )+
   geom_sf(data = vnmap2, fill = NA, color = "black", size = 0.2) +
   labs(fill = "Year treated") +
@@ -428,7 +432,7 @@ ggplot(sum_year_3G, aes(x = year)) +
   geom_point(aes(y = mean, color = "Mean")) +
   geom_point(aes(y = median, color = "Median")) +
   labs(
-    y = "District-level 3G coverage (%)",
+    y = "Share of district population covered by 3G coverage (%)",
     color = "",
     title = ""
   ) +
