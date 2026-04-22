@@ -212,6 +212,11 @@ dn17 <- ec_list[[18]] %>%
   select(year, tinh, huyen, ma_thue, vsic, lhdn, starts_with("workers"), starts_with("fworkers"),
          soe, private, fdi, agri, manu, service)
 
+export_ctrl <- export_ctrl %>%
+  group_by(tinh) %>%
+  mutate(sh_manu_exposed_09 = sh_manu_exposed[year == 2009][1] / 100) %>%
+  ungroup()
+
 ves_all <- bind_rows(dn08, dn09, dn10, dn11, dn12, dn13, dn14, dn15, dn16, dn17) %>% 
   filter(ma_thue != "") %>% 
   mutate(
@@ -232,7 +237,7 @@ ves_all <- bind_rows(dn08, dn09, dn10, dn11, dn12, dn13, dn14, dn15, dn16, dn17)
          ytt_med_OCI = year - year_med_OCI,
          ytt_mean_CB = year - year_mean_CB,
          ytt_med_CB = year - year_med_CB,
-         across(starts_with("ytt"), ~replace(., is.na(.), 0)),
+         across(starts_with("ytt"), ~replace(., is.na(.), -1000)),
          across(starts_with("year"), ~replace(., is.na(.), 0))) %>% 
   rename_with(~ str_remove(.x, "_dec$"), ends_with("_dec")) %>% 
   mutate(mworkers = workers-fworkers,
