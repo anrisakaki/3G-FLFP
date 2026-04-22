@@ -33,7 +33,7 @@ cb11 <- rast("Raw Data/Collins Bartholomew/hc904nr7037/MCE_Global3G_2011.tif")
 cb12 <- rast("Raw Data/Collins Bartholomew/wx910xj1289/MCE_Global3G_2012.tif")
 cb13 <- rast("Raw Data/Collins Bartholomew/dg771jv6579/MCE_Global3G_2013.tif")
 cb14 <- rast("Raw Data/Collins Bartholomew/pd038fr9690/MCE_Global3G_2014.tif")
-cb15 <- rast("Raw Data/Collins Bartholomew/pd038fr9690/MCE_Global3G_2015.tif")
+cb15 <- rast("Raw Data/Collins Bartholomew/db189xs5502/MCE_Global3G_2015.tif")
 cb16 <- rast("Raw Data/Collins Bartholomew/ky819sb7704/MCE_Global3G_2016.tif")
 cb17 <- rast("Raw Data/Collins Bartholomew/by170qy6709/MCE_Global3G_2017.tif")
 
@@ -156,9 +156,9 @@ lfs19 <- read_dta(file = "Raw data/LFS/LFS_2019_final_full.dta")
 lfs20 <- read_dta(file = "Raw data/LFS/LFS_2020_final_full.dta")
 
 # VES 
-ec <- list.files("VES/DN", pattern = "^dn.*\\.dta$", full.names = TRUE)
+ec <- list.files("Raw data/VES/DN", pattern = "^dn.*\\.dta$", full.names = TRUE)
 
 ec_list <- lapply(ec, read_dta)
 
-ec_gender <- list.files("VES/Gender data", pattern = "^dn.*\\.dta$", full.names = TRUE)
+ec_gender <- list.files("Raw data/VES/Gender data", pattern = "^dn.*\\.dta$", full.names = TRUE)
 ecgender_list <- lapply(ec_gender, read_dta)
