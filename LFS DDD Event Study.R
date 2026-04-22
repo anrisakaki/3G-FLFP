@@ -1,87 +1,93 @@
+library(triplediff)
+
 load("Clean data/lfs_sum_dist_ddd.Rda")
 load("Clean data/lfs_sum_dist_f_ddd.Rda")
 load("Clean data/lfs_sum_dist_m_ddd.Rda")
 
-colours <- c("#4D4D4D", "#1B9E77")
-setFixest_coefplot(
-  grid = FALSE,
-  zero.par = list(type = "dotted", lty = 2),
-  main = "",
-  ref.line = -1,
-  col = colours
-)
+fig_dir <- "C:/Users/Anri Sakakibara/Dropbox/Apps/Overleaf/3G in Vietnam/Figures/Results"
 
-dict <- c(
-  "work" = "LFP",
-  "ID_2" = "District",
-  "age20_49" = "Age 20-49"
-)
+# ── Triplediff event study ────────────────────────────────────────────────────
 
-to_ddd_sample <- function(df) {
+prep_triplediff <- function(df) {
   df %>%
-    mutate(age20_49 = ifelse(agegr == 0, 0, 1)) %>%
-    filter(year_mean_OCI != 2010)
+    filter(is.na(year_mean_OCI) | year_mean_OCI != 2010) %>%
+    mutate(gname_td = ifelse(is.na(year_mean_OCI), 0, year_mean_OCI)) %>%
+    group_by(young, ID_2) %>%
+    mutate(dist_young = cur_group_id()) %>%
+    ungroup()
 }
 
-run_ddd_event_model <- function(df, outcome) {
-  fml <- as.formula(
-    paste0(
-      outcome,
-      " ~ i(ytt_mean_OCI, mean_3G_OCI, ref = -1)",
-      " + i(ytt_mean_OCI, mean_3G_OCI * age20_49, ref = -1)",
-      " + age20_49 + lnexport_all | ID_2 + year"
-    )
+run_triplediff <- function(df, outcome, min_e = -6, max_e = 5) {
+  out <- ddd(
+    yname         = outcome,
+    tname         = "year",
+    idname        = "dist_young",
+    gname         = "gname_td",
+    pname         = "young",
+    xformla       = ~1,
+    data          = prep_triplediff(df),
+    control_group = "nevertreated",
+    base_period   = "universal",
+    est_method    = "reg",
+    boot          = TRUE,
+    nboot         = 500,
+    cluster       = "ID_2"
   )
-  feols(fml, to_ddd_sample(df), vcov = ~ID_2)
+  agg_ddd(out, type = "eventstudy", min_e = min_e, max_e = max_e)
 }
 
-plot_ddd_interaction <- function(model, out_file) {
-  png(out_file)
+td_work_all <- run_triplediff(lfs_sum_dist_ddd,   "work")
+td_work_f   <- run_triplediff(lfs_sum_dist_f_ddd, "work")
+td_work_m   <- run_triplediff(lfs_sum_dist_m_ddd, "work")
+
+td_agri_all <- run_triplediff(lfs_sum_dist_ddd,   "agri")
+td_agri_f   <- run_triplediff(lfs_sum_dist_f_ddd, "agri")
+td_agri_m   <- run_triplediff(lfs_sum_dist_m_ddd, "agri")
+
+td_manu_all <- run_triplediff(lfs_sum_dist_ddd,   "manu")
+td_manu_f   <- run_triplediff(lfs_sum_dist_f_ddd, "manu")
+td_manu_m   <- run_triplediff(lfs_sum_dist_m_ddd, "manu")
+
+td_hhbus_all <- run_triplediff(lfs_sum_dist_ddd,   "hhbus")
+td_hhbus_f   <- run_triplediff(lfs_sum_dist_f_ddd, "hhbus")
+td_hhbus_m   <- run_triplediff(lfs_sum_dist_m_ddd, "hhbus")
+
+# ── TWFE DDD event study ──────────────────────────────────────────────────────
+
+colours <- c("#4D4D4D", "#1B9E77")
+
+plot_ddd_event_study <- function(df, outcome, out_file) {
+  fml <- as.formula(paste0(
+    outcome,
+    " ~ i(ytt_mean_OCI, mean_3G_OCI*young, ref = c(-1)) + ",
+    " i(mean_3G_OCI*young) +",
+    " i(ytt_mean_OCI, mean_3G_OCI,  ref = c(-1)) +",
+    " i(ytt_mean_OCI, young,        ref = c(-1)) +",
+    "i(year) + i(ID_2) + i(young) +",
+    " lnexport_all + i(year, sh_manu_exposed, ref = 2010)"
+  ))
+
+  jpeg(out_file)
   iplot(
-    model,
-    i.select = 2,
-    xlab = "Years to treatment",
-    main = "DDD event-study: 20-49 relative to 50+"
-  )
-  legend(
-    "topleft",
-    col = colours[2],
-    pch = 1,
-    lwd = 2,
-    cex = 1,
-    bty = "n",
-    legend = "Age 20-49 interaction"
+    feols(fml, df %>% filter(year_mean_OCI != 2010), vcov = ~ID_2),
+    i.select = 1,
+    xlab = "Years to treatment"
   )
   dev.off()
 }
 
-ddd_work_all <- run_ddd_event_model(lfs_sum_dist_ddd, "work")
-ddd_work_f <- run_ddd_event_model(lfs_sum_dist_f_ddd, "work")
-ddd_work_m <- run_ddd_event_model(lfs_sum_dist_m_ddd, "work")
+plot_ddd_event_study(lfs_sum_dist_ddd,   "work",  file.path(fig_dir, "work_ddd_all.jpeg"))
+plot_ddd_event_study(lfs_sum_dist_f_ddd, "work",  file.path(fig_dir, "work_ddd_f.jpeg"))
+plot_ddd_event_study(lfs_sum_dist_m_ddd, "work",  file.path(fig_dir, "work_ddd_m.jpeg"))
 
-ddd_agri_all <- run_ddd_event_model(lfs_sum_dist_ddd, "agri")
-ddd_agri_f <- run_ddd_event_model(lfs_sum_dist_f_ddd, "agri")
-ddd_agri_m <- run_ddd_event_model(lfs_sum_dist_m_ddd, "agri")
+plot_ddd_event_study(lfs_sum_dist_ddd,   "agri",  file.path(fig_dir, "agri_ddd_all.jpeg"))
+plot_ddd_event_study(lfs_sum_dist_f_ddd, "agri",  file.path(fig_dir, "agri_ddd_f.jpeg"))
+plot_ddd_event_study(lfs_sum_dist_m_ddd, "agri",  file.path(fig_dir, "agri_ddd_m.jpeg"))
 
-plot_ddd_interaction(
-  ddd_work_all,
-  "C:/Users/Anri Sakakibara/Dropbox/Apps/Overleaf/3G in Vietnam/Figures/Results/work_ddd_all.jpeg"
-)
-plot_ddd_interaction(
-  ddd_work_f,
-  "C:/Users/Anri Sakakibara/Dropbox/Apps/Overleaf/3G in Vietnam/Figures/Results/work_ddd_f.jpeg"
-)
-plot_ddd_interaction(
-  ddd_work_m,
-  "C:/Users/Anri Sakakibara/Dropbox/Apps/Overleaf/3G in Vietnam/Figures/Results/work_ddd_m.jpeg"
-)
+plot_ddd_event_study(lfs_sum_dist_ddd,   "manu",  file.path(fig_dir, "manu_ddd_all.jpeg"))
+plot_ddd_event_study(lfs_sum_dist_f_ddd, "manu",  file.path(fig_dir, "manu_ddd_f.jpeg"))
+plot_ddd_event_study(lfs_sum_dist_m_ddd, "manu",  file.path(fig_dir, "manu_ddd_m.jpeg"))
 
-plot_ddd_interaction(
-  ddd_agri_m,
-  "C:/Users/Anri Sakakibara/Dropbox/Apps/Overleaf/3G in Vietnam/Figures/Results/agri_ddd_m.jpeg"
-)
-
-plot_ddd_interaction(
-  ddd_agri_f,
-  "C:/Users/Anri Sakakibara/Dropbox/Apps/Overleaf/3G in Vietnam/Figures/Results/agri_ddd_f.jpeg"
-)
+plot_ddd_event_study(lfs_sum_dist_ddd,   "hhbus", file.path(fig_dir, "hhbus_ddd_all.jpeg"))
+plot_ddd_event_study(lfs_sum_dist_f_ddd, "hhbus", file.path(fig_dir, "hhbus_ddd_f.jpeg"))
+plot_ddd_event_study(lfs_sum_dist_m_ddd, "hhbus", file.path(fig_dir, "hhbus_ddd_m.jpeg"))
