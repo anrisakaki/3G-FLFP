@@ -208,7 +208,7 @@ plot_sectoral_wide_f_old <- function(df_f, out_file) {
   par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
   plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
   legend("bottom", col = colours_old, pch = 1, lwd = 2, cex = 1.3, bty = "n",
-         legend = c("TWFE", "Sun & Abraham"), horiz = TRUE, inset = c(0, 0.01), xpd = TRUE, x.intersp = 0.3)
+         legend = c("TWFE (45-64)", "Sun and Abraham (2020) (45-64)"), horiz = TRUE, inset = c(0, 0.01), xpd = TRUE, x.intersp = 0.3)
   dev.off()
 }
 
@@ -239,7 +239,7 @@ plot_sectoral_wide_f_age <- function(df_f, out_file) {
   par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
   plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
   legend("bottom", col = colours_age, pch = 1, lwd = 2, lty = c(1, 1, 2, 2), cex = 1.1, bty = "n",
-         legend = c("TWFE (20-44)", "SA (20-44)", "TWFE (45-64)", "SA (45-64)"),
+         legend = c("TWFE (20-44)", "Sun and Abraham (2020) (20-44)", "TWFE (45-64)", "Sun and Abraham (2020) (45-64)"),
          horiz = TRUE, inset = c(0, 0.01), xpd = TRUE, x.intersp = 0.3)
   dev.off()
 }
@@ -278,7 +278,7 @@ plot_informality_wide_f_old <- function(out_file) {
   par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
   plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
   legend("bottom", col = colours_old, pch = 1, lwd = 2, cex = 1.3, bty = "n",
-         legend = c("TWFE", "Sun & Abraham"), horiz = TRUE, inset = c(0, 0.01), xpd = TRUE, x.intersp = 0.3)
+         legend = c("TWFE (45-64)", "Sun and Abraham (2020) (45-64)"), horiz = TRUE, inset = c(0, 0.01), xpd = TRUE, x.intersp = 0.3)
   dev.off()
 }
 
@@ -315,82 +315,9 @@ plot_informality_wide_f_age <- function(out_file) {
   par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
   plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
   legend("bottom", col = colours_age, pch = 1, lwd = 2, lty = c(1, 1, 2, 2), cex = 1.1, bty = "n",
-         legend = c("TWFE (20-44)", "SA (20-44)", "TWFE (45-64)", "SA (45-64)"),
+         legend = c("TWFE (20-44)", "Sun and Abraham (2020) (20-44)", "TWFE (45-64)", "Sun and Abraham (2020) (45-64)"),
          horiz = TRUE, inset = c(0, 0.01), xpd = TRUE, x.intersp = 0.3)
   dev.off()
 }
 
 plot_informality_wide_f_age(file.path(fig_dir, "informality_mean_OCI_f_age.pdf"))
-
-# Placebo
-
-colours_age <- c("#A6CEE3", "#1F78B4", "#FDBF6F", "#E6621E")
-
-plot_event_study_age <- function(df_twfe, df_sunab, outcome, out_file) {
-  out_young <- paste0(outcome, "_20_44")
-  out_old   <- paste0(outcome, "_45_64")
-  fml_twfe_young  <- as.formula(paste0(out_young, " ~ i(ytt_mean_OCI, mean_3G_OCI, ref = c(-1, -1000)) + lnexport_all + i(year, sh_manu_09, ref = 2010) + i(year, sh_hs_09, ref = 2010) + i(year, sh_fdi_09, ref = 2010) + i(year, sh_it_09, ref = 2010) + i(year, sh_migrant_09, ref = 2010) | ID_2 + year"))
-  fml_sunab_young <- as.formula(paste0(out_young, " ~ sunab(year_mean_OCI, year) + lnexport_all + i(year, sh_manu_09, ref = 2010) + i(year, sh_hs_09, ref = 2010) + i(year, sh_fdi_09, ref = 2010) + i(year, sh_it_09, ref = 2010) + i(year, sh_migrant_09, ref = 2010) | ID_2 + year"))
-  fml_twfe_old    <- as.formula(paste0(out_old, " ~ i(ytt_mean_OCI, mean_3G_OCI, ref = c(-1, -1000)) + lnexport_all + i(year, sh_manu_09, ref = 2010) + i(year, sh_hs_09, ref = 2010) + i(year, sh_fdi_09, ref = 2010) + i(year, sh_it_09, ref = 2010) + i(year, sh_migrant_09, ref = 2010) | ID_2 + year"))
-  fml_sunab_old   <- as.formula(paste0(out_old, " ~ sunab(year_mean_OCI, year) + lnexport_all + i(year, sh_manu_09, ref = 2010) + i(year, sh_hs_09, ref = 2010) + i(year, sh_fdi_09, ref = 2010) + i(year, sh_it_09, ref = 2010) + i(year, sh_migrant_09, ref = 2010) | ID_2 + year"))
-
-  pdf(out_file)
-  par(xaxs = "i", mar = c(7, 4, 4, 2), mgp = c(2, 1, 0), cex.main = cex_main, cex.lab = cex_lab, cex.axis = cex_axis)
-  iplot(
-    list(
-      feols(fml_twfe_young,  df_twfe,  vcov = ~ID_2),
-      feols(fml_sunab_young, df_sunab, vcov = ~ID_2),
-      feols(fml_twfe_old,    df_twfe,  vcov = ~ID_2),
-      feols(fml_sunab_old,   df_sunab, vcov = ~ID_2)
-    ),
-    col = colours_age,
-    lty = c(1, 1, 2, 2),
-    sep = 0.1,
-    xlab = "Years to treatment"
-  )
-  legend("bottom",
-         col = colours_age, pch = 1, lwd = 2, lty = c(1, 1, 2, 2), cex = 1.1, bty = "n",
-         legend = c("TWFE (20-44)", "SA (20-44)", "TWFE (45-64)", "SA (45-64)"),
-         horiz = T, inset = c(0, -0.25), xpd = T, x.intersp = 0.3
-  )
-  dev.off()
-}
-
-plot_event_study_age(default_all, default_all, "work",    file.path(fig_dir, "work_mean_OCI_age.pdf"))
-plot_event_study_age(default_all, default_all, "agri",    file.path(fig_dir, "agri_mean_OCI_age.pdf"))
-plot_event_study_age(default_all, default_all, "manu",    file.path(fig_dir, "manu_mean_OCI_age.pdf"))
-plot_event_study_age(default_all, default_all, "service", file.path(fig_dir, "service_mean_OCI_age.pdf"))
-plot_event_study_age(default_all, default_all, "construction", file.path(fig_dir, "construction_mean_OCI_age.pdf"))
-plot_event_study_age(default_all, default_all, "hhbus",   file.path(fig_dir, "hhbus_mean_OCI_age.pdf"))
-plot_event_study_age(subset(default_all, ytt_mean_OCI > -7 & ytt_mean_OCI < 3 | ytt_mean_OCI == -1000),
-                     subset(default_all, ytt_mean_OCI > -7 & ytt_mean_OCI < 3 | ytt_mean_OCI == -1000),
-                     "taxid",   file.path(fig_dir, "taxid_mean_OCI_age.pdf"))
-plot_event_study_age(subset(default_all, ytt_mean_OCI > -7 & ytt_mean_OCI < 6 | ytt_mean_OCI == -1000),
-                     subset(default_all, ytt_mean_OCI > -7 & ytt_mean_OCI < 6 | ytt_mean_OCI == -1000),
-                     "socinsur", file.path(fig_dir, "socinsur_mean_OCI_age.pdf"))
-
-plot_event_study_age(default_m, default_m, "work",    file.path(fig_dir, "work_mean_OCI_age_m.pdf"))
-plot_event_study_age(default_m, default_m, "agri",    file.path(fig_dir, "agri_mean_OCI_age_m.pdf"))
-plot_event_study_age(default_m, default_m, "manu",    file.path(fig_dir, "manu_mean_OCI_age_m.pdf"))
-plot_event_study_age(default_m, default_m, "service", file.path(fig_dir, "service_mean_OCI_age_m.pdf"))
-plot_event_study_age(default_m, default_m, "construction", file.path(fig_dir, "construction_mean_OCI_age_m.pdf"))
-plot_event_study_age(default_m, default_m, "hhbus",   file.path(fig_dir, "hhbus_mean_OCI_age_m.pdf"))
-plot_event_study_age(subset(default_m, ytt_mean_OCI > -7 & ytt_mean_OCI < 3 | ytt_mean_OCI == -1000),
-                     subset(default_m, ytt_mean_OCI > -7 & ytt_mean_OCI < 3 | ytt_mean_OCI == -1000),
-                     "taxid",   file.path(fig_dir, "taxid_mean_OCI_age_m.pdf"))
-plot_event_study_age(subset(default_m, ytt_mean_OCI > -7 & ytt_mean_OCI < 6 | ytt_mean_OCI == -1000),
-                     subset(default_m, ytt_mean_OCI > -7 & ytt_mean_OCI < 6 | ytt_mean_OCI == -1000),
-                     "socinsur", file.path(fig_dir, "socinsur_mean_OCI_age_m.pdf"))
-
-plot_event_study_age(default_f, default_f, "work",    file.path(fig_dir, "work_mean_OCI_age_f.pdf"))
-plot_event_study_age(default_f, default_f, "agri",    file.path(fig_dir, "agri_mean_OCI_age_f.pdf"))
-plot_event_study_age(default_f, default_f, "manu",    file.path(fig_dir, "manu_mean_OCI_age_f.pdf"))
-plot_event_study_age(default_f, default_f, "service", file.path(fig_dir, "service_mean_OCI_age_f.pdf"))
-plot_event_study_age(default_f, default_f, "construction", file.path(fig_dir, "construction_mean_OCI_age_f.pdf"))
-plot_event_study_age(default_f, default_f, "hhbus",   file.path(fig_dir, "hhbus_mean_OCI_age_f.pdf"))
-plot_event_study_age(subset(default_f, ytt_mean_OCI > -7 & ytt_mean_OCI < 3 | ytt_mean_OCI == -1000),
-                     subset(default_f, ytt_mean_OCI > -7 & ytt_mean_OCI < 3 | ytt_mean_OCI == -1000),
-                     "taxid",   file.path(fig_dir, "taxid_mean_OCI_age_f.pdf"))
-plot_event_study_age(subset(default_f, ytt_mean_OCI > -7 & ytt_mean_OCI < 6 | ytt_mean_OCI == -1000),
-                     subset(default_f, ytt_mean_OCI > -7 & ytt_mean_OCI < 6 | ytt_mean_OCI == -1000),
-                     "socinsur", file.path(fig_dir, "socinsur_mean_OCI_age_f.pdf"))
