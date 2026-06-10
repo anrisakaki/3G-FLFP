@@ -2,13 +2,16 @@ fig_dir <- "C:/Users/Anri Sakakibara/Dropbox/Apps/Overleaf/3G in Vietnam/Figures
 
 plot_event_study_ves <- function(df, outcome, out_file) {
   fml_twfe <- as.formula(paste0(
-    "asinh(", outcome, ") ~ i(ytt_mean_OCI, mean_3G_OCI, ref = c(-1, -1000)) + lnexport_all + i(year, sh_manu_exposed_09, ref = 2009) | id + year"
+    outcome, " ~ i(ytt_mean_OCI, mean_3G_OCI, ref = c(-1, -1000)) +
+                                lnexport_all + year:sh_manu_09 + year:sh_hs_09 + year:sh_fdi_09 + year:sh_it_09 + year:sh_migrant_09 | id + year"
   ))
   fml_sunab <- as.formula(paste0(
-    "asinh(", outcome, ") ~ sunab(year_mean_OCI, year) + lnexport_all + i(year, sh_manu_exposed_09, ref = 2009) | id + year"
+    outcome, " ~ sunab(year_mean_OCI, year)  +
+  lnexport_all + year:sh_manu_09 + year:sh_hs_09 + year:sh_fdi_09 + year:sh_it_09 + year:sh_migrant_09 | id + year"
   ))
 
   jpeg(out_file)
+  par(mar = c(7, 4, 4, 2), mgp = c(4, 1, 0))
   iplot(
     list(
       feols(fml_twfe, df, vcov = ~ID_2),
@@ -17,7 +20,7 @@ plot_event_study_ves <- function(df, outcome, out_file) {
     i.select = 1,
     xlab = "Years to treatment"
   )
-  legend("topleft", col = colours, pch = 1, lwd = 2, cex = 1, bty = "n", legend = c("TWFE", "Sun & Abraham (2020)"))
+  legend("bottom", col = colours, pch = 1, lwd = 2, cex = 1, bty = "n", legend = c("TWFE", "Sun & Abraham (2020)"), horiz = TRUE, inset = c(0, -0.35), xpd = TRUE)
   dev.off()
 }
 

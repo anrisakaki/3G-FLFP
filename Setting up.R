@@ -16,6 +16,7 @@ library(purrr)
 library(did)
 library(terra)
 library(exactextractr)
+library(kableExtra)
 
 rm(list=ls())
 

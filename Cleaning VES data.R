@@ -217,7 +217,7 @@ export_ctrl <- export_ctrl %>%
   mutate(sh_manu_exposed_09 = sh_manu_exposed[year == 2009][1] / 100) %>%
   ungroup()
 
-ves_all <- bind_rows(dn08, dn09, dn10, dn11, dn12, dn13, dn14, dn15, dn16, dn17) %>% 
+ves_all <- bind_rows(dn09, dn10, dn11, dn12, dn13, dn14, dn15, dn16, dn17) %>% 
   filter(ma_thue != "") %>% 
   mutate(
     mst = if_else(
@@ -232,6 +232,7 @@ ves_all <- bind_rows(dn08, dn09, dn10, dn11, dn12, dn13, dn14, dn15, dn16, dn17)
   select(year, id, mst, tinh, huyen, starts_with("ma_thue"), madn, capso, everything()) %>% 
   merge(dist_3G) %>% 
   merge(export_ctrl) %>% 
+  merge(district_controls_09) %>% 
   mutate(ytt_OCI = year - year_OCI,
          ytt_mean_OCI = year - year_mean_OCI,
          ytt_med_OCI = year - year_med_OCI,

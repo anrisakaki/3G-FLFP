@@ -1,4 +1,5 @@
 load("Clean data/dist_3G.Rda")
+load("Clean data/district_controls_09.Rda")
 
 # LFS 2010 - LFS 2018 uses VSIC 07
 # LFS 2019 - uses VSIC 18
@@ -25,6 +26,7 @@ lfs10 <- lfs10 %>%
     agri = ifelse(ind < 50, 1, 0),
     manu = ifelse(ind > 99 & ind < 350, 1, 0),
     service = ifelse(ind > 449, 1, 0),
+    construction = ifelse(ind > 390 & ind < 450, 1, 0),
     nonagri = ifelse(ind > 50, 1, 0),
     hhbus = ifelse(org < 3, 1, 0),
     monthint = ifelse(kydt == 1, 4, 10),
@@ -33,7 +35,7 @@ lfs10 <- lfs10 %>%
   ) %>%
   left_join(lfs10_distid) %>% 
   dplyr::select(year, tinh, huyen, dban, hoso, STT, rural, monthint, age, female, marst, educattain, work,
-                occ, org, ind, emp, hhbus, agri, manu, service, nonagri, inc, yearsworked, wt) 
+                occ, org, ind, emp, hhbus, agri, manu, service, construction, nonagri, inc, yearsworked, wt) 
 
 lfs11 <- lfs11 %>% 
   rename(tinh = TINH,
@@ -64,6 +66,7 @@ lfs11 <- lfs11 %>%
     agri = ifelse(ind < 500, 1, 0),
     manu = ifelse(ind > 990 & ind < 3500, 1, 0),
     service = ifelse(ind > 4500, 1, 0),
+    construction = ifelse(ind > 3900 & ind < 4500, 1, 0),
     nonagri = ifelse(ind > 500, 1, 0),
     hhbus = ifelse(org < 3, 1, 0),
     socinsur = ifelse(C39B == 1, 1, 0),
@@ -74,7 +77,7 @@ lfs11 <- lfs11 %>%
   ) %>% 
   left_join(lfs11_distid) %>% 
   dplyr::select(year, tinh, huyen, dban, hoso, STT, rural, monthint, age, female, marst, educattain, work, unpaid, occ, org,
-                ind, emp, hhbus, agri, manu, service, nonagri, taxid, socinsur, accounting, inc, yearsworked, wt) 
+                ind, emp, hhbus, agri, manu, service, construction, nonagri, taxid, socinsur, accounting, inc, yearsworked, wt) 
 
 lfs12_weights <- lfs12.a %>% 
   select(TINH, DIABAN, STT, C2, C3, C4T, C4N, C5, weigh_TDT)
@@ -111,6 +114,7 @@ lfs12 <- lfs12 %>%
     agri = ifelse(ind < 500, 1, 0),
     manu = ifelse(ind > 990 & ind < 3500, 1, 0),
     service = ifelse(ind > 4500, 1, 0),
+    construction = ifelse(ind > 3900 & ind < 4500, 1, 0),
     nonagri = ifelse(ind > 500, 1, 0),
     hhbus = ifelse(org < 3, 1, 0),
     erc = ifelse(C41A == 1, 1, 0),
@@ -122,7 +126,7 @@ lfs12 <- lfs12 %>%
   ) %>% 
   left_join(lfs12_distid) %>% 
   dplyr::select(year, tinh, huyen, dban, hoso, STT, rural, monthint, age, female, marst, educattain, work, unpaid, occ, org,
-                ind, emp, hhbus, agri, manu, service, nonagri, erc, taxid, socinsur, accounting, inc, yearsworked, wt) 
+                ind, emp, hhbus, agri, manu, service, construction, nonagri, erc, taxid, socinsur, accounting, inc, yearsworked, wt) 
 
 lfs13 <- lfs13 %>% 
   rename(tinh = TINH,
@@ -152,6 +156,7 @@ lfs13 <- lfs13 %>%
     agri = ifelse(ind < 500, 1, 0),
     manu = ifelse(ind > 990 & ind < 3500, 1, 0),
     service = ifelse(ind > 4500, 1, 0),
+    construction = ifelse(ind > 3900 & ind < 4500, 1, 0),
     nonagri = ifelse(ind > 500, 1, 0),
     hhbus = ifelse(org < 3, 1, 0),
     erc = ifelse(C27A == 1, 1, 0),
@@ -163,7 +168,7 @@ lfs13 <- lfs13 %>%
   ) %>% 
   left_join(lfs13_distid) %>% 
   dplyr::select(year, tinh, huyen, dban, hoso, STT, rural, monthint, age, female, marst, educattain, work, unpaid, occ, org,
-                ind, emp, hhbus, agri, manu, service, nonagri, erc, taxid, socinsur, accounting, inc, yearsworked, wt) 
+                ind, emp, hhbus, agri, manu, service, construction, nonagri, erc, taxid, socinsur, accounting, inc, yearsworked, wt) 
 
 lfs14 <- lfs14 %>% 
   rename(tinh = TINH,
@@ -193,6 +198,7 @@ lfs14 <- lfs14 %>%
     agri = ifelse(ind < 500, 1, 0),
     manu = ifelse(ind > 990 & ind < 3500, 1, 0),
     service = ifelse(ind > 4500, 1, 0),
+    construction = ifelse(ind > 3900 & ind < 4500, 1, 0),
     nonagri = ifelse(ind > 500, 1, 0),
     hhbus = ifelse(org < 3, 1, 0),
     erc = ifelse(C27A == 1, 1, 0),
@@ -204,7 +210,7 @@ lfs14 <- lfs14 %>%
   ) %>% 
   left_join(lfs14_distid) %>% 
   dplyr::select(year, tinh, huyen, dban, hoso, STT, rural, monthint, age, female, marst, educattain, work, unpaid, occ, org,
-                ind, emp, hhbus, agri, manu, service, nonagri, erc, taxid, socinsur, accounting, inc, yearsworked, wt) 
+                ind, emp, hhbus, agri, manu, service, construction, nonagri, erc, taxid, socinsur, accounting, inc, yearsworked, wt) 
 
 lfs15 <- lfs15 %>% 
   rename(tinh = TINH,
@@ -237,6 +243,7 @@ lfs15 <- lfs15 %>%
     agri = ifelse(ind < 500, 1, 0),
     manu = ifelse(ind > 990 & ind < 3500, 1, 0),
     service = ifelse(ind > 4500, 1, 0),
+    construction = ifelse(ind > 3900 & ind < 4500, 1, 0),
     nonagri = ifelse(ind > 500, 1, 0),
     hhbus = ifelse(org < 4, 1, 0),
     erc = ifelse(C26 == 1, 1, 0),
@@ -245,7 +252,7 @@ lfs15 <- lfs15 %>%
     year = 2015
   ) %>% 
   dplyr::select(year, tinh, huyen, dban, hoso, STT, monthint, age, female, marst, educattain, work, unpaid, occ, org,
-                ind, emp, hhbus, agri, manu, service, nonagri, erc, socinsur, inc, yearsworked, wt) 
+                ind, emp, hhbus, agri, manu, service, construction, nonagri, erc, socinsur, inc, yearsworked, wt) 
 
 lfs16 <- lfs16 %>% 
   rename(tinh = TINH,
@@ -276,12 +283,13 @@ lfs16 <- lfs16 %>%
     nonagri = ifelse(ind > 500, 1, 0),
     hhbus = ifelse(org < 4, 1, 0),
     socinsur = ifelse(c32 == 1, 1, 0),
+    construction = ifelse(ind > 3900 & ind < 4500, 1, 0),
     erc = ifelse(c26 == 1, 1, 0),
     inc = ifelse(inc <= 0, NA, inc),
     year = 2016
   ) %>% 
   dplyr::select(year, tinh, huyen, hoso, STT, monthint, age, female, marst, educattain, work, unpaid, occ, org,
-                ind, emp, hhbus, agri, manu, service, nonagri, erc, socinsur, inc, yearsworked, wt) 
+                ind, emp, hhbus, agri, manu, service, construction, nonagri, erc, socinsur, inc, yearsworked, wt) 
 
 lfs17 <- lfs17 %>% 
   rename(tinh = TINH,
@@ -304,6 +312,7 @@ lfs17 <- lfs17 %>%
     agri = ifelse(ind < 500, 1, 0),
     manu = ifelse(ind > 990 & ind < 3500, 1, 0),
     service = ifelse(ind > 4500, 1, 0),
+    construction = ifelse(ind > 3900 & ind < 4500, 1, 0),
     nonagri = ifelse(ind > 500, 1, 0),
     hhbus = ifelse(org < 4, 1, 0),
     socinsur = ifelse(C34 == 1, 1, 0),
@@ -312,41 +321,9 @@ lfs17 <- lfs17 %>%
     year = 2017
   ) %>% 
   dplyr::select(year, tinh, huyen, hoso, STT, monthint, age, female, marst, educattain, work, unpaid, occ, org,
-                ind, emp, hhbus, agri, manu, service, nonagri, erc, socinsur, inc, wt) 
+                ind, emp, hhbus, agri, manu, service, construction, nonagri, erc, socinsur, inc, wt) 
 
-lfs18 <- lfs18 %>% 
-  rename(tinh = TINH,
-         huyen = HUYEN,
-         hoso = HOSO,
-         monthint = THANGDT,
-         age = C5,
-         marst = C9,
-         educattain = C17,
-         occ = C29C,
-         org = C31,
-         ind = C30C,
-         emp = C35,
-         payment = C38,
-         wt = Weight_final_2019) %>% 
-  mutate(
-    female = ifelse(C3 == 2, 1, 0),
-    work = ifelse(C21 == 1 | C22 == 1 | C23 == 1 | C26 == 1 | C27 == 1, 1, 0),
-    unpaid = ifelse(C22 == 1, 1, 0),
-    agri = ifelse(ind < 500, 1, 0),
-    manu = ifelse(ind > 990 & ind < 3500, 1, 0),
-    service = ifelse(ind > 4500, 1, 0),
-    nonagri = ifelse(ind > 500, 1, 0),
-    hhbus = ifelse(org < 4, 1, 0),
-    socinsur = ifelse(C34 == 1, 1, 0),
-    erc = ifelse(C28 == 1, 1, 0),
-    inc = NA_real_,
-    year = 2018
-  ) %>% 
-  dplyr::select(year, tinh, huyen, hoso, STT, monthint, age, female, marst, educattain, work, unpaid, occ, org,
-                ind, emp, hhbus, agri, manu, service, nonagri, erc, socinsur, inc, wt) 
-
-
-lfs_all <- bind_rows(lfs10, lfs11, lfs12, lfs13, lfs14, lfs15, lfs16, lfs17, lfs18) %>% 
+lfs_all <- bind_rows(lfs10, lfs11, lfs12, lfs13, lfs14, lfs15, lfs16, lfs17) %>% 
   mutate(work = ifelse(is.na(work), 0, work),
          huyen = ifelse(tinh == 87 & huyen == 868, 870, huyen),
          huyen = ifelse(tinh == 87 & huyen == 866, 873, huyen),
@@ -366,6 +343,7 @@ lfs_sum <- lfs_all %>%
     agri = mean(agri, na.rm = T),
     manu = mean(manu, na.rm = T),
     service = mean(service, na.rm = T),
+    construction = mean(construction, na.rm = T),
     taxid = mean(taxid, na.rm = T),
     socinsur = mean(socinsur, na.rm = T),
     inc = mean(inc, na.rm = T)
@@ -384,6 +362,7 @@ lfs_sum_dist_fn <- function(i){
       agri = mean(agri, na.rm = T),
       manu = mean(manu, na.rm = T),
       service = mean(service, na.rm = T),
+      construction = mean(construction, na.rm = T),
       taxid = mean(taxid, na.rm = T),
       socinsur = mean(socinsur, na.rm = T),
       inc = mean(inc, na.rm = T)
@@ -399,8 +378,8 @@ lfs_treat_fn <- function(i){
            ytt_med_OCI = year - year_med_OCI,
            across(starts_with("ytt"), ~replace(., is.na(.), -1000)),
            across(starts_with("year"), ~replace(., is.na(.), 0)),
-           coverage_mean_OCI = ifelse(year_mean_OCI > 0 & year >= year_mean_OCI, 1, 0),
-           coverage_med_OCI = ifelse(year_med_OCI > 0 & year >= year_med_OCI, 1, 0)) %>% 
+           post_mean_OCI = ifelse(year_mean_OCI > 0 & year >= year_mean_OCI, 1, 0),
+           post_med_OCI = ifelse(year_med_OCI > 0 & year >= year_med_OCI, 1, 0)) %>% 
     select(year, ID_2, tinh, huyen, ends_with("_OCI"), ends_with("_CB"), everything()) 
 }
 
@@ -461,10 +440,25 @@ lfs_sum_dist_50_64 <- lfs_all %>%
   select(year, tinh, huyen, everything()) %>%
   rename_with(~paste0(.,"_50_64"), -c(year, tinh, huyen))
 
+lfs_sum_dist_20_44 <- lfs_all %>% 
+  filter(age > 19 & age < 45) %>% 
+  group_by(year, tinh, huyen) %>% 
+  lfs_sum_dist_fn() %>% 
+  select(year, tinh, huyen, everything()) %>%
+  rename_with(~paste0(.,"_20_44"), -c(year, tinh, huyen))
+
+lfs_sum_dist_45_64 <- lfs_all %>% 
+  filter(age > 44 & age < 65) %>% 
+  group_by(year, tinh, huyen) %>% 
+  lfs_sum_dist_fn() %>% 
+  select(year, tinh, huyen, everything()) %>%
+  rename_with(~paste0(.,"_45_64"), -c(year, tinh, huyen))
+
 dist_3G <- dist_3G %>% filter(year > 2009)
 
 lfs_sum_dist <- list(lfs_sum_dist_all, lfs_sum_dist_20_29, lfs_sum_dist_30_39, lfs_sum_dist_40_49,
-                     lfs_sum_dist_50_59, lfs_sum_dist_60_64, lfs_sum_dist_20_49, lfs_sum_dist_50_64, dist_3G, export_ctrl) %>% 
+                     lfs_sum_dist_50_59, lfs_sum_dist_60_64, lfs_sum_dist_20_49, lfs_sum_dist_20_44, lfs_sum_dist_50_64, lfs_sum_dist_45_64,
+                     dist_3G, district_controls_09, export_ctrl) %>% 
   reduce(full_join) %>% 
   group_by(ID_2) %>%
   filter(n_distinct(year) == 8) %>%
@@ -527,8 +521,23 @@ lfs_sum_dist_50_64_f <- lfs_all %>%
   select(year, tinh, huyen, everything()) %>%
   rename_with(~paste0(.,"_50_64"), -c(year, tinh, huyen))
 
+lfs_sum_dist_20_44_f <- lfs_all %>% 
+  filter(age > 19 & age < 45 & female == 1) %>% 
+  group_by(year, tinh, huyen) %>% 
+  lfs_sum_dist_fn() %>% 
+  select(year, tinh, huyen, everything()) %>%
+  rename_with(~paste0(.,"_20_44"), -c(year, tinh, huyen))
+
+lfs_sum_dist_45_64_f <- lfs_all %>% 
+  filter(age > 44 & age < 65 & female == 1) %>% 
+  group_by(year, tinh, huyen) %>% 
+  lfs_sum_dist_fn() %>% 
+  select(year, tinh, huyen, everything()) %>%
+  rename_with(~paste0(.,"_45_64"), -c(year, tinh, huyen))
+
 lfs_sum_dist_f <- list(lfs_sum_dist_all_f, lfs_sum_dist_20_29_f, lfs_sum_dist_30_39_f, lfs_sum_dist_40_49_f,
-                       lfs_sum_dist_50_59_f, lfs_sum_dist_60_64_f, lfs_sum_dist_20_49_f, lfs_sum_dist_50_64_f, dist_3G, export_ctrl) %>% 
+                       lfs_sum_dist_50_59_f, lfs_sum_dist_60_64_f, lfs_sum_dist_20_49_f, lfs_sum_dist_20_44_f, lfs_sum_dist_50_64_f, lfs_sum_dist_45_64_f,
+                       dist_3G, district_controls_09, export_ctrl) %>% 
   reduce(full_join) %>% 
   group_by(ID_2) %>%
   filter(n_distinct(year) == 8) %>%
@@ -564,13 +573,6 @@ lfs_sum_dist_40_49_m <- lfs_all %>%
   select(year, tinh, huyen, everything()) %>%
   rename_with(~paste0(.,"_40_49"), -c(year, tinh, huyen))
 
-lfs_sum_dist_20_49_m <- lfs_all %>% 
-  filter(age > 19 & age < 50 & female == 0) %>% 
-  group_by(year, tinh, huyen) %>% 
-  lfs_sum_dist_fn() %>% 
-  select(year, tinh, huyen, everything()) %>%
-  rename_with(~paste0(.,"_20_49"), -c(year, tinh, huyen))
-
 lfs_sum_dist_50_59_m <- lfs_all %>% 
   filter(age > 49 & age < 60 & female == 0) %>% 
   group_by(year, tinh, huyen) %>% 
@@ -592,8 +594,30 @@ lfs_sum_dist_50_64_m <- lfs_all %>%
   select(year, tinh, huyen, everything()) %>%
   rename_with(~paste0(.,"_50_64"), -c(year, tinh, huyen))
 
+lfs_sum_dist_20_49_m <- lfs_all %>% 
+  filter(age > 19 & age < 50 & female == 0) %>% 
+  group_by(year, tinh, huyen) %>% 
+  lfs_sum_dist_fn() %>% 
+  select(year, tinh, huyen, everything()) %>%
+  rename_with(~paste0(.,"_20_49"), -c(year, tinh, huyen))
+
+lfs_sum_dist_20_44_m <- lfs_all %>% 
+  filter(age > 19 & age < 45 & female == 0) %>% 
+  group_by(year, tinh, huyen) %>% 
+  lfs_sum_dist_fn() %>% 
+  select(year, tinh, huyen, everything()) %>%
+  rename_with(~paste0(.,"_20_44"), -c(year, tinh, huyen))
+
+lfs_sum_dist_45_64_m <- lfs_all %>% 
+  filter(age > 44 & age < 65 & female == 0) %>% 
+  group_by(year, tinh, huyen) %>% 
+  lfs_sum_dist_fn() %>% 
+  select(year, tinh, huyen, everything()) %>%
+  rename_with(~paste0(.,"_45_64"), -c(year, tinh, huyen))
+
 lfs_sum_dist_m <- list(lfs_sum_dist_all_m, lfs_sum_dist_20_29_m, lfs_sum_dist_30_39_m, lfs_sum_dist_40_49_m,
-                       lfs_sum_dist_50_59_m, lfs_sum_dist_60_64_m, lfs_sum_dist_20_49_m, lfs_sum_dist_50_64_m, dist_3G, export_ctrl) %>% 
+                       lfs_sum_dist_50_59_m, lfs_sum_dist_60_64_m, lfs_sum_dist_20_49_m, lfs_sum_dist_20_44_m, lfs_sum_dist_50_64_m,  lfs_sum_dist_45_64_m, 
+                       dist_3G, district_controls_09, export_ctrl) %>% 
   reduce(full_join) %>% 
   group_by(ID_2) %>%
   filter(n_distinct(year) == 8) %>%
@@ -674,49 +698,85 @@ write_dta(lfs_sum_dist_ddd, "Clean data/lfs_sum_dist_ddd.dta")
 # SUMMARY STATS #
 #################
 
-lfs_sum_dist %>% 
-  group_by(med_3G_OCI) %>% 
+female_stats <- lfs_all %>%
+  filter(age > 19 & age < 65) %>%
+  group_by(tinh, huyen) %>%
+  summarise(female = mean(female, na.rm = TRUE), .groups = "drop") %>%
+  left_join(lfs_sum_dist %>% distinct(tinh, huyen, mean_3G_OCI), by = c("tinh", "huyen"))
+
+female_row <- female_stats %>%
+  group_by(mean_3G_OCI) %>%
+  summarise(mean = mean(female, na.rm = TRUE),
+            sd   = sd(female, na.rm = TRUE))
+
+n_ctrl <- lfs_sum_dist %>% filter(mean_3G_OCI == 0) %>% distinct(ID_2) %>% nrow()
+n_trt  <- lfs_sum_dist %>% filter(mean_3G_OCI == 1) %>% distinct(ID_2) %>% nrow()
+
+lfs_sum_stats <- lfs_sum_dist %>%
+  group_by(mean_3G_OCI) %>%
   summarise(
-    n = n_distinct(ID_2),
-    work = mean(work[year == 2010], na.rm = T),
-    agri = mean(agri[year == 2010], na.rm = T),
-    manu = mean(manu[year == 2010], na.rm = T),
-    service = mean(service[year == 2010], na.rm = T),
-    hhbus = mean(hhbus[year == 2010], na.rm = T),
-    coverage = mean(share_3G_OCI),
-    coverage16 = mean(share_3G_OCI[year == 2016])
+    lfp_mean     = mean(work[year == 2010],         na.rm = TRUE),
+    lfp_sd       = sd(work[year == 2010],           na.rm = TRUE),
+    hhbus_mean   = mean(hhbus[year == 2010],        na.rm = TRUE),
+    hhbus_sd     = sd(hhbus[year == 2010],          na.rm = TRUE),
+    agri_mean    = mean(agri[year == 2010],         na.rm = TRUE),
+    agri_sd      = sd(agri[year == 2010],           na.rm = TRUE),
+    manu_mean    = mean(manu[year == 2010],         na.rm = TRUE),
+    manu_sd      = sd(manu[year == 2010],           na.rm = TRUE),
+    service_mean = mean(service[year == 2010],      na.rm = TRUE),
+    service_sd   = sd(service[year == 2010],        na.rm = TRUE),
+    construction_mean = mean(construction[year == 2010],      na.rm = TRUE),
+    construction_sd   = sd(construction[year == 2010],        na.rm = TRUE),
+    cov_mean     = mean(share_3G_OCI,               na.rm = TRUE),
+    cov_sd       = sd(share_3G_OCI,                 na.rm = TRUE),
+    cov16_mean   = mean(share_3G_OCI[year == 2017], na.rm = TRUE),
+    cov16_sd     = sd(share_3G_OCI[year == 2017],   na.rm = TRUE)
   )
 
-lfs_sum_dist %>% 
-  group_by(mean_3G_OCI) %>% 
-  summarise(
-    n = n_distinct(ID_2),
-    work = sd(work, na.rm = T),
-    agri = sd(agri, na.rm = T),
-    manu = sd(manu, na.rm = T),
-    service = sd(service, na.rm = T),
-    hhbus = sd(hhbus, na.rm = T),
-    coverage = sd(share_3G_OCI),
-    coverage16 = sd(share_3G_OCI[year == 2016])
+ctrl <- lfs_sum_stats %>% filter(mean_3G_OCI == 0)
+trt  <- lfs_sum_stats %>% filter(mean_3G_OCI == 1)
+f_ctrl <- female_row %>% filter(mean_3G_OCI == 0)
+f_trt  <- female_row %>% filter(mean_3G_OCI == 1)
+
+# Assemble table
+tab <- tibble(
+  Variable = c(
+    "Female",
+    "LFP",
+    "Household business share",
+    "Agriculture share",
+    "Manufacturing share",
+    "Service share",
+    "Construction share",
+    "3G coverage (all years)",
+    "3G coverage in 2017"
+  ),
+  ctrl_mean = round(c(f_ctrl$mean, ctrl$lfp_mean, ctrl$hhbus_mean, ctrl$agri_mean,
+                      ctrl$manu_mean, ctrl$service_mean, ctrl$construction_mean, ctrl$cov_mean, ctrl$cov16_mean), 2),
+  ctrl_sd   = round(c(f_ctrl$sd,   ctrl$lfp_sd,  ctrl$hhbus_sd,  ctrl$agri_sd,
+                      ctrl$manu_sd,  ctrl$service_sd, ctrl$construction_sd, ctrl$cov_sd,  ctrl$cov16_sd), 2),
+  trt_mean  = round(c(f_trt$mean,  trt$lfp_mean,  trt$hhbus_mean,  trt$agri_mean,
+                      trt$manu_mean,  trt$service_mean,  trt$construction_mean, trt$cov_mean,  trt$cov16_mean), 2),
+  trt_sd    = round(c(f_trt$sd,    trt$lfp_sd,   trt$hhbus_sd,   trt$agri_sd,
+                      trt$manu_sd,   trt$service_sd,   trt$construction_sd, trt$cov_sd,   trt$cov16_sd), 2)
+)
+
+header <- c(1, 2, 2)
+names(header) <- c(" ",
+                   paste0("Control $N = ", n_ctrl, "$"),
+                   paste0("Treated $N = ", n_trt, "$"))
+
+kable(tab,
+      format    = "latex",
+      booktabs  = TRUE,
+      col.names = c("", "Mean", "S.D.", "Mean", "S.D."),
+      align     = c("l", "c", "c", "c", "c"),
+      caption   = "Descriptive Statistics by Treatment Status (initially in 2010)") %>%
+  add_header_above(header) %>%
+  kable_styling(latex_options = "hold_position") %>%
+  footnote(
+    general           = "Source: Authors' calculation using LFS.",
+    general_title     = "",
+    footnote_as_chunk = TRUE,
+    escape            = FALSE
   )
-
-lfs_sum_dist %>% 
-  group_by(mean_3G_OCI) %>% 
-  summarise(
-    n = n_distinct(ID_2),
-    work = mean(work, na.rm = T),
-    agri = mean(agri, na.rm = T),
-    manu = mean(manu, na.rm = T),
-    service = mean(service, na.rm = T),
-    hhbus = mean(hhbus, na.rm = T),
-    coverage = mean(share_3G_OCI),
-    coverage16 = mean(share_3G_OCI[year == 2016])
-  )
-
-lfs_sum_year_m <- lfs_sum_dist_m %>% 
-  group_by(year, mean_3G_OCI) %>% 
-  lfs_sum_dist_fn() 
-
-lfs_sum_year_f <- lfs_sum_dist_f %>% 
-  group_by(year, mean_3G_OCI) %>% 
-  lfs_sum_dist_fn() 
