@@ -22,7 +22,7 @@ lfs10 <- lfs10 %>%
   mutate(
     female = ifelse(C3 == 2, 1, 0),
     work = ifelse(c10 == 1 | c11 == 1 | c12 == 1 | c13 == 1, 1, 0),
-    work2 = ifelse(c21 == 1, 1, 0),
+    work2 = ifelse(c21 == 9, NA, ifelse(c21 == 1, 1, 0)),
     agri = ifelse(ind < 50, 1, 0),
     manu = ifelse(ind > 99 & ind < 350, 1, 0),
     service = ifelse(ind > 449, 1, 0),
@@ -34,8 +34,8 @@ lfs10 <- lfs10 %>%
     year = 2010
   ) %>%
   left_join(lfs10_distid) %>% 
-  dplyr::select(year, tinh, huyen, dban, hoso, STT, rural, monthint, age, female, marst, educattain, work,
-                occ, org, ind, emp, hhbus, agri, manu, service, construction, nonagri, inc, yearsworked, wt) 
+  dplyr::select(year, tinh, huyen, dban, hoso, STT, rural, monthint, age, female, marst, educattain, work, work2,
+                occ, org, ind, emp, hhbus, agri, manu, service, construction, nonagri, inc, hours, yearsworked, wt) 
 
 lfs11 <- lfs11 %>% 
   rename(tinh = TINH,
@@ -62,7 +62,14 @@ lfs11 <- lfs11 %>%
     female = ifelse(C3 == 2, 1, 0),
     work = ifelse(C13 == 1 | C14 == 1 | C15 < 3 | C16 < 3| C18 == 1, 1, 0),
     unpaid = ifelse(C14 == 1, 1, 0),
-    work2 = ifelse(C55 == 1, 1, 0),
+    work2 = ifelse(C55 < 3, 1, 0),
+    agri2 = ifelse(C59 < 500, 1, 0),
+    manu2 = ifelse(C59 > 990 & C59 < 3500, 1, 0),
+    service2 = ifelse(C59 > 4500, 1, 0),
+    migrant = ifelse(C8 == 2 | C8 == 3, 1, 0),
+    mig6 = ifelse(C8 == 2, 1, ifelse(C8 == 3, 0, NA)),
+    mig_jobsearch = ifelse(migrant == 1, ifelse(C10 == 1, 1, 0), NA),
+    mig_newjob = ifelse(migrant == 1, ifelse(C10 == 2, 1, 0), NA),
     agri = ifelse(ind < 500, 1, 0),
     manu = ifelse(ind > 990 & ind < 3500, 1, 0),
     service = ifelse(ind > 4500, 1, 0),
@@ -76,8 +83,9 @@ lfs11 <- lfs11 %>%
     year = 2011
   ) %>% 
   left_join(lfs11_distid) %>% 
-  dplyr::select(year, tinh, huyen, dban, hoso, STT, rural, monthint, age, female, marst, educattain, work, unpaid, occ, org,
-                ind, emp, hhbus, agri, manu, service, construction, nonagri, taxid, socinsur, accounting, inc, yearsworked, wt) 
+  dplyr::select(year, tinh, huyen, dban, hoso, STT, rural, monthint, age, female, marst, educattain, work, work2, migrant, mig6, mig_jobsearch, mig_newjob, unpaid, occ, org,
+                ind, emp, hhbus, agri, manu, service, agri2, manu2, service2, construction, nonagri, taxid, socinsur, accounting, inc, hours,
+                yearsworked, wt) 
 
 lfs12_weights <- lfs12.a %>% 
   select(TINH, DIABAN, STT, C2, C3, C4T, C4N, C5, weigh_TDT)
@@ -108,7 +116,14 @@ lfs12 <- lfs12 %>%
     female = ifelse(C3 == 2, 1, 0),
     work = ifelse(C15 == 1| C16 == 1 | C17 < 3 | C18 < 3 | C20 == 1, 1, 0),
     unpaid = ifelse(C16 == 1, 1, 0),
-    work2 = ifelse(C57 == 1, 1, 0),
+    work2 = ifelse(C57 < 3, 1, 0),
+    agri2 = ifelse(C61 < 500, 1, 0),
+    manu2 = ifelse(C61 > 990 & C61 < 3500, 1, 0),
+    service2 = ifelse(C61 > 4500, 1, 0),
+    migrant = ifelse(C8 == 1 | C8 == 2, 1, 0),
+    mig6 = ifelse(C8 == 1, 1, ifelse(C8 == 2, 0, NA)),
+    mig_jobsearch = ifelse(migrant == 1, ifelse(C10 == 1, 1, 0), NA),
+    mig_newjob = ifelse(migrant == 1, ifelse(C10 == 2, 1, 0), NA),
     formal = ifelse(org > 2, 1, 0),
     informal = ifelse(org < 3, 1, 0),
     agri = ifelse(ind < 500, 1, 0),
@@ -124,9 +139,10 @@ lfs12 <- lfs12 %>%
     inc = ifelse(inc <= 0, NA, inc),
     year = 2012
   ) %>% 
-  left_join(lfs12_distid) %>% 
-  dplyr::select(year, tinh, huyen, dban, hoso, STT, rural, monthint, age, female, marst, educattain, work, unpaid, occ, org,
-                ind, emp, hhbus, agri, manu, service, construction, nonagri, erc, taxid, socinsur, accounting, inc, yearsworked, wt) 
+  left_join(lfs12_distid) %>%
+  dplyr::select(year, tinh, huyen, dban, hoso, STT, rural, monthint, age, female, marst, educattain, work, work2, migrant, mig6, mig_jobsearch, mig_newjob, unpaid, occ, org,
+                ind, emp, hhbus, agri, manu, service, agri2, manu2, service2, construction, nonagri, erc, taxid, socinsur, accounting, inc, hours,
+                yearsworked, wt) 
 
 lfs13 <- lfs13 %>% 
   rename(tinh = TINH,
@@ -152,7 +168,14 @@ lfs13 <- lfs13 %>%
     female = ifelse(C3 == 2, 1, 0),
     work = ifelse(C16 == 1 | C17 == 1 | C18 == 1 | C19 < 3 | C21 == 1, 1, 0),
     unpaid = ifelse(C17 == 1, 1, 0),
-    work2 = ifelse(C43 == 1, 1, 0),
+    work2 = ifelse(C43 < 3, 1, 0),
+    agri2 = ifelse(C47 < 500, 1, 0),
+    manu2 = ifelse(C47 > 990 & C47 < 3500, 1, 0),
+    service2 = ifelse(C47 > 4500, 1, 0),
+    migrant = ifelse(C9 == 1 | C9 == 2, 1, 0),
+    mig6 = ifelse(C9 == 1, 1, ifelse(C9 == 2, 0, NA)),
+    mig_jobsearch = ifelse(migrant == 1, ifelse(C12 == 1, 1, 0), NA),
+    mig_newjob = ifelse(migrant == 1, ifelse(C12 == 2, 1, 0), NA),
     agri = ifelse(ind < 500, 1, 0),
     manu = ifelse(ind > 990 & ind < 3500, 1, 0),
     service = ifelse(ind > 4500, 1, 0),
@@ -166,9 +189,10 @@ lfs13 <- lfs13 %>%
     inc = ifelse(inc <= 0, NA, inc),
     year = 2013
   ) %>% 
-  left_join(lfs13_distid) %>% 
-  dplyr::select(year, tinh, huyen, dban, hoso, STT, rural, monthint, age, female, marst, educattain, work, unpaid, occ, org,
-                ind, emp, hhbus, agri, manu, service, construction, nonagri, erc, taxid, socinsur, accounting, inc, yearsworked, wt) 
+  left_join(lfs13_distid) %>%
+  dplyr::select(year, tinh, huyen, dban, hoso, STT, rural, monthint, age, female, marst, educattain, work, work2, migrant, mig6, mig_jobsearch, mig_newjob, unpaid, occ, org,
+                ind, emp, hhbus, agri, manu, service, agri2, manu2, service2, construction, nonagri, erc, taxid, socinsur, accounting, inc, hours,
+                yearsworked, wt) 
 
 lfs14 <- lfs14 %>% 
   rename(tinh = TINH,
@@ -195,6 +219,13 @@ lfs14 <- lfs14 %>%
     work = ifelse(C16 == 1 | C17 == 1 | C18 == 1 | C19 < 3 | C21 == 1, 1, 0),
     unpaid = ifelse(C17 == 1, 1, 0),
     work2 = ifelse(C45 < 3, 1, 0),
+    agri2 = ifelse(C49 < 500, 1, 0),
+    manu2 = ifelse(C49 > 990 & C49 < 3500, 1, 0),
+    service2 = ifelse(C49 > 4500, 1, 0),
+    migrant = ifelse(C9 == 1 | C9 == 2, 1, 0),
+    mig6 = ifelse(C9 == 1, 1, ifelse(C9 == 2, 0, NA)),
+    mig_jobsearch = ifelse(migrant == 1, ifelse(C12 == 1, 1, 0), NA),
+    mig_newjob = ifelse(migrant == 1, ifelse(C12 == 2, 1, 0), NA),
     agri = ifelse(ind < 500, 1, 0),
     manu = ifelse(ind > 990 & ind < 3500, 1, 0),
     service = ifelse(ind > 4500, 1, 0),
@@ -208,9 +239,10 @@ lfs14 <- lfs14 %>%
     inc = ifelse(inc <= 0, NA, inc),
     year = 2014
   ) %>% 
-  left_join(lfs14_distid) %>% 
-  dplyr::select(year, tinh, huyen, dban, hoso, STT, rural, monthint, age, female, marst, educattain, work, unpaid, occ, org,
-                ind, emp, hhbus, agri, manu, service, construction, nonagri, erc, taxid, socinsur, accounting, inc, yearsworked, wt) 
+  left_join(lfs14_distid) %>%
+  dplyr::select(year, tinh, huyen, dban, hoso, STT, rural, monthint, age, female, marst, educattain, work, work2, migrant, mig6, mig_jobsearch, mig_newjob, unpaid, occ, org,
+                ind, emp, hhbus, agri, manu, service, agri2, manu2, service2, construction, nonagri, erc, taxid, socinsur, accounting, inc, hours,
+                yearsworked, wt) 
 
 lfs15 <- lfs15 %>% 
   rename(tinh = TINH,
@@ -248,11 +280,17 @@ lfs15 <- lfs15 %>%
     hhbus = ifelse(org < 4, 1, 0),
     erc = ifelse(C26 == 1, 1, 0),
     socinsur = ifelse(C32 == 1, 1, 0),
+    work2 = ifelse(C43 == 1, 1, 0),
+    migrant = ifelse(as.numeric(C8) < 4, 1, 0),
+    mig6 = ifelse(as.numeric(C8) < 3, 1, ifelse(as.numeric(C8) == 3, 0, NA)),
+    mig_jobsearch = ifelse(migrant == 1, ifelse(as.numeric(C11) == 1, 1, 0), NA),
+    mig_newjob = ifelse(migrant == 1, ifelse(as.numeric(C11) == 2, 1, 0), NA),
     inc = ifelse(inc <= 0, NA, inc),
     year = 2015
   ) %>% 
-  dplyr::select(year, tinh, huyen, dban, hoso, STT, monthint, age, female, marst, educattain, work, unpaid, occ, org,
-                ind, emp, hhbus, agri, manu, service, construction, nonagri, erc, socinsur, inc, yearsworked, wt) 
+  dplyr::select(year, tinh, huyen, dban, hoso, STT, monthint, age, female, marst, educattain, work, work2, migrant, mig6, mig_jobsearch, mig_newjob, unpaid, occ, org,
+                ind, emp, hhbus, agri, manu, service, construction, nonagri, erc, socinsur, inc, hours, 
+                yearsworked, wt) 
 
 lfs16 <- lfs16 %>% 
   rename(tinh = TINH,
@@ -285,11 +323,17 @@ lfs16 <- lfs16 %>%
     socinsur = ifelse(c32 == 1, 1, 0),
     construction = ifelse(ind > 3900 & ind < 4500, 1, 0),
     erc = ifelse(c26 == 1, 1, 0),
+    work2 = ifelse(c43 == 1, 1, 0),
+    migrant = ifelse(as.numeric(c8) < 4, 1, 0),
+    mig6 = ifelse(as.numeric(c8) < 3, 1, ifelse(as.numeric(c8) == 3, 0, NA)),
+    mig_jobsearch = ifelse(migrant == 1, ifelse(as.numeric(c11) == 1, 1, 0), NA),
+    mig_newjob = ifelse(migrant == 1, ifelse(as.numeric(c11) == 2, 1, 0), NA),
     inc = ifelse(inc <= 0, NA, inc),
     year = 2016
   ) %>% 
-  dplyr::select(year, tinh, huyen, hoso, STT, monthint, age, female, marst, educattain, work, unpaid, occ, org,
-                ind, emp, hhbus, agri, manu, service, construction, nonagri, erc, socinsur, inc, yearsworked, wt) 
+  dplyr::select(year, tinh, huyen, hoso, STT, monthint, age, female, marst, educattain, work, work2, migrant, mig6, mig_jobsearch, mig_newjob, unpaid, occ, org,
+                ind, emp, hhbus, agri, manu, service, construction, nonagri, erc, socinsur, inc, hours,
+                yearsworked, wt) 
 
 lfs17 <- lfs17 %>% 
   rename(tinh = TINH,
@@ -304,6 +348,8 @@ lfs17 <- lfs17 %>%
          ind = C25,
          emp = C30,
          payment = C33,
+         hours = C40A,
+         inc = C39A,
          wt = weight_final_2019) %>% 
   mutate(
     female = ifelse(C3 == 2, 1, 0),
@@ -317,11 +363,15 @@ lfs17 <- lfs17 %>%
     hhbus = ifelse(org < 4, 1, 0),
     socinsur = ifelse(C34 == 1, 1, 0),
     erc = ifelse(C28 == 1, 1, 0),
-    inc = NA_real_,
+    work2 = ifelse(C40B > 0, 1, 0),
+    migrant = ifelse(as.numeric(C10) < 4, 1, 0),
+    mig6 = ifelse(as.numeric(C10) < 3, 1, ifelse(as.numeric(C10) == 3, 0, NA)),
+    mig_jobsearch = ifelse(migrant == 1, ifelse(as.numeric(C13) == 1, 1, 0), NA),
+    mig_newjob = ifelse(migrant == 1, ifelse(as.numeric(C13) == 2, 1, 0), NA),
     year = 2017
   ) %>% 
-  dplyr::select(year, tinh, huyen, hoso, STT, monthint, age, female, marst, educattain, work, unpaid, occ, org,
-                ind, emp, hhbus, agri, manu, service, construction, nonagri, erc, socinsur, inc, wt) 
+  dplyr::select(year, tinh, huyen, hoso, STT, monthint, age, female, marst, educattain, work, work2, migrant, mig6, mig_jobsearch, mig_newjob, unpaid, occ, org,
+                ind, emp, hhbus, agri, manu, service, construction, nonagri, erc, socinsur, inc, hours, wt) 
 
 lfs_all <- bind_rows(lfs10, lfs11, lfs12, lfs13, lfs14, lfs15, lfs16, lfs17) %>% 
   mutate(work = ifelse(is.na(work), 0, work),
@@ -357,15 +407,25 @@ lfs_sum_dist_fn <- function(i){
     summarise(
       n = n(),
       work = mean(work, na.rm = T),
+      work2 = mean(work2, na.rm = T),
+      migrant = mean(migrant, na.rm = T),
+      mig6 = mean(mig6, na.rm = T),
+      mig_jobsearch = mean(mig_jobsearch, na.rm = T),
+      mig_newjob = mean(mig_newjob, na.rm = T),
       hhbus = mean(hhbus, na.rm = T),
       unpaid = mean(unpaid, na.rm = T),
       agri = mean(agri, na.rm = T),
       manu = mean(manu, na.rm = T),
       service = mean(service, na.rm = T),
+      agri2 = mean(agri2, na.rm = T),
+      manu2 = mean(manu2, na.rm = T),
+      service2 = mean(service2, na.rm = T),
       construction = mean(construction, na.rm = T),
       taxid = mean(taxid, na.rm = T),
       socinsur = mean(socinsur, na.rm = T),
-      inc = mean(inc, na.rm = T)
+      inc = mean(inc, na.rm = T),
+      hours = mean(hours, na.rm = T),
+      hrinc = mean(inc/hours, na.rm = T)
     )
 }
 
@@ -631,69 +691,6 @@ write_dta(lfs_sum_dist_f, "Clean data/lfs_sum_dist_f.dta")
 save(lfs_sum_dist, file = "Clean data/lfs_sum_dist.Rda")
 write_dta(lfs_sum_dist, "Clean data/lfs_sum_dist.dta")
 
-#########################
-# PREPARING LFS FOR DDD #
-#########################
-
-lfs_sum_dist_20_49_ddd <- lfs_sum_dist %>% 
-  select(year, ID_2, tinh, huyen, ends_with("_OCI"), ends_with("_CB"), ends_with("_20_49"), sh_manu_exposed, lnexport_all) %>% 
-  rename_with(~ str_remove(.x, "_20_49$")) %>% 
-  mutate(young = 1)
-
-lfs_sum_dist_50_64_ddd <- lfs_sum_dist %>% 
-  select(year, ID_2, tinh, huyen, ends_with("_OCI"), ends_with("_CB"), ends_with("_50_64"), sh_manu_exposed, lnexport_all) %>% 
-  rename_with(~ str_remove(.x, "_50_64$")) %>% 
-  mutate(young = 0)
-
-lfs_sum_dist_ddd <- bind_rows(
-  lfs_sum_dist_20_49_ddd,
-  lfs_sum_dist_50_64_ddd
-) %>% 
-  mutate(treatyoung = mean_3G_OCI * young)
-
-# Female
-
-lfs_sum_dist_20_49_f_ddd <- lfs_sum_dist_f %>% 
-  select(year, ID_2, tinh, huyen, ends_with("_OCI"), ends_with("_CB"), ends_with("_20_49"), sh_manu_exposed, lnexport_all) %>% 
-  rename_with(~ str_remove(.x, "_20_49$")) %>% 
-  mutate(young = 1)
-
-lfs_sum_dist_50_64_f_ddd <- lfs_sum_dist_f %>% 
-  select(year, ID_2, tinh, huyen, ends_with("_OCI"), ends_with("_CB"), ends_with("_50_64"), sh_manu_exposed, lnexport_all) %>% 
-  rename_with(~ str_remove(.x, "_50_64$")) %>% 
-  mutate(young = 0)
-
-lfs_sum_dist_f_ddd <- bind_rows(
-  lfs_sum_dist_20_49_f_ddd,
-  lfs_sum_dist_50_64_f_ddd
-) %>% 
-  mutate(treatyoung = mean_3G_OCI * young)
-
-# Male
-
-lfs_sum_dist_20_49_m_ddd <- lfs_sum_dist_m %>% 
-  select(year, ID_2, tinh, huyen, ends_with("_OCI"), ends_with("_CB"), ends_with("_20_49"), sh_manu_exposed, lnexport_all) %>% 
-  rename_with(~ str_remove(.x, "_20_49$")) %>% 
-  mutate(young = 1)
-
-lfs_sum_dist_50_64_m_ddd <- lfs_sum_dist_m %>% 
-  select(year, ID_2, tinh, huyen, ends_with("_OCI"), ends_with("_CB"), ends_with("_50_64"), sh_manu_exposed, lnexport_all) %>% 
-  rename_with(~ str_remove(.x, "_50_64$")) %>% 
-  mutate(young = 0)
-
-lfs_sum_dist_m_ddd <- bind_rows(
-  lfs_sum_dist_20_49_m_ddd,
-  lfs_sum_dist_50_64_m_ddd
-) %>% 
-  mutate(treatyoung = mean_3G_OCI * young)
-
-save(lfs_sum_dist_m_ddd, file = "Clean data/lfs_sum_dist_m_ddd.Rda")
-write_dta(lfs_sum_dist_m_ddd, "Clean data/lfs_sum_dist_m_ddd.dta")
-save(lfs_sum_dist_f_ddd, file = "Clean data/lfs_sum_dist_f_ddd.Rda")
-write_dta(lfs_sum_dist_f_ddd, "Clean data/lfs_sum_dist_f_ddd.dta")
-save(lfs_sum_dist_ddd, file = "Clean data/lfs_sum_dist_ddd.Rda")
-write_dta(lfs_sum_dist_ddd, "Clean data/lfs_sum_dist_ddd.dta")
-
 #################
 # SUMMARY STATS #
 #################
@@ -748,8 +745,8 @@ tab <- tibble(
     "Manufacturing share",
     "Service share",
     "Construction share",
-    "3G coverage (all years)",
-    "3G coverage in 2017"
+    "Share of district with 3G coverage (all years)",
+    "Share of district with 3G coverage in 2017"
   ),
   ctrl_mean = round(c(f_ctrl$mean, ctrl$lfp_mean, ctrl$hhbus_mean, ctrl$agri_mean,
                       ctrl$manu_mean, ctrl$service_mean, ctrl$construction_mean, ctrl$cov_mean, ctrl$cov16_mean), 2),
