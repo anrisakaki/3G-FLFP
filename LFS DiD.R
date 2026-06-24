@@ -2,13 +2,16 @@ load("Clean data/lfs_sum_dist.Rda")
 load("Clean data/lfs_sum_dist_m.Rda")
 load("Clean data/lfs_sum_dist_f.Rda")
 
-colours <- c("#4D4D4D", "#1B9E77")
+library(fixest)
+library(tidyverse)
+
+colours <- c("#BDBDBD", "#1B9E77")
 setFixest_coefplot(
   grid = F,
   zero.par = list(type = "dotted", lty = 2),
   main = "",
   ref.line = -1,
-  col = c("#4D4D4D", "#1B9E77"),
+  col = c("#BDBDBD", "#1B9E77"),
   pt.join.par = list(lwd = 2),
   lwd = 2
 )
@@ -43,15 +46,15 @@ plot_event_study <- function(df_twfe, df_sunab, outcome, out_file,
   fml_twfe <- as.formula(paste0(outcome, " ~ i(ytt_mean_OCI, mean_3G_OCI, ref = c(-1, -1000)) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year"))
   fml_sunab <- as.formula(paste0(outcome, " ~ sunab(year_mean_OCI, year) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year"))
 
+  fit_twfe <- feols(fml_twfe, df_twfe, vcov = ~ID_2)
+  fit_sunab <- feols(fml_sunab, df_sunab, vcov = ~ID_2)
+
   pdf(out_file, width = width, height = height)
   par(mfrow = c(1, 3), mar = c(5, 5, 4, 2), mgp = c(3, 1, 0), oma = c(6, 0, 0, 0), pty = "s",
       cex.main = cex_main, cex.lab = cex_lab, cex.axis = cex_axis)
   plot.new()
   iplot(
-    list(
-      feols(fml_twfe, df_twfe, vcov = ~ID_2),
-      feols(fml_sunab, df_sunab, vcov = ~ID_2)
-    ),
+    list(fit_twfe, fit_sunab),
     xlab = "Years to treatment",
     ylab = ylab,
     main = main
@@ -72,23 +75,22 @@ plot_event_study_combined <- function(df_twfe_f, df_sunab_f, df_twfe_m, df_sunab
   fml_twfe <- as.formula(paste0(outcome, " ~ i(ytt_mean_OCI, mean_3G_OCI, ref = c(-1, -1000)) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year"))
   fml_sunab <- as.formula(paste0(outcome, " ~ sunab(year_mean_OCI, year) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year"))
 
+  fit_twfe_m <- feols(fml_twfe, df_twfe_m, vcov = ~ID_2)
+  fit_sunab_m <- feols(fml_sunab, df_sunab_m, vcov = ~ID_2)
+  fit_twfe_f <- feols(fml_twfe, df_twfe_f, vcov = ~ID_2)
+  fit_sunab_f <- feols(fml_sunab, df_sunab_f, vcov = ~ID_2)
+
   pdf(out_file, width = 12, height = 8.4)
   par(mfrow = c(1, 2), mar = c(5, 5, 4, 2), mgp = c(3, 1, 0), oma = c(6, 0, 0, 0), pty = "s", cex.main = cex_main, cex.lab = cex_lab, cex.axis = cex_axis)
 
   iplot(
-    list(
-      feols(fml_twfe, df_twfe_m, vcov = ~ID_2),
-      feols(fml_sunab, df_sunab_m, vcov = ~ID_2)
-    ),
+    list(fit_twfe_m, fit_sunab_m),
     xlab = "Years to treatment",
     main = "Male"
   )
 
   iplot(
-    list(
-      feols(fml_twfe, df_twfe_f, vcov = ~ID_2),
-      feols(fml_sunab, df_sunab_f, vcov = ~ID_2)
-    ),
+    list(fit_twfe_f, fit_sunab_f),
     xlab = "Years to treatment",
     main = "Female"
   )
@@ -100,12 +102,6 @@ plot_event_study_combined <- function(df_twfe_f, df_sunab_f, df_twfe_m, df_sunab
   dev.off()
 }
 
-# Combine male-female plots for income 
-
-plot_event_study_combined(default_f, default_f,
-                          default_m, default_m,
-                          "log(inc)", file.path(fig_dir, "inc_mean_OCI_combined.pdf"))
-
 # Combined male-female plots for sectoral reallocation
 plot_event_study_combined(default_f, lfs_sum_dist_f, default_m, lfs_sum_dist_m, "agri", file.path(fig_dir, "agri_mean_OCI_combined.pdf"))
 plot_event_study_combined(default_f, lfs_sum_dist_f, default_m, lfs_sum_dist_m, "manu", file.path(fig_dir, "manu_mean_OCI_combined.pdf"))
@@ -115,7 +111,7 @@ plot_event_study_combined(default_f, lfs_sum_dist_f, default_m, lfs_sum_dist_m, 
 plot_sectoral_wide_f <- function(df_twfe_f, df_sunab_f, out_file) {
   outcomes <- c("agri", "manu", "service")
   titles <- c("Agriculture", "Manufacturing", "Services")
-  
+
   pdf(out_file, width = 18, height = 8.4)
   par(mfrow = c(1, 3), mar = c(5, 5, 4, 2), mgp = c(3, 1, 0), oma = c(6, 0, 0, 0), pty = "s", cex.main = cex_main, cex.lab = cex_lab, cex.axis = cex_axis)
 
@@ -124,8 +120,10 @@ plot_sectoral_wide_f <- function(df_twfe_f, df_sunab_f, out_file) {
     fml_twfe <- as.formula(paste0(outcome, " ~ i(ytt_mean_OCI, mean_3G_OCI, ref = c(-1, -1000)) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year"))
     fml_sunab <- as.formula(paste0(outcome, " ~ sunab(year_mean_OCI, year) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year"))
 
+    fit_twfe <- feols(fml_twfe, df_twfe_f, vcov = ~ID_2)
+    fit_sunab <- feols(fml_sunab, df_sunab_f, vcov = ~ID_2)
     iplot(
-      list(feols(fml_twfe, df_twfe_f, vcov = ~ID_2), feols(fml_sunab, df_sunab_f, vcov = ~ID_2)),
+      list(fit_twfe, fit_sunab),
       xlab = "Years to treatment", ylab = if (i == 1) "Estimate and 95% Conf. Int." else "", main = titles[i]
     )
   }
@@ -172,19 +170,25 @@ plot_informality_wide_f <- function(out_file) {
   fml_twfe_socinsur <- as.formula("socinsur ~ i(ytt_mean_OCI, mean_3G_OCI, ref = c(-1, -1000)) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year")
   fml_sunab_socinsur <- as.formula("socinsur ~ sunab(year_mean_OCI, year) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year")
 
+  fit_twfe_hhbus <- feols(fml_twfe_hhbus, df_hhbus, vcov = ~ID_2)
+  fit_sunab_hhbus <- feols(fml_sunab_hhbus, lfs_sum_dist_f, vcov = ~ID_2)
+  fit_twfe_taxid <- feols(fml_twfe_taxid, df_taxid, vcov = ~ID_2)
+  fit_sunab_taxid <- feols(fml_sunab_taxid, df_taxid, vcov = ~ID_2)
+  fit_twfe_socinsur <- feols(fml_twfe_socinsur, df_socinsur, vcov = ~ID_2)
+  fit_sunab_socinsur <- feols(fml_sunab_socinsur, df_socinsur, vcov = ~ID_2)
   pdf(out_file, width = 18, height = 8.4)
   par(mfrow = c(1, 3), mar = c(5, 5, 4, 2), mgp = c(3, 1, 0), oma = c(6, 0, 0, 0), pty = "s", cex.main = cex_main, cex.lab = cex_lab, cex.axis = cex_axis)
 
   # HH Business
-  iplot(list(feols(fml_twfe_hhbus, df_hhbus, vcov = ~ID_2), feols(fml_sunab_hhbus, lfs_sum_dist_f, vcov = ~ID_2)),
+  iplot(list(fit_twfe_hhbus, fit_sunab_hhbus),
         xlab = "Years to treatment", ylab = "Estimate and 95% Conf. Int.", main = titles[1])
 
   # Tax ID
-  iplot(list(feols(fml_twfe_taxid, df_taxid, vcov = ~ID_2), feols(fml_sunab_taxid, df_taxid, vcov = ~ID_2)),
+  iplot(list(fit_twfe_taxid, fit_sunab_taxid),
         xlab = "Years to treatment", ylab = "", main = titles[2])
 
   # Social Insurance
-  iplot(list(feols(fml_twfe_socinsur, df_socinsur, vcov = ~ID_2), feols(fml_sunab_socinsur, df_socinsur, vcov = ~ID_2)),
+  iplot(list(fit_twfe_socinsur, fit_sunab_socinsur),
         xlab = "Years to treatment", ylab = "", main = titles[3])
 
   par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = TRUE)
@@ -196,7 +200,37 @@ plot_informality_wide_f <- function(out_file) {
 
 plot_informality_wide_f(file.path(fig_dir, "informality_mean_OCI_f.pdf"))
 
-plot_event_study(default_f, lfs_sum_dist_f, "log(inc)", file.path(fig_dir, "inc_mean_OCI_f.pdf"))
+plot_event_study(default_f, lfs_sum_dist_f, "work", file.path(fig_dir, "work_mean_OCI_f.pdf"))
+
+# 3-panel income event study (log Income, Hours, log Hourly income), female main sample
+plot_income_wide_f <- function(df_twfe_f, df_sunab_f, out_file) {
+  outcomes <- c("log(inc)", "hours", "log(hrinc)")
+  titles   <- c("log(Income)", "Hours", "log(Hourly income)")
+
+  pdf(out_file, width = 18, height = 8.4)
+  par(mfrow = c(1, 3), mar = c(5, 5, 4, 2), mgp = c(3, 1, 0), oma = c(6, 0, 0, 0), pty = "s", cex.main = cex_main, cex.lab = cex_lab, cex.axis = cex_axis)
+
+  for (i in seq_along(outcomes)) {
+    outcome <- outcomes[i]
+    fml_twfe <- as.formula(paste0(outcome, " ~ i(ytt_mean_OCI, mean_3G_OCI, ref = c(-1, -1000)) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year"))
+    fml_sunab <- as.formula(paste0(outcome, " ~ sunab(year_mean_OCI, year) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year"))
+
+    fit_twfe <- feols(fml_twfe, df_twfe_f, vcov = ~ID_2)
+    fit_sunab <- feols(fml_sunab, df_sunab_f, vcov = ~ID_2)
+    iplot(
+      list(fit_twfe, fit_sunab),
+      xlab = "Years to treatment", ylab = if (i == 1) "Estimate and 95% Conf. Int." else "", main = titles[i]
+    )
+  }
+
+  par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = TRUE)
+  plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
+  legend("bottom", col = colours, pch = 1, lwd = 2, cex = cex_lab, bty = "n",
+         legend = c("TWFE", "Sun & Abraham"), horiz = TRUE, inset = c(0, 0.04), xpd = TRUE, x.intersp = 0.3)
+  dev.off()
+}
+
+plot_income_wide_f(default_f, lfs_sum_dist_f, file.path(fig_dir, "inc_mean_OCI_f.pdf"))
 
 ###########
 # Placebo #
@@ -218,7 +252,9 @@ plot_sectoral_wide_f_old <- function(df_f, out_file) {
     fml_twfe <- as.formula(paste0(outcome, " ~ i(ytt_mean_OCI, mean_3G_OCI, ref = c(-1, -1000)) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year"))
     fml_sunab <- as.formula(paste0(outcome, " ~ sunab(year_mean_OCI, year) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year"))
 
-    iplot(list(feols(fml_twfe, df_f, vcov = ~ID_2), feols(fml_sunab, df_f, vcov = ~ID_2)),
+    fit_twfe <- feols(fml_twfe, df_f, vcov = ~ID_2)
+    fit_sunab <- feols(fml_sunab, df_f, vcov = ~ID_2)
+    iplot(list(fit_twfe, fit_sunab),
           col = colours_old,
           lty = c(2, 2),
           xlab = "Years to treatment", ylab = if (i == 1) "Estimate and 95% Conf. Int." else "", main = titles[i])
@@ -249,8 +285,13 @@ plot_sectoral_wide_f_age <- function(df_f, out_file) {
     fml_twfe_old <- as.formula(paste0(out_old, " ~ i(ytt_mean_OCI, mean_3G_OCI, ref = c(-1, -1000)) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year"))
     fml_sunab_old <- as.formula(paste0(out_old, " ~ sunab(year_mean_OCI, year) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year"))
 
-    iplot(list(feols(fml_twfe_young, df_f, vcov = ~ID_2), feols(fml_sunab_young, df_f, vcov = ~ID_2),
-               feols(fml_twfe_old, df_f, vcov = ~ID_2), feols(fml_sunab_old, df_f, vcov = ~ID_2)),
+    fit_twfe_young <- feols(fml_twfe_young, df_f, vcov = ~ID_2)
+    fit_sunab_young <- feols(fml_sunab_young, df_f, vcov = ~ID_2)
+    fit_twfe_old <- feols(fml_twfe_old, df_f, vcov = ~ID_2)
+    fit_sunab_old <- feols(fml_sunab_old, df_f, vcov = ~ID_2)
+
+    iplot(list(fit_twfe_young, fit_sunab_young,
+               fit_twfe_old, fit_sunab_old),
           col = colours_age, lty = c(1, 1, 2, 2), sep = 0.1,
           xlab = "Years to treatment", ylab = if (i == 1) "Estimate and 95% Conf. Int." else "", main = titles[i])
   }
@@ -281,20 +322,25 @@ plot_informality_wide_f_old <- function(out_file) {
   fml_twfe_socinsur <- as.formula("socinsur_45_64 ~ i(ytt_mean_OCI, mean_3G_OCI, ref = c(-1, -1000)) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year")
   fml_sunab_socinsur <- as.formula("socinsur_45_64 ~ sunab(year_mean_OCI, year) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year")
 
+  fit_twfe_hhbus <- feols(fml_twfe_hhbus, df_hhbus, vcov = ~ID_2)
+  fit_sunab_hhbus <- feols(fml_sunab_hhbus, lfs_sum_dist_f, vcov = ~ID_2)
+  fit_twfe_taxid <- feols(fml_twfe_taxid, df_taxid, vcov = ~ID_2)
+  fit_sunab_taxid <- feols(fml_sunab_taxid, df_taxid, vcov = ~ID_2)
+  fit_twfe_socinsur <- feols(fml_twfe_socinsur, df_socinsur, vcov = ~ID_2)
+  fit_sunab_socinsur <- feols(fml_sunab_socinsur, df_socinsur, vcov = ~ID_2)
   pdf(out_file, width = 18, height = 8.4)
   par(mfrow = c(1, 3), mar = c(5, 5, 4, 2), mgp = c(3, 1, 0), oma = c(6, 0, 0, 0), pty = "s", cex.main = cex_main, cex.lab = cex_lab, cex.axis = cex_axis)
 
-  iplot(list(feols(fml_twfe_hhbus, df_hhbus, vcov = ~ID_2), feols(fml_sunab_hhbus, lfs_sum_dist_f, vcov = ~ID_2)),
-        col = colours_old,
-        lty = c(2, 2),
+  iplot(list(fit_twfe_hhbus, fit_sunab_hhbus),
+        col = colours_old, lty = c(2, 2),
         xlab = "Years to treatment", ylab = "Estimate and 95% Conf. Int.", main = titles[1])
-  iplot(list(feols(fml_twfe_taxid, df_taxid, vcov = ~ID_2), feols(fml_sunab_taxid, df_taxid, vcov = ~ID_2)),
-        col = colours_old,
-        lty = c(2, 2),
+
+  iplot(list(fit_twfe_taxid, fit_sunab_taxid),
+        col = colours_old, lty = c(2, 2),
         xlab = "Years to treatment", ylab = "", main = titles[2])
-  iplot(list(feols(fml_twfe_socinsur, df_socinsur, vcov = ~ID_2), feols(fml_sunab_socinsur, df_socinsur, vcov = ~ID_2)),
-        col = colours_old,
-        lty = c(2, 2),
+
+  iplot(list(fit_twfe_socinsur, fit_sunab_socinsur),
+        col = colours_old, lty = c(2, 2),
         xlab = "Years to treatment", ylab = "", main = titles[3])
 
   par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = TRUE)
@@ -328,8 +374,13 @@ plot_informality_wide_f_age <- function(out_file) {
     fml_twfe_old <- as.formula(paste0(out_old, " ~ i(ytt_mean_OCI, mean_3G_OCI, ref = c(-1, -1000)) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year"))
     fml_sunab_old <- as.formula(paste0(out_old, " ~ sunab(year_mean_OCI, year) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year"))
 
-    iplot(list(feols(fml_twfe_young, dfs[[i]], vcov = ~ID_2), feols(fml_sunab_young, dfs_sunab[[i]], vcov = ~ID_2),
-               feols(fml_twfe_old, dfs[[i]], vcov = ~ID_2), feols(fml_sunab_old, dfs_sunab[[i]], vcov = ~ID_2)),
+    fit_twfe_young <- feols(fml_twfe_young, dfs[[i]], vcov = ~ID_2)
+    fit_sunab_young <- feols(fml_sunab_young, dfs_sunab[[i]], vcov = ~ID_2)
+    fit_twfe_old <- feols(fml_twfe_old, dfs[[i]], vcov = ~ID_2)
+    fit_sunab_old <- feols(fml_sunab_old, dfs_sunab[[i]], vcov = ~ID_2)
+
+    iplot(list(fit_twfe_young, fit_sunab_young,
+               fit_twfe_old, fit_sunab_old),
           col = colours_age, lty = c(1, 1, 2, 2), sep = 0.1,
           xlab = "Years to treatment", ylab = if (i == 1) "Estimate and 95% Conf. Int." else "", main = titles[i])
   }
@@ -351,15 +402,15 @@ plot_event_study_old <- function(df_twfe, df_sunab, outcome, out_file,
   fml_twfe <- as.formula(paste0(outcome, " ~ i(ytt_mean_OCI, mean_3G_OCI, ref = c(-1, -1000)) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year"))
   fml_sunab <- as.formula(paste0(outcome, " ~ sunab(year_mean_OCI, year) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year"))
 
+  fit_twfe <- feols(fml_twfe, df_twfe, vcov = ~ID_2)
+  fit_sunab <- feols(fml_sunab, df_sunab, vcov = ~ID_2)
+
   pdf(out_file, width = width, height = height)
   par(mfrow = c(1, 3), mar = c(5, 5, 4, 2), mgp = c(3, 1, 0), oma = c(6, 0, 0, 0), pty = "s",
       cex.main = cex_main, cex.lab = cex_lab, cex.axis = cex_axis)
   plot.new()
   iplot(
-    list(
-      feols(fml_twfe, df_twfe, vcov = ~ID_2),
-      feols(fml_sunab, df_sunab, vcov = ~ID_2)
-    ),
+    list(fit_twfe, fit_sunab),
     col = colours_old, lty = c(2, 2),
     xlab = "Years to treatment", ylab = ylab, main = main
   )
@@ -371,8 +422,37 @@ plot_event_study_old <- function(df_twfe, df_sunab, outcome, out_file,
   dev.off()
 }
 
-plot_event_study_old(default_f, lfs_sum_dist_f, "log(inc_45_64)",
-                     file.path(fig_dir, "inc_mean_OCI_f_old.pdf"))
+plot_event_study_old(default_f, lfs_sum_dist_f, "work_45_64",
+                     file.path(fig_dir, "work_mean_OCI_f_old.pdf"))
+
+# 3-panel income event study (log Income, Hours, log Hourly income), old workers only (45-64)
+plot_income_wide_f_old <- function(df_twfe, df_sunab, out_file, width = 18, height = 8.4) {
+  outcomes <- c("log(inc_45_64)", "hours_45_64", "log(hrinc_45_64)")
+  titles   <- c("log(Income)", "Hours", "log(Hourly income)")
+
+  pdf(out_file, width = width, height = height)
+  par(mfrow = c(1, 3), mar = c(5, 5, 4, 2), mgp = c(3, 1, 0), oma = c(6, 0, 0, 0), pty = "s", cex.main = cex_main, cex.lab = cex_lab, cex.axis = cex_axis)
+
+  for (i in seq_along(outcomes)) {
+    outcome <- outcomes[i]
+    fml_twfe <- as.formula(paste0(outcome, " ~ i(ytt_mean_OCI, mean_3G_OCI, ref = c(-1, -1000)) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year"))
+    fml_sunab <- as.formula(paste0(outcome, " ~ sunab(year_mean_OCI, year) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year"))
+
+    fit_twfe <- feols(fml_twfe, df_twfe, vcov = ~ID_2)
+    fit_sunab <- feols(fml_sunab, df_sunab, vcov = ~ID_2)
+    iplot(list(fit_twfe, fit_sunab),
+          col = colours_old, lty = c(2, 2),
+          xlab = "Years to treatment", ylab = if (i == 1) "Estimate and 95% Conf. Int." else "", main = titles[i])
+  }
+
+  par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = TRUE)
+  plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
+  legend("bottom", col = colours_old, pch = 1, lwd = 2, lty = 2, cex = cex_lab, bty = "n",
+         legend = c("TWFE (45-64)", "Sun & Abraham (45-64)"), horiz = TRUE, inset = c(0, 0.04), xpd = TRUE, x.intersp = 0.3)
+  dev.off()
+}
+
+plot_income_wide_f_old(default_f, lfs_sum_dist_f, file.path(fig_dir, "inc_mean_OCI_f_old.pdf"))
 
 # Single-panel event study, young (20-44) vs old (45-64)
 plot_event_study_age <- function(df_twfe, df_sunab, outcome_young, outcome_old, out_file,
@@ -383,13 +463,18 @@ plot_event_study_age <- function(df_twfe, df_sunab, outcome_young, outcome_old, 
   fml_twfe_old    <- as.formula(paste0(outcome_old,   " ~ i(ytt_mean_OCI, mean_3G_OCI, ref = c(-1, -1000)) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year"))
   fml_sunab_old   <- as.formula(paste0(outcome_old,   " ~ sunab(year_mean_OCI, year) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year"))
 
+  fit_twfe_young <- feols(fml_twfe_young, df_twfe, vcov = ~ID_2)
+  fit_sunab_young <- feols(fml_sunab_young, df_sunab, vcov = ~ID_2)
+  fit_twfe_old   <- feols(fml_twfe_old,   df_twfe, vcov = ~ID_2)
+  fit_sunab_old  <- feols(fml_sunab_old,  df_sunab, vcov = ~ID_2)
+
   pdf(out_file, width = width, height = height)
   par(mfrow = c(1, 3), mar = c(5, 5, 4, 2), mgp = c(3, 1, 0), oma = c(6, 0, 0, 0), pty = "s",
       cex.main = cex_main, cex.lab = cex_lab, cex.axis = cex_axis)
   plot.new()
   iplot(
-    list(feols(fml_twfe_young, df_twfe, vcov = ~ID_2), feols(fml_sunab_young, df_sunab, vcov = ~ID_2),
-         feols(fml_twfe_old,   df_twfe, vcov = ~ID_2), feols(fml_sunab_old,   df_sunab, vcov = ~ID_2)),
+    list(fit_twfe_young, fit_sunab_young,
+         fit_twfe_old,   fit_sunab_old),
     col = colours_age, lty = c(1, 1, 2, 2), sep = 0.1,
     xlab = "Years to treatment", ylab = ylab, main = main
   )
@@ -402,5 +487,40 @@ plot_event_study_age <- function(df_twfe, df_sunab, outcome_young, outcome_old, 
   dev.off()
 }
 
-plot_event_study_age(default_f, lfs_sum_dist_f, "log(inc_20_44)", "log(inc_45_64)",
-                     file.path(fig_dir, "inc_mean_OCI_f_age.pdf"))
+# 3-panel income event study (log Income, Hours, log Hourly income), young (20-44) vs old (45-64)
+plot_income_wide_f_age <- function(df_twfe, df_sunab, out_file, width = 18, height = 8.4) {
+  outcomes_young <- c("log(inc_20_44)", "hours_20_44", "log(hrinc_20_44)")
+  outcomes_old   <- c("log(inc_45_64)", "hours_45_64", "log(hrinc_45_64)")
+  titles         <- c("log(Income)", "Hours", "log(Hourly income)")
+
+  pdf(out_file, width = width, height = height)
+  par(mfrow = c(1, 3), mar = c(5, 5, 4, 2), mgp = c(3, 1, 0), oma = c(6, 0, 0, 0), pty = "s", cex.main = cex_main, cex.lab = cex_lab, cex.axis = cex_axis)
+
+  for (i in seq_along(titles)) {
+    fml_twfe_young  <- as.formula(paste0(outcomes_young[i], " ~ i(ytt_mean_OCI, mean_3G_OCI, ref = c(-1, -1000)) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year"))
+    fml_sunab_young <- as.formula(paste0(outcomes_young[i], " ~ sunab(year_mean_OCI, year) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year"))
+    fml_twfe_old    <- as.formula(paste0(outcomes_old[i],   " ~ i(ytt_mean_OCI, mean_3G_OCI, ref = c(-1, -1000)) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year"))
+    fml_sunab_old   <- as.formula(paste0(outcomes_old[i],   " ~ sunab(year_mean_OCI, year) + lnexport_all + i(year, sh_manu_09) + i(year, sh_hs_09) + i(year, sh_fdi_09) + i(year, sh_it_09) + i(year, sh_migrant_09) | ID_2 + year"))
+
+    fit_twfe_young  <- feols(fml_twfe_young,  df_twfe, vcov = ~ID_2)
+    fit_sunab_young <- feols(fml_sunab_young, df_sunab, vcov = ~ID_2)
+    fit_twfe_old    <- feols(fml_twfe_old,    df_twfe, vcov = ~ID_2)
+    fit_sunab_old   <- feols(fml_sunab_old,   df_sunab, vcov = ~ID_2)
+
+    iplot(list(fit_twfe_young, fit_sunab_young, fit_twfe_old, fit_sunab_old),
+          col = colours_age, lty = c(1, 1, 2, 2), sep = 0.1,
+          xlab = "Years to treatment", ylab = if (i == 1) "Estimate and 95% Conf. Int." else "", main = titles[i])
+  }
+
+  par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = TRUE)
+  plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
+  legend("bottom", col = colours_age, pch = 1, lwd = 2, lty = c(1, 1, 2, 2), cex = cex_lab, bty = "n", ncol = 2,
+         legend = c("TWFE (20-44)", "Sun & Abraham (20-44)", "TWFE (45-64)", "Sun & Abraham (45-64)"),
+         inset = c(0, 0.04), xpd = TRUE, x.intersp = 0.4)
+  dev.off()
+}
+
+plot_income_wide_f_age(default_f, lfs_sum_dist_f, file.path(fig_dir, "inc_mean_OCI_f_age.pdf"))
+
+plot_event_study_age(default_f, lfs_sum_dist_f, "work_20_44", "work_45_64",
+                     file.path(fig_dir, "work_mean_OCI_f_age.pdf"))
