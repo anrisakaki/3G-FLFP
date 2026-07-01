@@ -61,7 +61,7 @@ lfs_sum_dist_m <- lfs_sum_dist_m %>%
 cs_green  <- "#0F6E56"   # darker than S&A green  #1B9E77  (main / "all" plots)
 cs_orange <- "#B34A12"   # darker than old orange #E6621E  (45-64 and age-old)
 cs_blue   <- "#145A8A"   # darker than young blue #1F78B4  (age-young)
-add_cs <- function(outcome, data, col = cs_green, offset = 0.25, lty = 1) {
+add_cs <- function(outcome, data, col = cs_green, offset = 0.3, lty = 1) {
   yn <- sub("^log\\((.*)\\)$", "log_\\1", outcome)
   a <- tryCatch(suppressMessages(suppressWarnings({
     m <- att_gt(yname = yn, tname = "year", idname = "ID_2", gname = "year_mean_OCI",
@@ -445,8 +445,8 @@ plot_sectoral_wide_f_age <- function(df_f, out_file) {
                fit_twfe_old, fit_sunab_old),
           col = colours_age, lty = c(1, 1, 2, 2), sep = 0.1,
           xlab = "Years to treatment", ylab = if (i == 1) "Estimate and 95% Conf. Int." else "", main = titles[i])
-    add_cs(out_young, lfs_sum_dist_f, col = cs_blue, offset = -0.28)
-    add_cs(out_old, lfs_sum_dist_f, col = cs_orange, offset = 0.28, lty = 2)
+    add_cs(out_young, lfs_sum_dist_f, col = cs_blue, offset = 0.25)
+    add_cs(out_old, lfs_sum_dist_f, col = cs_orange, offset = 0.35, lty = 2)
   }
 
   par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = T)
@@ -539,8 +539,8 @@ plot_informality_wide_f_age <- function(out_file) {
                fit_twfe_old, fit_sunab_old),
           col = colours_age, lty = c(1, 1, 2, 2), sep = 0.1,
           xlab = "Years to treatment", ylab = if (i == 1) "Estimate and 95% Conf. Int." else "", main = titles[i])
-    add_cs(out_young, lfs_sum_dist_f, col = cs_blue, offset = -0.28)
-    add_cs(out_old, lfs_sum_dist_f, col = cs_orange, offset = 0.28, lty = 2)
+    add_cs(out_young, lfs_sum_dist_f, col = cs_blue, offset = 0.25)
+    add_cs(out_old, lfs_sum_dist_f, col = cs_orange, offset = 0.35, lty = 2)
   }
 
   par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = T)
@@ -638,8 +638,8 @@ plot_event_study_age <- function(df_twfe, df_sunab, outcome_young, outcome_old, 
     col = colours_age, lty = c(1, 1, 2, 2), sep = 0.1,
     xlab = "Years to treatment", ylab = ylab, main = main
   )
-  add_cs(outcome_young, df_sunab, col = cs_blue, offset = -0.28)
-  add_cs(outcome_old, df_sunab, col = cs_orange, offset = 0.28, lty = 2)
+  add_cs(outcome_young, df_sunab, col = cs_blue, offset = 0.25)
+  add_cs(outcome_old, df_sunab, col = cs_orange, offset = 0.35, lty = 2)
   plot.new()
   par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = T)
   plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
@@ -672,8 +672,8 @@ plot_income_wide_f_age <- function(df_twfe, df_sunab, out_file, width = 18, heig
     iplot(list(fit_twfe_young, fit_sunab_young, fit_twfe_old, fit_sunab_old),
           col = colours_age, lty = c(1, 1, 2, 2), sep = 0.1,
           xlab = "Years to treatment", ylab = if (i == 1) "Estimate and 95% Conf. Int." else "", main = titles[i])
-    add_cs(outcomes_young[i], df_sunab, col = cs_blue, offset = -0.28)
-    add_cs(outcomes_old[i], df_sunab, col = cs_orange, offset = 0.28, lty = 2)
+    add_cs(outcomes_young[i], df_sunab, col = cs_blue, offset = 0.25)
+    add_cs(outcomes_old[i], df_sunab, col = cs_orange, offset = 0.35, lty = 2)
   }
 
   par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = T)
