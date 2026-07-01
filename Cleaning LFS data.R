@@ -31,10 +31,16 @@ lfs10 <- lfs10 %>%
     hhbus = ifelse(org < 3, 1, 0),
     monthint = ifelse(kydt == 1, 4, 10),
     inc = ifelse(inc <= 0, NA, inc),
+    migrant = NA_real_,
+    mig5 = NA_real_,
+    mig_jobsearch = NA_real_,
+    mig_newjob = NA_real_,
+    mig_rural_urban = NA_real_,
     year = 2010
   ) %>%
   left_join(lfs10_distid) %>% 
   dplyr::select(year, tinh, huyen, dban, hoso, STT, rural, monthint, age, female, marst, educattain, work, work2,
+                migrant, mig5, mig_jobsearch, mig_newjob, mig_rural_urban,
                 occ, org, ind, emp, hhbus, agri, manu, service, construction, nonagri, inc, hours, yearsworked, wt) 
 
 lfs11 <- lfs11 %>% 
@@ -67,9 +73,10 @@ lfs11 <- lfs11 %>%
     manu2 = ifelse(C59 > 990 & C59 < 3500, 1, 0),
     service2 = ifelse(C59 > 4500, 1, 0),
     migrant = ifelse(C8 == 2 | C8 == 3, 1, 0),
-    mig6 = ifelse(C8 == 2, 1, ifelse(C8 == 3, 0, NA)),
+    mig5 = NA_real_,
     mig_jobsearch = ifelse(migrant == 1, ifelse(C10 == 1, 1, 0), NA),
     mig_newjob = ifelse(migrant == 1, ifelse(C10 == 2, 1, 0), NA),
+    mig_rural_urban = ifelse(migrant == 1, ifelse(C9 == 2 & rural == 1, 1, 0), NA),
     agri = ifelse(ind < 500, 1, 0),
     manu = ifelse(ind > 990 & ind < 3500, 1, 0),
     service = ifelse(ind > 4500, 1, 0),
@@ -83,7 +90,9 @@ lfs11 <- lfs11 %>%
     year = 2011
   ) %>% 
   left_join(lfs11_distid) %>% 
-  dplyr::select(year, tinh, huyen, dban, hoso, STT, rural, monthint, age, female, marst, educattain, work, work2, migrant, mig6, mig_jobsearch, mig_newjob, unpaid, occ, org,
+  dplyr::select(year, tinh, huyen, dban, hoso, STT, rural, monthint, age, female, marst, educattain, work, work2,
+                migrant, mig5, mig_jobsearch, mig_newjob, mig_rural_urban,
+                unpaid, occ, org,
                 ind, emp, hhbus, agri, manu, service, agri2, manu2, service2, construction, nonagri, taxid, socinsur, accounting, inc, hours,
                 yearsworked, wt) 
 
@@ -121,9 +130,10 @@ lfs12 <- lfs12 %>%
     manu2 = ifelse(C61 > 990 & C61 < 3500, 1, 0),
     service2 = ifelse(C61 > 4500, 1, 0),
     migrant = ifelse(C8 == 1 | C8 == 2, 1, 0),
-    mig6 = ifelse(C8 == 1, 1, ifelse(C8 == 2, 0, NA)),
+    mig5 = NA_real_,
     mig_jobsearch = ifelse(migrant == 1, ifelse(C10 == 1, 1, 0), NA),
     mig_newjob = ifelse(migrant == 1, ifelse(C10 == 2, 1, 0), NA),
+    mig_rural_urban = ifelse(migrant == 1, ifelse(C9 == 2 & TTNT == 1, 1, 0), NA),
     formal = ifelse(org > 2, 1, 0),
     informal = ifelse(org < 3, 1, 0),
     agri = ifelse(ind < 500, 1, 0),
@@ -140,7 +150,7 @@ lfs12 <- lfs12 %>%
     year = 2012
   ) %>% 
   left_join(lfs12_distid) %>%
-  dplyr::select(year, tinh, huyen, dban, hoso, STT, rural, monthint, age, female, marst, educattain, work, work2, migrant, mig6, mig_jobsearch, mig_newjob, unpaid, occ, org,
+  dplyr::select(year, tinh, huyen, dban, hoso, STT, rural, monthint, age, female, marst, educattain, work, work2, migrant, mig5, mig_jobsearch, mig_newjob, mig_rural_urban, unpaid, occ, org,
                 ind, emp, hhbus, agri, manu, service, agri2, manu2, service2, construction, nonagri, erc, taxid, socinsur, accounting, inc, hours,
                 yearsworked, wt) 
 
@@ -173,9 +183,10 @@ lfs13 <- lfs13 %>%
     manu2 = ifelse(C47 > 990 & C47 < 3500, 1, 0),
     service2 = ifelse(C47 > 4500, 1, 0),
     migrant = ifelse(C9 == 1 | C9 == 2, 1, 0),
-    mig6 = ifelse(C9 == 1, 1, ifelse(C9 == 2, 0, NA)),
+    mig5 = NA_real_,
     mig_jobsearch = ifelse(migrant == 1, ifelse(C12 == 1, 1, 0), NA),
     mig_newjob = ifelse(migrant == 1, ifelse(C12 == 2, 1, 0), NA),
+    mig_rural_urban = ifelse(migrant == 1, ifelse(C10 == 2 & TTNT == 1, 1, 0), NA),
     agri = ifelse(ind < 500, 1, 0),
     manu = ifelse(ind > 990 & ind < 3500, 1, 0),
     service = ifelse(ind > 4500, 1, 0),
@@ -190,7 +201,7 @@ lfs13 <- lfs13 %>%
     year = 2013
   ) %>% 
   left_join(lfs13_distid) %>%
-  dplyr::select(year, tinh, huyen, dban, hoso, STT, rural, monthint, age, female, marst, educattain, work, work2, migrant, mig6, mig_jobsearch, mig_newjob, unpaid, occ, org,
+  dplyr::select(year, tinh, huyen, dban, hoso, STT, rural, monthint, age, female, marst, educattain, work, work2, migrant, mig5, mig_jobsearch, mig_newjob, mig_rural_urban, unpaid, occ, org,
                 ind, emp, hhbus, agri, manu, service, agri2, manu2, service2, construction, nonagri, erc, taxid, socinsur, accounting, inc, hours,
                 yearsworked, wt) 
 
@@ -223,9 +234,10 @@ lfs14 <- lfs14 %>%
     manu2 = ifelse(C49 > 990 & C49 < 3500, 1, 0),
     service2 = ifelse(C49 > 4500, 1, 0),
     migrant = ifelse(C9 == 1 | C9 == 2, 1, 0),
-    mig6 = ifelse(C9 == 1, 1, ifelse(C9 == 2, 0, NA)),
+    mig5 = NA_real_,
     mig_jobsearch = ifelse(migrant == 1, ifelse(C12 == 1, 1, 0), NA),
     mig_newjob = ifelse(migrant == 1, ifelse(C12 == 2, 1, 0), NA),
+    mig_rural_urban = ifelse(migrant == 1, ifelse(C10 == 2 & TTNT == 1, 1, 0), NA),
     agri = ifelse(ind < 500, 1, 0),
     manu = ifelse(ind > 990 & ind < 3500, 1, 0),
     service = ifelse(ind > 4500, 1, 0),
@@ -240,7 +252,7 @@ lfs14 <- lfs14 %>%
     year = 2014
   ) %>% 
   left_join(lfs14_distid) %>%
-  dplyr::select(year, tinh, huyen, dban, hoso, STT, rural, monthint, age, female, marst, educattain, work, work2, migrant, mig6, mig_jobsearch, mig_newjob, unpaid, occ, org,
+  dplyr::select(year, tinh, huyen, dban, hoso, STT, rural, monthint, age, female, marst, educattain, work, work2, migrant, mig5, mig_jobsearch, mig_newjob, mig_rural_urban, unpaid, occ, org,
                 ind, emp, hhbus, agri, manu, service, agri2, manu2, service2, construction, nonagri, erc, taxid, socinsur, accounting, inc, hours,
                 yearsworked, wt) 
 
@@ -282,13 +294,14 @@ lfs15 <- lfs15 %>%
     socinsur = ifelse(C32 == 1, 1, 0),
     work2 = ifelse(C43 == 1, 1, 0),
     migrant = ifelse(as.numeric(C8) < 4, 1, 0),
-    mig6 = ifelse(as.numeric(C8) < 3, 1, ifelse(as.numeric(C8) == 3, 0, NA)),
+    mig5 = ifelse(as.numeric(C8) < 5, 1, 0),
     mig_jobsearch = ifelse(migrant == 1, ifelse(as.numeric(C11) == 1, 1, 0), NA),
     mig_newjob = ifelse(migrant == 1, ifelse(as.numeric(C11) == 2, 1, 0), NA),
+    mig_rural_urban = ifelse(migrant == 1, ifelse(as.numeric(C9) == 2 & as.numeric(TTNT) == 1, 1, 0), NA),
     inc = ifelse(inc <= 0, NA, inc),
     year = 2015
   ) %>% 
-  dplyr::select(year, tinh, huyen, dban, hoso, STT, monthint, age, female, marst, educattain, work, work2, migrant, mig6, mig_jobsearch, mig_newjob, unpaid, occ, org,
+  dplyr::select(year, tinh, huyen, dban, hoso, STT, monthint, age, female, marst, educattain, work, work2, migrant, mig5, mig_jobsearch, mig_newjob, mig_rural_urban, unpaid, occ, org,
                 ind, emp, hhbus, agri, manu, service, construction, nonagri, erc, socinsur, inc, hours, 
                 yearsworked, wt) 
 
@@ -325,13 +338,14 @@ lfs16 <- lfs16 %>%
     erc = ifelse(c26 == 1, 1, 0),
     work2 = ifelse(c43 == 1, 1, 0),
     migrant = ifelse(as.numeric(c8) < 4, 1, 0),
-    mig6 = ifelse(as.numeric(c8) < 3, 1, ifelse(as.numeric(c8) == 3, 0, NA)),
+    mig5 = ifelse(as.numeric(c8) < 5, 1, 0),
     mig_jobsearch = ifelse(migrant == 1, ifelse(as.numeric(c11) == 1, 1, 0), NA),
     mig_newjob = ifelse(migrant == 1, ifelse(as.numeric(c11) == 2, 1, 0), NA),
+    mig_rural_urban = ifelse(migrant == 1, ifelse(as.numeric(c9) == 2 & as.numeric(TTNT) == 1, 1, 0), NA),
     inc = ifelse(inc <= 0, NA, inc),
     year = 2016
   ) %>% 
-  dplyr::select(year, tinh, huyen, hoso, STT, monthint, age, female, marst, educattain, work, work2, migrant, mig6, mig_jobsearch, mig_newjob, unpaid, occ, org,
+  dplyr::select(year, tinh, huyen, hoso, STT, monthint, age, female, marst, educattain, work, work2, migrant, mig5, mig_jobsearch, mig_newjob, mig_rural_urban, unpaid, occ, org,
                 ind, emp, hhbus, agri, manu, service, construction, nonagri, erc, socinsur, inc, hours,
                 yearsworked, wt) 
 
@@ -365,16 +379,18 @@ lfs17 <- lfs17 %>%
     erc = ifelse(C28 == 1, 1, 0),
     work2 = ifelse(C40B > 0, 1, 0),
     migrant = ifelse(as.numeric(C10) < 4, 1, 0),
-    mig6 = ifelse(as.numeric(C10) < 3, 1, ifelse(as.numeric(C10) == 3, 0, NA)),
+    mig5 = ifelse(as.numeric(C10) < 5, 1, 0),
     mig_jobsearch = ifelse(migrant == 1, ifelse(as.numeric(C13) == 1, 1, 0), NA),
     mig_newjob = ifelse(migrant == 1, ifelse(as.numeric(C13) == 2, 1, 0), NA),
+    mig_rural_urban = ifelse(migrant == 1, ifelse(as.numeric(C11) == 2 & as.numeric(TTNT) == 1, 1, 0), NA),
     year = 2017
   ) %>% 
-  dplyr::select(year, tinh, huyen, hoso, STT, monthint, age, female, marst, educattain, work, work2, migrant, mig6, mig_jobsearch, mig_newjob, unpaid, occ, org,
+  dplyr::select(year, tinh, huyen, hoso, STT, monthint, age, female, marst, educattain, work, work2, migrant, mig5, mig_jobsearch, mig_newjob, mig_rural_urban, unpaid, occ, org,
                 ind, emp, hhbus, agri, manu, service, construction, nonagri, erc, socinsur, inc, hours, wt) 
 
 lfs_all <- bind_rows(lfs10, lfs11, lfs12, lfs13, lfs14, lfs15, lfs16, lfs17) %>% 
   mutate(work = ifelse(is.na(work), 0, work),
+         age = as.numeric(age),
          huyen = ifelse(tinh == 87 & huyen == 868, 870, huyen),
          huyen = ifelse(tinh == 87 & huyen == 866, 873, huyen),
          huyen = ifelse(tinh == 4 & huyen == 51, 40, huyen)) 
@@ -389,17 +405,20 @@ lfs_sum <- lfs_all %>%
     nworkers = sum(work == 1, na.rm = T),
     work = mean(work, na.rm = T),
     hhbus = mean(hhbus, na.rm = T),
-    unpaid = sum(unpaid == 1, na.rm = T),
+    unpaid = mean(unpaid, na.rm = T),
     agri = mean(agri, na.rm = T),
     manu = mean(manu, na.rm = T),
     service = mean(service, na.rm = T),
     construction = mean(construction, na.rm = T),
     taxid = mean(taxid, na.rm = T),
     socinsur = mean(socinsur, na.rm = T),
-    inc = mean(inc, na.rm = T)
-  ) %>% 
-  mutate(unpaid = unpaid/nworkers,
-         unpaid = ifelse(year == 2010, NA, unpaid))
+    inc = mean(inc, na.rm = T),
+    migrant = mean(migrant, na.rm = T),
+    mig5 = mean(mig5, na.rm = T),
+    mig_jobsearch = mean(mig_jobsearch, na.rm = T),
+    mig_newjob = mean(mig_newjob, na.rm = T),
+    mig_rural_urban = mean(mig_rural_urban, na.rm = T)
+  )
 
 # By district
 lfs_sum_dist_fn <- function(i){
@@ -409,9 +428,10 @@ lfs_sum_dist_fn <- function(i){
       work = mean(work, na.rm = T),
       work2 = mean(work2, na.rm = T),
       migrant = mean(migrant, na.rm = T),
-      mig6 = mean(mig6, na.rm = T),
+      mig5 = mean(mig5, na.rm = T),
       mig_jobsearch = mean(mig_jobsearch, na.rm = T),
       mig_newjob = mean(mig_newjob, na.rm = T),
+      mig_rural_urban = mean(mig_rural_urban, na.rm = T),
       hhbus = mean(hhbus, na.rm = T),
       unpaid = mean(unpaid, na.rm = T),
       agri = mean(agri, na.rm = T),
@@ -420,7 +440,6 @@ lfs_sum_dist_fn <- function(i){
       agri2 = mean(agri2, na.rm = T),
       manu2 = mean(manu2, na.rm = T),
       service2 = mean(service2, na.rm = T),
-      construction = mean(construction, na.rm = T),
       taxid = mean(taxid, na.rm = T),
       socinsur = mean(socinsur, na.rm = T),
       inc = mean(inc, na.rm = T),
@@ -451,55 +470,6 @@ lfs_sum_dist_all <- lfs_all %>%
   lfs_sum_dist_fn() %>% 
   select(year, tinh, huyen, everything())
 
-lfs_sum_dist_20_29 <- lfs_all %>% 
-  filter(age > 19 & age < 30) %>% 
-  group_by(year, tinh, huyen) %>% 
-  lfs_sum_dist_fn() %>% 
-  select(year, tinh, huyen, everything()) %>%
-  rename_with(~paste0(.,"_20_29"), -c(year, tinh, huyen))
-
-lfs_sum_dist_30_39 <- lfs_all %>% 
-  filter(age > 29 & age < 40) %>% 
-  group_by(year, tinh, huyen) %>% 
-  lfs_sum_dist_fn() %>% 
-  select(year, tinh, huyen, everything())%>%
-  rename_with(~paste0(.,"_30_39"), -c(year, tinh, huyen))
-
-lfs_sum_dist_40_49 <- lfs_all %>% 
-  filter(age > 39 & age < 50) %>% 
-  group_by(year, tinh, huyen) %>% 
-  lfs_sum_dist_fn() %>% 
-  select(year, tinh, huyen, everything()) %>%
-  rename_with(~paste0(.,"_40_49"), -c(year, tinh, huyen))
-
-lfs_sum_dist_20_49 <- lfs_all %>% 
-  filter(age > 19 & age < 50) %>% 
-  group_by(year, tinh, huyen) %>% 
-  lfs_sum_dist_fn() %>% 
-  select(year, tinh, huyen, everything()) %>%
-  rename_with(~paste0(.,"_20_49"), -c(year, tinh, huyen))
-
-lfs_sum_dist_50_59 <- lfs_all %>% 
-  filter(age > 49 & age < 60) %>% 
-  group_by(year, tinh, huyen) %>% 
-  lfs_sum_dist_fn() %>% 
-  select(year, tinh, huyen, everything()) %>%
-  rename_with(~paste0(.,"_50_59"), -c(year, tinh, huyen))
-
-lfs_sum_dist_60_64 <- lfs_all %>% 
-  filter(age > 59 & age < 65) %>% 
-  group_by(year, tinh, huyen) %>% 
-  lfs_sum_dist_fn() %>%  
-  select(year, tinh, huyen, everything()) %>%
-  rename_with(~paste0(.,"_60_64"), -c(year, tinh, huyen))
-
-lfs_sum_dist_50_64 <- lfs_all %>% 
-  filter(age > 49 & age < 65) %>% 
-  group_by(year, tinh, huyen) %>% 
-  lfs_sum_dist_fn() %>%  
-  select(year, tinh, huyen, everything()) %>%
-  rename_with(~paste0(.,"_50_64"), -c(year, tinh, huyen))
-
 lfs_sum_dist_20_44 <- lfs_all %>% 
   filter(age > 19 & age < 45) %>% 
   group_by(year, tinh, huyen) %>% 
@@ -514,10 +484,20 @@ lfs_sum_dist_45_64 <- lfs_all %>%
   select(year, tinh, huyen, everything()) %>%
   rename_with(~paste0(.,"_45_64"), -c(year, tinh, huyen))
 
+lfs_sum_dist_20_24 <- lfs_all %>%
+  filter(age > 19 & age < 25) %>%
+  group_by(year, tinh, huyen) %>%
+  summarise(mig12_20_24         = mean(migrant, na.rm = T),
+            mig_jobsearch_20_24 = mean(mig_jobsearch, na.rm = T),
+            mig_newjob_20_24    = mean(mig_newjob, na.rm = T),
+            
+            mig_ru_20_24 = mean(mig_rural_urban, na.rm = T),
+            mig_ru_jobsearch_20_24 = mean(mig_jobsearch[mig_rural_urban == 1], na.rm = T),
+            mig_ru_newjob_20_24 = mean(mig_newjob[mig_rural_urban == 1], na.rm = T))
+
 dist_3G <- dist_3G %>% filter(year > 2009)
 
-lfs_sum_dist <- list(lfs_sum_dist_all, lfs_sum_dist_20_29, lfs_sum_dist_30_39, lfs_sum_dist_40_49,
-                     lfs_sum_dist_50_59, lfs_sum_dist_60_64, lfs_sum_dist_20_49, lfs_sum_dist_20_44, lfs_sum_dist_50_64, lfs_sum_dist_45_64,
+lfs_sum_dist <- list(lfs_sum_dist_all, lfs_sum_dist_20_24, lfs_sum_dist_20_44, lfs_sum_dist_45_64,
                      dist_3G, district_controls_09, export_ctrl) %>% 
   reduce(full_join) %>% 
   group_by(ID_2) %>%
@@ -531,55 +511,6 @@ lfs_sum_dist_all_f <- lfs_all %>%
   group_by(year, tinh, huyen) %>% 
   lfs_sum_dist_fn() %>% 
   select(year, tinh, huyen, everything())
-
-lfs_sum_dist_20_29_f <- lfs_all %>% 
-  filter(age > 19 & age < 30 & female == 1) %>% 
-  group_by(year, tinh, huyen) %>% 
-  lfs_sum_dist_fn() %>% 
-  select(year, tinh, huyen, everything()) %>%
-  rename_with(~paste0(.,"_20_29"), -c(year, tinh, huyen))
-
-lfs_sum_dist_30_39_f <- lfs_all %>% 
-  filter(age > 29 & age < 40 & female == 1) %>% 
-  group_by(year, tinh, huyen) %>% 
-  lfs_sum_dist_fn() %>% 
-  select(year, tinh, huyen, everything())%>%
-  rename_with(~paste0(.,"_30_39"), -c(year, tinh, huyen))
-
-lfs_sum_dist_40_49_f <- lfs_all %>% 
-  filter(age > 39 & age < 50 & female == 1) %>% 
-  group_by(year, tinh, huyen) %>% 
-  lfs_sum_dist_fn() %>% 
-  select(year, tinh, huyen, everything()) %>%
-  rename_with(~paste0(.,"_40_49"), -c(year, tinh, huyen))
-
-lfs_sum_dist_20_49_f <- lfs_all %>% 
-  filter(age > 19 & age < 50 & female == 1) %>% 
-  group_by(year, tinh, huyen) %>% 
-  lfs_sum_dist_fn() %>% 
-  select(year, tinh, huyen, everything()) %>%
-  rename_with(~paste0(.,"_20_49"), -c(year, tinh, huyen))
-
-lfs_sum_dist_50_59_f <- lfs_all %>% 
-  filter(age > 49 & age < 60 & female == 1) %>% 
-  group_by(year, tinh, huyen) %>% 
-  lfs_sum_dist_fn() %>% 
-  select(year, tinh, huyen, everything()) %>%
-  rename_with(~paste0(.,"_50_59"), -c(year, tinh, huyen))
-
-lfs_sum_dist_60_64_f <- lfs_all %>% 
-  filter(age > 59 & age < 65 & female == 1) %>% 
-  group_by(year, tinh, huyen) %>% 
-  lfs_sum_dist_fn() %>%  
-  select(year, tinh, huyen, everything()) %>%
-  rename_with(~paste0(.,"_60_64"), -c(year, tinh, huyen))
-
-lfs_sum_dist_50_64_f <- lfs_all %>% 
-  filter(age > 49 & age < 65 & female == 1) %>% 
-  group_by(year, tinh, huyen) %>% 
-  lfs_sum_dist_fn() %>%  
-  select(year, tinh, huyen, everything()) %>%
-  rename_with(~paste0(.,"_50_64"), -c(year, tinh, huyen))
 
 lfs_sum_dist_20_44_f <- lfs_all %>% 
   filter(age > 19 & age < 45 & female == 1) %>% 
@@ -595,8 +526,18 @@ lfs_sum_dist_45_64_f <- lfs_all %>%
   select(year, tinh, huyen, everything()) %>%
   rename_with(~paste0(.,"_45_64"), -c(year, tinh, huyen))
 
-lfs_sum_dist_f <- list(lfs_sum_dist_all_f, lfs_sum_dist_20_29_f, lfs_sum_dist_30_39_f, lfs_sum_dist_40_49_f,
-                       lfs_sum_dist_50_59_f, lfs_sum_dist_60_64_f, lfs_sum_dist_20_49_f, lfs_sum_dist_20_44_f, lfs_sum_dist_50_64_f, lfs_sum_dist_45_64_f,
+lfs_sum_dist_20_24_f <- lfs_all %>%
+  filter(age > 19 & age < 25 & female == 1) %>%
+  group_by(year, tinh, huyen) %>%
+  summarise(mig12_20_24         = mean(migrant, na.rm = T),
+            mig_jobsearch_20_24 = mean(mig_jobsearch, na.rm = T),
+            mig_newjob_20_24    = mean(mig_newjob, na.rm = T),
+            
+            mig_ru_20_24 = mean(mig_rural_urban, na.rm = T),
+            mig_ru_jobsearch_20_24 = mean(mig_jobsearch[mig_rural_urban == 1], na.rm = T),
+            mig_ru_newjob_20_24 = mean(mig_newjob[mig_rural_urban == 1], na.rm = T))
+
+lfs_sum_dist_f <- list(lfs_sum_dist_all_f, lfs_sum_dist_20_24_f, lfs_sum_dist_20_44_f, lfs_sum_dist_45_64_f,
                        dist_3G, district_controls_09, export_ctrl) %>% 
   reduce(full_join) %>% 
   group_by(ID_2) %>%
@@ -612,55 +553,6 @@ lfs_sum_dist_all_m <- lfs_all %>%
   lfs_sum_dist_fn() %>% 
   select(year, tinh, huyen, everything())
 
-lfs_sum_dist_20_29_m <- lfs_all %>% 
-  filter(age > 19 & age < 30 & female == 0) %>% 
-  group_by(year, tinh, huyen) %>% 
-  lfs_sum_dist_fn() %>% 
-  select(year, tinh, huyen, everything()) %>%
-  rename_with(~paste0(.,"_20_29"), -c(year, tinh, huyen))
-
-lfs_sum_dist_30_39_m <- lfs_all %>% 
-  filter(age > 29 & age < 40 & female == 0) %>% 
-  group_by(year, tinh, huyen) %>% 
-  lfs_sum_dist_fn() %>% 
-  select(year, tinh, huyen, everything())%>%
-  rename_with(~paste0(.,"_30_39"), -c(year, tinh, huyen))
-
-lfs_sum_dist_40_49_m <- lfs_all %>% 
-  filter(age > 39 & age < 50 & female == 0) %>% 
-  group_by(year, tinh, huyen) %>% 
-  lfs_sum_dist_fn() %>% 
-  select(year, tinh, huyen, everything()) %>%
-  rename_with(~paste0(.,"_40_49"), -c(year, tinh, huyen))
-
-lfs_sum_dist_50_59_m <- lfs_all %>% 
-  filter(age > 49 & age < 60 & female == 0) %>% 
-  group_by(year, tinh, huyen) %>% 
-  lfs_sum_dist_fn() %>% 
-  select(year, tinh, huyen, everything()) %>%
-  rename_with(~paste0(.,"_50_59"), -c(year, tinh, huyen))
-
-lfs_sum_dist_60_64_m <- lfs_all %>% 
-  filter(age > 59 & age < 65 & female == 0) %>% 
-  group_by(year, tinh, huyen) %>% 
-  lfs_sum_dist_fn() %>%  
-  select(year, tinh, huyen, everything()) %>%
-  rename_with(~paste0(.,"_60_64"), -c(year, tinh, huyen))
-
-lfs_sum_dist_50_64_m <- lfs_all %>% 
-  filter(age > 49 & age < 65 & female == 0) %>% 
-  group_by(year, tinh, huyen) %>% 
-  lfs_sum_dist_fn() %>%  
-  select(year, tinh, huyen, everything()) %>%
-  rename_with(~paste0(.,"_50_64"), -c(year, tinh, huyen))
-
-lfs_sum_dist_20_49_m <- lfs_all %>% 
-  filter(age > 19 & age < 50 & female == 0) %>% 
-  group_by(year, tinh, huyen) %>% 
-  lfs_sum_dist_fn() %>% 
-  select(year, tinh, huyen, everything()) %>%
-  rename_with(~paste0(.,"_20_49"), -c(year, tinh, huyen))
-
 lfs_sum_dist_20_44_m <- lfs_all %>% 
   filter(age > 19 & age < 45 & female == 0) %>% 
   group_by(year, tinh, huyen) %>% 
@@ -675,8 +567,18 @@ lfs_sum_dist_45_64_m <- lfs_all %>%
   select(year, tinh, huyen, everything()) %>%
   rename_with(~paste0(.,"_45_64"), -c(year, tinh, huyen))
 
-lfs_sum_dist_m <- list(lfs_sum_dist_all_m, lfs_sum_dist_20_29_m, lfs_sum_dist_30_39_m, lfs_sum_dist_40_49_m,
-                       lfs_sum_dist_50_59_m, lfs_sum_dist_60_64_m, lfs_sum_dist_20_49_m, lfs_sum_dist_20_44_m, lfs_sum_dist_50_64_m,  lfs_sum_dist_45_64_m, 
+lfs_sum_dist_20_24_m <- lfs_all %>%
+  filter(age > 19 & age < 25 & female == 0) %>%
+  group_by(year, tinh, huyen) %>%
+  summarise(mig12_20_24         = mean(migrant, na.rm = T),
+            mig_jobsearch_20_24 = mean(mig_jobsearch, na.rm = T),
+            mig_newjob_20_24    = mean(mig_newjob, na.rm = T),
+            
+            mig_ru_20_24 = mean(mig_rural_urban, na.rm = T),
+            mig_ru_jobsearch_20_24 = mean(mig_jobsearch[mig_rural_urban == 1], na.rm = T),
+            mig_ru_newjob_20_24 = mean(mig_newjob[mig_rural_urban == 1], na.rm = T))
+
+lfs_sum_dist_m <- list(lfs_sum_dist_all_m, lfs_sum_dist_20_24_m, lfs_sum_dist_20_44_m, lfs_sum_dist_45_64_m, 
                        dist_3G, district_controls_09, export_ctrl) %>% 
   reduce(full_join) %>% 
   group_by(ID_2) %>%
@@ -714,6 +616,8 @@ lfs_sum_stats <- lfs_sum_dist %>%
   summarise(
     lfp_mean     = mean(work[year == 2010],         na.rm = TRUE),
     lfp_sd       = sd(work[year == 2010],           na.rm = TRUE),
+    migrant_mean = mean(migrant[year == 2011],      na.rm = TRUE),
+    migrant_sd   = sd(migrant[year == 2011],        na.rm = TRUE),
     hhbus_mean   = mean(hhbus[year == 2010],        na.rm = TRUE),
     hhbus_sd     = sd(hhbus[year == 2010],          na.rm = TRUE),
     agri_mean    = mean(agri[year == 2010],         na.rm = TRUE),
@@ -740,6 +644,7 @@ tab <- tibble(
   Variable = c(
     "Female",
     "LFP",
+    "Share who migrated in the last 12 months",
     "Household business share",
     "Agriculture share",
     "Manufacturing share",
@@ -748,13 +653,13 @@ tab <- tibble(
     "Share of district with 3G coverage (all years)",
     "Share of district with 3G coverage in 2017"
   ),
-  ctrl_mean = round(c(f_ctrl$mean, ctrl$lfp_mean, ctrl$hhbus_mean, ctrl$agri_mean,
+  ctrl_mean = round(c(f_ctrl$mean, ctrl$lfp_mean, ctrl$migrant_mean, ctrl$hhbus_mean, ctrl$agri_mean,
                       ctrl$manu_mean, ctrl$service_mean, ctrl$construction_mean, ctrl$cov_mean, ctrl$cov16_mean), 2),
-  ctrl_sd   = round(c(f_ctrl$sd,   ctrl$lfp_sd,  ctrl$hhbus_sd,  ctrl$agri_sd,
+  ctrl_sd   = round(c(f_ctrl$sd,   ctrl$lfp_sd, ctrl$migrant_sd, ctrl$hhbus_sd,  ctrl$agri_sd,
                       ctrl$manu_sd,  ctrl$service_sd, ctrl$construction_sd, ctrl$cov_sd,  ctrl$cov16_sd), 2),
-  trt_mean  = round(c(f_trt$mean,  trt$lfp_mean,  trt$hhbus_mean,  trt$agri_mean,
+  trt_mean  = round(c(f_trt$mean,  trt$lfp_mean, trt$migrant_mean,  trt$hhbus_mean,  trt$agri_mean,
                       trt$manu_mean,  trt$service_mean,  trt$construction_mean, trt$cov_mean,  trt$cov16_mean), 2),
-  trt_sd    = round(c(f_trt$sd,    trt$lfp_sd,   trt$hhbus_sd,   trt$agri_sd,
+  trt_sd    = round(c(f_trt$sd,    trt$lfp_sd, trt$migrant_sd,  trt$hhbus_sd,   trt$agri_sd,
                       trt$manu_sd,   trt$service_sd,   trt$construction_sd, trt$cov_sd,   trt$cov16_sd), 2)
 )
 
