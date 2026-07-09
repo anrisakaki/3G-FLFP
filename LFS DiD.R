@@ -57,26 +57,6 @@ lfs_sum_dist_m <- lfs_sum_dist_m %>%
          log_inc_45_64 = log(inc_45_64),
          log_hrinc_45_64 = log(hrinc_45_64))
 
-# Callaway & Sant'Anna overlay (extra estimator; control = lnexport_all only, estimated on the full panel)
-cs_green  <- "#0F6E56"   # darker than S&A green  #1B9E77  (main / "all" plots)
-cs_orange <- "#B34A12"   # darker than old orange #E6621E  (45-64 and age-old)
-cs_blue   <- "#145A8A"   # darker than young blue #1F78B4  (age-young)
-add_cs <- function(outcome, data, col = cs_green, offset = 0.3, lty = 1) {
-  yn <- sub("^log\\((.*)\\)$", "log_\\1", outcome)
-  a <- tryCatch(suppressMessages(suppressWarnings({
-    m <- att_gt(yname = yn, tname = "year", idname = "ID_2", gname = "year_mean_OCI",
-                xformla = ~lnexport_all, data = data, control_group = "notyettreated",
-                base_period = "universal")
-    aggte(m, type = "dynamic", na.rm = TRUE)
-  })), error = function(e) NULL)
-  if (is.null(a)) return(invisible(NULL))
-  keep <- a$egt != -1
-  x   <- a$egt[keep] + offset
-  est <- a$att.egt[keep]
-  segments(x, est - 1.96 * a$se.egt[keep], x, est + 1.96 * a$se.egt[keep], col = col, lwd = 2, lty = lty)
-  points(x, est, col = col, pch = 1, lwd = 2)
-}
-
 ###############
 # EVENT STUDY #
 ###############
@@ -111,12 +91,11 @@ plot_event_study <- function(df_twfe, df_sunab, outcome, out_file,
     ylab = ylab,
     main = main
   )
-  add_cs(outcome, df_sunab)
   plot.new()
   par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = T)
   plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
-  legend("bottom", col = c(colours, cs_green), pch = 1, lwd = 2, cex = cex_lab, bty = "n",
-         legend = c("TWFE", "Sun & Abraham", "Callaway & Sant'Anna"), horiz = T, inset = c(0, 0.04), xpd = T, x.intersp = 0.3)
+  legend("bottom", col = colours, pch = 1, lwd = 2, cex = cex_lab, bty = "n",
+         legend = c("TWFE", "Sun & Abraham"), horiz = T, inset = c(0, 0.04), xpd = T, x.intersp = 0.3)
   dev.off()
 }
 
@@ -137,19 +116,17 @@ plot_event_study_combined <- function(df_twfe_f, df_sunab_f, df_twfe_m, df_sunab
     xlab = "Years to treatment",
     main = "Male"
   )
-  add_cs(outcome, lfs_sum_dist_m)
 
   iplot(
     list(fit_twfe_f, fit_sunab_f),
     xlab = "Years to treatment",
     main = "Female"
   )
-  add_cs(outcome, lfs_sum_dist_f)
 
   par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = T)
   plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
-  legend("bottom", col = c(colours, cs_green), pch = 1, lwd = 2, cex = cex_lab, bty = "n",
-         legend = c("TWFE", "Sun & Abraham", "Callaway & Sant'Anna"), horiz = T, inset = c(0, 0.04), xpd = T, x.intersp = 0.3)
+  legend("bottom", col = colours, pch = 1, lwd = 2, cex = cex_lab, bty = "n",
+         legend = c("TWFE", "Sun & Abraham"), horiz = T, inset = c(0, 0.04), xpd = T, x.intersp = 0.3)
   dev.off()
 }
 
@@ -177,13 +154,12 @@ plot_sectoral_wide_f <- function(df_twfe_f, df_sunab_f, out_file) {
       list(fit_twfe, fit_sunab),
       xlab = "Years to treatment", ylab = if (i == 1) "Estimate and 95% Conf. Int." else "", main = titles[i]
     )
-    add_cs(outcome, lfs_sum_dist_f)
   }
 
   par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = T)
   plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
-  legend("bottom", col = c(colours, cs_green), pch = 1, lwd = 2, cex = cex_lab, bty = "n",
-         legend = c("TWFE", "Sun & Abraham", "Callaway & Sant'Anna"), horiz = T, inset = c(0, 0.04), xpd = T, x.intersp = 0.3)
+  legend("bottom", col = colours, pch = 1, lwd = 2, cex = cex_lab, bty = "n",
+         legend = c("TWFE", "Sun & Abraham"), horiz = T, inset = c(0, 0.04), xpd = T, x.intersp = 0.3)
   dev.off()
 }
 
@@ -234,22 +210,19 @@ plot_informality_wide_f <- function(out_file) {
   # HH Business
   iplot(list(fit_twfe_hhbus, fit_sunab_hhbus),
         xlab = "Years to treatment", ylab = "Estimate and 95% Conf. Int.", main = titles[1])
-  add_cs("hhbus", lfs_sum_dist_f)
 
   # Tax ID
   iplot(list(fit_twfe_taxid, fit_sunab_taxid),
         xlab = "Years to treatment", ylab = "", main = titles[2])
-  add_cs("taxid", lfs_sum_dist_f)
 
   # Social Insurance
   iplot(list(fit_twfe_socinsur, fit_sunab_socinsur),
         xlab = "Years to treatment", ylab = "", main = titles[3])
-  add_cs("socinsur", lfs_sum_dist_f)
 
   par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = T)
   plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
-  legend("bottom", col = c(colours, cs_green), pch = 1, lwd = 2, cex = cex_lab, bty = "n",
-         legend = c("TWFE", "Sun & Abraham", "Callaway & Sant'Anna"), horiz = T, inset = c(0, 0.04), xpd = T, x.intersp = 0.3)
+  legend("bottom", col = colours, pch = 1, lwd = 2, cex = cex_lab, bty = "n",
+         legend = c("TWFE", "Sun & Abraham"), horiz = T, inset = c(0, 0.04), xpd = T, x.intersp = 0.3)
   dev.off()
 }
 
@@ -276,13 +249,12 @@ plot_income_wide_f <- function(df_twfe_f, df_sunab_f, out_file) {
       list(fit_twfe, fit_sunab),
       xlab = "Years to treatment", ylab = if (i == 1) "Estimate and 95% Conf. Int." else "", main = titles[i]
     )
-    add_cs(outcome, lfs_sum_dist_f)
   }
 
   par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = T)
   plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
-  legend("bottom", col = c(colours, cs_green), pch = 1, lwd = 2, cex = cex_lab, bty = "n",
-         legend = c("TWFE", "Sun & Abraham", "Callaway & Sant'Anna"), horiz = T, inset = c(0, 0.04), xpd = T, x.intersp = 0.3)
+  legend("bottom", col = colours, pch = 1, lwd = 2, cex = cex_lab, bty = "n",
+         legend = c("TWFE", "Sun & Abraham"), horiz = T, inset = c(0, 0.04), xpd = T, x.intersp = 0.3)
   dev.off()
 }
 
@@ -290,7 +262,7 @@ plot_income_wide_f(default_f, lfs_sum_dist_f, file.path(fig_dir, "inc_mean_OCI_f
 
 # Migration 
 plot_mig_20_24_wide_f <- function(df_twfe_f, df_sunab_f, out_file) {
-  outcomes <- c("mig12_20_24", "mig_jobsearch_20_24", "mig_newjob_20_24")
+  outcomes <- c("migrant_20_24", "mig_jobsearch_20_24", "mig_newjob_20_24")
   titles   <- c("Migrated < 12 months ago", "Look for job", "Start New Job")
   
   pdf(out_file, width = 18, height = 8.4)
@@ -307,13 +279,12 @@ plot_mig_20_24_wide_f <- function(df_twfe_f, df_sunab_f, out_file) {
       list(fit_twfe, fit_sunab),
       xlab = "Years to treatment", ylab = if (i == 1) "Estimate and 95% Conf. Int." else "", main = titles[i]
     )
-    add_cs(outcome, lfs_sum_dist_f)
   }
   
   par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = T)
   plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
-  legend("bottom", col = c(colours, cs_green), pch = 1, lwd = 2, cex = cex_lab, bty = "n",
-         legend = c("TWFE", "Sun & Abraham", "Callaway & Sant'Anna"), horiz = T, inset = c(0, 0.04), xpd = T, x.intersp = 0.3)
+  legend("bottom", col = colours, pch = 1, lwd = 2, cex = cex_lab, bty = "n",
+         legend = c("TWFE", "Sun & Abraham"), horiz = T, inset = c(0, 0.04), xpd = T, x.intersp = 0.3)
   dev.off()
 }
 
@@ -335,13 +306,12 @@ plot_mig_wide_f <- function(df_twfe_f, df_sunab_f, out_file) {
       list(fit_twfe, fit_sunab),
       xlab = "Years to treatment", ylab = if (i == 1) "Estimate and 95% Conf. Int." else "", main = titles[i]
     )
-    add_cs(outcome, lfs_sum_dist_f)
   }
   
   par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = T)
   plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
-  legend("bottom", col = c(colours, cs_green), pch = 1, lwd = 2, cex = cex_lab, bty = "n",
-         legend = c("TWFE", "Sun & Abraham", "Callaway & Sant'Anna"), horiz = T, inset = c(0, 0.04), xpd = T, x.intersp = 0.3)
+  legend("bottom", col = colours, pch = 1, lwd = 2, cex = cex_lab, bty = "n",
+         legend = c("TWFE", "Sun & Abraham"), horiz = T, inset = c(0, 0.04), xpd = T, x.intersp = 0.3)
   dev.off()
 }
 
@@ -363,13 +333,12 @@ plot_mig_ru_wide_f <- function(df_twfe_f, df_sunab_f, out_file) {
       list(fit_twfe, fit_sunab),
       xlab = "Years to treatment", ylab = if (i == 1) "Estimate and 95% Conf. Int." else "", main = titles[i]
     )
-    add_cs(outcome, lfs_sum_dist_f)
   }
   
   par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = T)
   plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
-  legend("bottom", col = c(colours, cs_green), pch = 1, lwd = 2, cex = cex_lab, bty = "n",
-         legend = c("TWFE", "Sun & Abraham", "Callaway & Sant'Anna"), horiz = T, inset = c(0, 0.04), xpd = T, x.intersp = 0.3)
+  legend("bottom", col = colours, pch = 1, lwd = 2, cex = cex_lab, bty = "n",
+         legend = c("TWFE", "Sun & Abraham"), horiz = T, inset = c(0, 0.04), xpd = T, x.intersp = 0.3)
   dev.off()
 }
 
@@ -408,13 +377,12 @@ plot_sectoral_wide_f_old <- function(df_f, out_file) {
           col = colours_old,
           lty = c(2, 2),
           xlab = "Years to treatment", ylab = if (i == 1) "Estimate and 95% Conf. Int." else "", main = titles[i])
-    add_cs(outcome, lfs_sum_dist_f, col = cs_orange, lty = 2)
   }
 
   par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = T)
   plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
-  legend("bottom", col = c(colours_old, cs_orange), pch = 1, lwd = 2, lty = c(2, 2, 2), cex = cex_lab, bty = "n",
-         legend = c("TWFE (45-64)", "Sun & Abraham (45-64)", "Callaway & Sant'Anna (45-64)"), horiz = T, inset = c(0, 0.04), xpd = T, x.intersp = 0.3)
+  legend("bottom", col = colours_old, pch = 1, lwd = 2, lty = 2, cex = cex_lab, bty = "n",
+         legend = c("TWFE (45-64)", "Sun & Abraham (45-64)"), horiz = T, inset = c(0, 0.04), xpd = T, x.intersp = 0.3)
   dev.off()
 }
 
@@ -445,14 +413,12 @@ plot_sectoral_wide_f_age <- function(df_f, out_file) {
                fit_twfe_old, fit_sunab_old),
           col = colours_age, lty = c(1, 1, 2, 2), sep = 0.1,
           xlab = "Years to treatment", ylab = if (i == 1) "Estimate and 95% Conf. Int." else "", main = titles[i])
-    add_cs(out_young, lfs_sum_dist_f, col = cs_blue, offset = 0.25)
-    add_cs(out_old, lfs_sum_dist_f, col = cs_orange, offset = 0.35, lty = 2)
   }
 
   par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = T)
   plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
-  legend("bottom", col = c(colours_age, cs_blue, cs_orange), pch = 1, lwd = 2, lty = c(1, 1, 2, 2, 1, 2), cex = cex_lab, bty = "n", ncol = 3,
-         legend = c("TWFE (20-44)", "Sun & Abraham (20-44)", "TWFE (45-64)", "Sun & Abraham (45-64)", "Callaway & Sant'Anna (20-44)", "Callaway & Sant'Anna (45-64)"),
+  legend("bottom", col = colours_age, pch = 1, lwd = 2, lty = c(1, 1, 2, 2), cex = cex_lab, bty = "n", ncol = 2,
+         legend = c("TWFE (20-44)", "Sun & Abraham (20-44)", "TWFE (45-64)", "Sun & Abraham (45-64)"),
          inset = c(0, 0.04), xpd = T, x.intersp = 0.4)
   dev.off()
 }
@@ -487,22 +453,19 @@ plot_informality_wide_f_old <- function(out_file) {
   iplot(list(fit_twfe_hhbus, fit_sunab_hhbus),
         col = colours_old, lty = c(2, 2),
         xlab = "Years to treatment", ylab = "Estimate and 95% Conf. Int.", main = titles[1])
-  add_cs("hhbus_45_64", lfs_sum_dist_f, col = cs_orange, lty = 2)
 
   iplot(list(fit_twfe_taxid, fit_sunab_taxid),
         col = colours_old, lty = c(2, 2),
         xlab = "Years to treatment", ylab = "", main = titles[2])
-  add_cs("taxid_45_64", lfs_sum_dist_f, col = cs_orange, lty = 2)
 
   iplot(list(fit_twfe_socinsur, fit_sunab_socinsur),
         col = colours_old, lty = c(2, 2),
         xlab = "Years to treatment", ylab = "", main = titles[3])
-  add_cs("socinsur_45_64", lfs_sum_dist_f, col = cs_orange, lty = 2)
 
   par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = T)
   plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
-  legend("bottom", col = c(colours_old, cs_orange), pch = 1, lwd = 2, lty = c(2, 2, 2), cex = cex_lab, bty = "n",
-         legend = c("TWFE (45-64)", "Sun & Abraham (45-64)", "Callaway & Sant'Anna (45-64)"), horiz = T, inset = c(0, 0.04), xpd = T, x.intersp = 0.3)
+  legend("bottom", col = colours_old, pch = 1, lwd = 2, lty = 2, cex = cex_lab, bty = "n",
+         legend = c("TWFE (45-64)", "Sun & Abraham (45-64)"), horiz = T, inset = c(0, 0.04), xpd = T, x.intersp = 0.3)
   dev.off()
 }
 
@@ -539,14 +502,12 @@ plot_informality_wide_f_age <- function(out_file) {
                fit_twfe_old, fit_sunab_old),
           col = colours_age, lty = c(1, 1, 2, 2), sep = 0.1,
           xlab = "Years to treatment", ylab = if (i == 1) "Estimate and 95% Conf. Int." else "", main = titles[i])
-    add_cs(out_young, lfs_sum_dist_f, col = cs_blue, offset = 0.25)
-    add_cs(out_old, lfs_sum_dist_f, col = cs_orange, offset = 0.35, lty = 2)
   }
 
   par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = T)
   plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
-  legend("bottom", col = c(colours_age, cs_blue, cs_orange), pch = 1, lwd = 2, lty = c(1, 1, 2, 2, 1, 2), cex = cex_lab, bty = "n", ncol = 3,
-         legend = c("TWFE (20-44)", "Sun & Abraham (20-44)", "TWFE (45-64)", "Sun & Abraham (45-64)", "Callaway & Sant'Anna (20-44)", "Callaway & Sant'Anna (45-64)"),
+  legend("bottom", col = colours_age, pch = 1, lwd = 2, lty = c(1, 1, 2, 2), cex = cex_lab, bty = "n", ncol = 2,
+         legend = c("TWFE (20-44)", "Sun & Abraham (20-44)", "TWFE (45-64)", "Sun & Abraham (45-64)"),
          inset = c(0, 0.04), xpd = T, x.intersp = 0.4)
   dev.off()
 }
@@ -572,12 +533,11 @@ plot_event_study_old <- function(df_twfe, df_sunab, outcome, out_file,
     col = colours_old, lty = c(2, 2),
     xlab = "Years to treatment", ylab = ylab, main = main
   )
-  add_cs(outcome, df_sunab, col = cs_orange, lty = 2)
   plot.new()
   par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = T)
   plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
-  legend("bottom", col = c(colours_old, cs_orange), pch = 1, lwd = 2, lty = c(2, 2, 2), cex = cex_lab, bty = "n",
-         legend = c("TWFE (45-64)", "Sun & Abraham (45-64)", "Callaway & Sant'Anna (45-64)"), horiz = T, inset = c(0, 0.04), xpd = T, x.intersp = 0.3)
+  legend("bottom", col = colours_old, pch = 1, lwd = 2, lty = 2, cex = cex_lab, bty = "n",
+         legend = c("TWFE (45-64)", "Sun & Abraham (45-64)"), horiz = T, inset = c(0, 0.04), xpd = T, x.intersp = 0.3)
   dev.off()
 }
 
@@ -602,13 +562,12 @@ plot_income_wide_f_old <- function(df_twfe, df_sunab, out_file, width = 18, heig
     iplot(list(fit_twfe, fit_sunab),
           col = colours_old, lty = c(2, 2),
           xlab = "Years to treatment", ylab = if (i == 1) "Estimate and 95% Conf. Int." else "", main = titles[i])
-    add_cs(outcome, lfs_sum_dist_f, col = cs_orange, lty = 2)
   }
 
   par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = T)
   plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
-  legend("bottom", col = c(colours_old, cs_orange), pch = 1, lwd = 2, lty = c(2, 2, 2), cex = cex_lab, bty = "n",
-         legend = c("TWFE (45-64)", "Sun & Abraham (45-64)", "Callaway & Sant'Anna (45-64)"), horiz = T, inset = c(0, 0.04), xpd = T, x.intersp = 0.3)
+  legend("bottom", col = colours_old, pch = 1, lwd = 2, lty = 2, cex = cex_lab, bty = "n",
+         legend = c("TWFE (45-64)", "Sun & Abraham (45-64)"), horiz = T, inset = c(0, 0.04), xpd = T, x.intersp = 0.3)
   dev.off()
 }
 
@@ -638,13 +597,11 @@ plot_event_study_age <- function(df_twfe, df_sunab, outcome_young, outcome_old, 
     col = colours_age, lty = c(1, 1, 2, 2), sep = 0.1,
     xlab = "Years to treatment", ylab = ylab, main = main
   )
-  add_cs(outcome_young, df_sunab, col = cs_blue, offset = 0.25)
-  add_cs(outcome_old, df_sunab, col = cs_orange, offset = 0.35, lty = 2)
   plot.new()
   par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = T)
   plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
-  legend("bottom", col = c(colours_age, cs_blue, cs_orange), pch = 1, lwd = 2, lty = c(1, 1, 2, 2, 1, 2), cex = cex_lab, bty = "n", ncol = 3,
-         legend = c("TWFE (20-44)", "Sun & Abraham (20-44)", "TWFE (45-64)", "Sun & Abraham (45-64)", "Callaway & Sant'Anna (20-44)", "Callaway & Sant'Anna (45-64)"),
+  legend("bottom", col = colours_age, pch = 1, lwd = 2, lty = c(1, 1, 2, 2), cex = cex_lab, bty = "n", ncol = 2,
+         legend = c("TWFE (20-44)", "Sun & Abraham (20-44)", "TWFE (45-64)", "Sun & Abraham (45-64)"),
          inset = c(0, 0.01), xpd = T, x.intersp = 0.4)
   dev.off()
 }
@@ -672,14 +629,12 @@ plot_income_wide_f_age <- function(df_twfe, df_sunab, out_file, width = 18, heig
     iplot(list(fit_twfe_young, fit_sunab_young, fit_twfe_old, fit_sunab_old),
           col = colours_age, lty = c(1, 1, 2, 2), sep = 0.1,
           xlab = "Years to treatment", ylab = if (i == 1) "Estimate and 95% Conf. Int." else "", main = titles[i])
-    add_cs(outcomes_young[i], df_sunab, col = cs_blue, offset = 0.25)
-    add_cs(outcomes_old[i], df_sunab, col = cs_orange, offset = 0.35, lty = 2)
   }
 
   par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = T)
   plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
-  legend("bottom", col = c(colours_age, cs_blue, cs_orange), pch = 1, lwd = 2, lty = c(1, 1, 2, 2, 1, 2), cex = cex_lab, bty = "n", ncol = 3,
-         legend = c("TWFE (20-44)", "Sun & Abraham (20-44)", "TWFE (45-64)", "Sun & Abraham (45-64)", "Callaway & Sant'Anna (20-44)", "Callaway & Sant'Anna (45-64)"),
+  legend("bottom", col = colours_age, pch = 1, lwd = 2, lty = c(1, 1, 2, 2), cex = cex_lab, bty = "n", ncol = 2,
+         legend = c("TWFE (20-44)", "Sun & Abraham (20-44)", "TWFE (45-64)", "Sun & Abraham (45-64)"),
          inset = c(0, 0.04), xpd = T, x.intersp = 0.4)
   dev.off()
 }
