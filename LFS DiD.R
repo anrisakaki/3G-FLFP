@@ -315,41 +315,41 @@ plot_mig_wide_f <- function(df_twfe_f, df_sunab_f, out_file) {
   dev.off()
 }
 
-plot_mig_ru_wide_f <- function(df_twfe_f, df_sunab_f, out_file) {
-  outcomes <- c("mig_ru_20_24", "mig_ru_jobsearch_20_24", "mig_ru_newjob_20_24")
-  titles   <- c("Migrated < 12 months ago", "Look for job", "Start New Job")
-  
-  pdf(out_file, width = 18, height = 8.4)
-  par(mfrow = c(1, 3), mar = c(5, 5, 4, 2), mgp = c(3, 1, 0), oma = c(6, 0, 0, 0), pty = "s", cex.main = cex_main, cex.lab = cex_lab, cex.axis = cex_axis)
-  
-  for (i in seq_along(outcomes)) {
-    outcome <- outcomes[i]
-    fml_twfe <- as.formula(paste0(outcome, " ~ i(ytt_mean_OCI, mean_3G_OCI, ref = c(-1, -1000)) + lnexport_all + i(year, sh_manu_09, ref = 2011) + i(year, sh_hs_09, ref = 2011) + i(year, sh_fdi_09, ref = 2011) + i(year, sh_it_09, ref = 2011) + i(year, sh_migrant_09, ref = 2011) | ID_2 + year"))
-    fml_sunab <- as.formula(paste0(outcome, " ~ sunab(year_mean_OCI, year) + lnexport_all + i(year, sh_manu_09, ref = 2011) + i(year, sh_hs_09, ref = 2011) + i(year, sh_fdi_09, ref = 2011) + i(year, sh_it_09, ref = 2011) + i(year, sh_migrant_09, ref = 2011) | ID_2 + year"))
-    
-    fit_twfe <- feols(fml_twfe, df_twfe_f, vcov = ~ID_2)
-    fit_sunab <- feols(fml_sunab, df_sunab_f, vcov = ~ID_2)
-    iplot(
-      list(fit_twfe, fit_sunab),
-      xlab = "Years to treatment", ylab = if (i == 1) "Estimate and 95% Conf. Int." else "", main = titles[i]
-    )
-  }
-  
-  par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = T)
-  plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
-  legend("bottom", col = colours, pch = 1, lwd = 2, cex = cex_lab, bty = "n",
-         legend = c("TWFE", "Sun & Abraham"), horiz = T, inset = c(0, 0.04), xpd = T, x.intersp = 0.3)
-  dev.off()
-}
+#plot_mig_ru_wide_f <- function(df_twfe_f, df_sunab_f, out_file) {
+#  outcomes <- c("mig_ru_20_24", "mig_ru_jobsearch_20_24", "mig_ru_newjob_20_24")
+#  titles   <- c("Migrated < 12 months ago", "Look for job", "Start New Job")
+#  
+#  pdf(out_file, width = 18, height = 8.4)
+#  par(mfrow = c(1, 3), mar = c(5, 5, 4, 2), mgp = c(3, 1, 0), oma = c(6, 0, 0, 0), pty = "s", cex.main = cex_main, cex.lab = cex_lab, cex.axis = cex_axis)
+#  
+#  for (i in seq_along(outcomes)) {
+#    outcome <- outcomes[i]
+#    fml_twfe <- as.formula(paste0(outcome, " ~ i(ytt_mean_OCI, mean_3G_OCI, ref = c(-1, -1000)) + lnexport_all + i(year, sh_manu_09, ref = 2011) + i(year, sh_hs_09, ref = 2011) + i(year, sh_fdi_09, ref = 2011) + i(year, sh_it_09, ref = 2011) + i(year, sh_migrant_09, ref = 2011) | ID_2 + year"))
+#    fml_sunab <- as.formula(paste0(outcome, " ~ sunab(year_mean_OCI, year) + lnexport_all + i(year, sh_manu_09, ref = 2011) + i(year, sh_hs_09, ref = 2011) + i(year, sh_fdi_09, ref = 2011) + i(year, sh_it_09, ref = 2011) + i(year, sh_migrant_09, ref = 2011) | ID_2 + year"))
+#    
+#    fit_twfe <- feols(fml_twfe, df_twfe_f, vcov = ~ID_2)
+#    fit_sunab <- feols(fml_sunab, df_sunab_f, vcov = ~ID_2)
+#    iplot(
+#      list(fit_twfe, fit_sunab),
+#      xlab = "Years to treatment", ylab = if (i == 1) "Estimate and 95% Conf. Int." else "", main = titles[i]
+#    )
+#  }
+#  
+#  par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), pty = "m", new = T)
+#  plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
+#  legend("bottom", col = colours, pch = 1, lwd = 2, cex = cex_lab, bty = "n",
+#         legend = c("TWFE", "Sun & Abraham"), horiz = T, inset = c(0, 0.04), xpd = T, x.intersp = 0.3)
+#  dev.off()
+#}
 
-plot_mig_20_24_wide_f(subset(default_f, year > 2010 & ytt_mean_OCI < 6),
-                subset(default_f, year > 2010 & ytt_mean_OCI < 6), file.path(fig_dir, "mig_20_24_mean_OCI_f.pdf"))
+#plot_mig_20_24_wide_f(subset(default_f, year > 2010 & ytt_mean_OCI < 6),
+#                subset(default_f, year > 2010 & ytt_mean_OCI < 6), file.path(fig_dir, "mig_20_24_mean_OCI_f.pdf"))
 
-plot_mig_wide_f(subset(default_f, year > 2010 & ytt_mean_OCI < 6),
-                subset(default_f, year > 2010 & ytt_mean_OCI < 6), file.path(fig_dir, "mig_mean_OCI_f.pdf"))
+#plot_mig_wide_f(subset(default_f, year > 2010 & ytt_mean_OCI < 6),
+#                subset(default_f, year > 2010 & ytt_mean_OCI < 6), file.path(fig_dir, "mig_mean_OCI_f.pdf"))
 
-plot_mig_ru_wide_f(subset(default_f, year > 2010 & ytt_mean_OCI < 6),
-                subset(default_f, year > 2010 & ytt_mean_OCI < 6), file.path(fig_dir, "mig_ru_mean_OCI_f.pdf"))
+#plot_mig_ru_wide_f(subset(default_f, year > 2010 & ytt_mean_OCI < 6),
+#                subset(default_f, year > 2010 & ytt_mean_OCI < 6), file.path(fig_dir, "mig_ru_mean_OCI_f.pdf"))
 
 ###########
 # Placebo #

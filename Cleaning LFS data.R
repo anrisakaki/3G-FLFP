@@ -1,4 +1,25 @@
-load("Clean data/dist_3G.Rda")
+library(tidyverse)   
+library(haven)       
+library(kableExtra)
+
+lfs10_distid <- read.csv("Raw Data/LFS/lfs_dist_10.csv")
+lfs11_distid <- read.csv("Raw Data/LFS/lfs_dist_11.csv")
+lfs12_distid <- read.csv("Raw Data/LFS/lfs_dist_12.csv")
+lfs13_distid <- read.csv("Raw Data/LFS/lfs_dist_13.csv")
+lfs14_distid <- read.csv("Raw Data/LFS/lfs_dist_14.csv")
+
+lfs10   <- read_sav("Raw Data/LFS/Micr_LFS_2010-2014/LFS_2010_final_DCTDT_GUI.sav")
+lfs11   <- read_sav("Raw Data/LFS/Micr_LFS_2010-2014/LFS_2011_final_DCTDT_GUI.sav")
+lfs12   <- read_sav("Raw Data/LFS/Micr_LFS_2010-2014/LFS-2012-add_var_weight_goc.sav")
+lfs12.a <- read_sav("Raw Data/LFS/Micr_LFS_2010-2014/LFS_2012_final_DCTDT_GUI.sav")
+lfs13   <- read_sav("Raw Data/LFS/Micr_LFS_2010-2014/LFS_2013_final_DCTDT_GUI.sav")
+lfs14   <- read_sav("Raw Data/LFS/Micr_LFS_2010-2014/LFS_2014_final_DCTDT_GUI.sav")
+lfs15   <- read_dta("Raw Data/LFS/LFS_2015_final_full.dta")
+lfs16   <- read_dta("Raw Data/LFS/LFS_2016_final_full.dta")
+lfs17   <- read_dta("Raw Data/LFS/LFS_2017_final_full.dta")
+
+export_ctrl <- read_dta("Clean data/province level/export_province_year_isic4.dta")
+load("Clean data/dist_3G.Rda")                 
 load("Clean data/district_controls_09.Rda")
 
 # LFS 2010 - LFS 2018 uses VSIC 07
@@ -388,12 +409,57 @@ lfs17 <- lfs17 %>%
   dplyr::select(year, tinh, huyen, hoso, STT, monthint, age, female, marst, educattain, work, work2, migrant, mig5, mig_jobsearch, mig_newjob, mig_rural_urban, unpaid, occ, org,
                 ind, emp, hhbus, agri, manu, service, construction, nonagri, erc, socinsur, inc, hours, wt) 
 
-lfs_all <- bind_rows(lfs10, lfs11, lfs12, lfs13, lfs14, lfs15, lfs16, lfs17) %>% 
+lfs_all <- bind_rows(lfs10, lfs11, lfs12, lfs13, lfs14, lfs15, lfs16, lfs17) %>%
   mutate(work = ifelse(is.na(work), 0, work),
-         age = as.numeric(age),
-         huyen = ifelse(tinh == 87 & huyen == 868, 870, huyen),
-         huyen = ifelse(tinh == 87 & huyen == 866, 873, huyen),
-         huyen = ifelse(tinh == 4 & huyen == 51, 40, huyen)) 
+         age = as.numeric(age)) %>%
+  mutate(
+    ## Hà Nội (tinh 1)
+    huyen = ifelse(tinh == 1  & huyen == 21,  19,  huyen),   # Nam Từ Liêm      -> Từ Liêm
+    ## Tuyên Quang (tinh 8)
+    huyen = ifelse(tinh == 8  & huyen == 71,  72,  huyen),   # Lâm Bình         -> Nà Hang
+    ## Điện Biên (tinh 11)
+    huyen = ifelse(tinh == 11 & huyen == 103, 96,  huyen),   # Nậm Pồ           -> Mường Nhé
+    ## Lai Châu (tinh 12)
+    huyen = ifelse(tinh == 12 & huyen == 112, 107, huyen),   # Nậm Nhùn         -> Mường Tè
+    ## Sơn La (tinh 14)
+    huyen = ifelse(tinh == 14 & huyen == 128, 123, huyen),   # Vân Hồ           -> Mộc Châu
+    ## Nghệ An (tinh 40)
+    huyen = ifelse(tinh == 40 & huyen == 432, 421, huyen),   # Hoàng Mai        -> Quỳnh Lưu
+    ## Hà Tĩnh (tinh 42)
+    huyen = ifelse(tinh == 42 & huyen == 449, 447, huyen),   # Kỳ Anh (thị xã)  -> Kỳ Anh
+    ## Quảng Bình (tinh 44)
+    huyen = ifelse(tinh == 44 & huyen == 458, 454, huyen),   # Ba Đồn           -> Quảng Trạch
+    ## Ninh Thuận (tinh 58)
+    huyen = ifelse(tinh == 58 & huyen == 589, 587, huyen),   # Thuận Nam        -> Ninh Phước
+    ## Kon Tum (tinh 62)
+    huyen = ifelse(tinh == 62 & huyen == 618, 616, huyen),   # Ia H' Drai       -> Sa Thầy
+    ## Gia Lai (tinh 64)
+    huyen = ifelse(tinh == 64 & huyen == 639, 633, huyen),   # Chư Pưh          -> Chư Sê
+    ## Bình Phước (tinh 70)
+    huyen = ifelse(tinh == 70 & huyen == 688, 691, huyen),   # Bù Gia Mập       -> Phước Long
+    huyen = ifelse(tinh == 70 & huyen == 698, 691, huyen),   # Phú Riềng        -> Phước Long
+    huyen = ifelse(tinh == 70 & huyen == 690, 694, huyen),   # Hớn Quản         -> Bình Long
+    ## Bình Dương (tinh 74)
+    huyen = ifelse(tinh == 74 & huyen == 719, 721, huyen),   # Bàu Bàng         -> Bến Cát
+    huyen = ifelse(tinh == 74 & huyen == 726, 723, huyen),   # Bắc Tân Uyên     -> Tân Uyên
+    ## Long An (tinh 80)
+    huyen = ifelse(tinh == 80 & huyen == 795, 798, huyen),   # Kiến Tường       -> Mộc Hóa
+    ## Tiền Giang (tinh 82)
+    huyen = ifelse(tinh == 82 & huyen == 817, 820, huyen),   # Cai Lậy (thị xã) -> Cai Lậy
+    ## Bến Tre (tinh 83)
+    huyen = ifelse(tinh == 83 & huyen == 838, 833, huyen),   # Mỏ Cày Bắc       -> Mỏ Cày Nam
+    ## Trà Vinh (tinh 84)
+    huyen = ifelse(tinh == 84 & huyen == 851, 850, huyen),   # Duyên Hải (t.xã) -> Duyên Hải
+    ## Kiên Giang (tinh 91)
+    huyen = ifelse(tinh == 91 & huyen == 914, 902, huyen),   # Giang Thành      -> Kiên Lương
+    ## Hậu Giang (tinh 93)
+    huyen = ifelse(tinh == 93 & huyen == 937, 936, huyen),   # Long Mỹ (thị xã) -> Long Mỹ
+    ## Sóc Trăng (tinh 94)
+    huyen = ifelse(tinh == 94 & huyen == 951, 946, huyen)    # Trần Đề          -> Long Phú
+    ## Three crosswalk-only Châu Thành renumberings -- (80,708)->808, (82,877)->821,
+    ## (91,892)->905 -- are omitted: those source codes never appear in the
+    ## 2010-2017 microdata, so they would never fire.
+  )
 
 save(lfs_all, file = "Clean data/lfs_all.Rda")
 write_dta(lfs_all, "Clean data/lfs_all.dta")
@@ -606,7 +672,9 @@ female_stats <- lfs_all %>%
 female_row <- female_stats %>%
   group_by(mean_3G_OCI) %>%
   summarise(mean = mean(female, na.rm = TRUE),
-            sd   = sd(female, na.rm = TRUE))
+            sd   = sd(female, na.rm = TRUE),
+            min  = min(female, na.rm = TRUE),
+            max  = max(female, na.rm = TRUE))
 
 n_ctrl <- lfs_sum_dist %>% filter(mean_3G_OCI == 0) %>% distinct(ID_2) %>% nrow()
 n_trt  <- lfs_sum_dist %>% filter(mean_3G_OCI == 1) %>% distinct(ID_2) %>% nrow()
@@ -616,22 +684,36 @@ lfs_sum_stats <- lfs_sum_dist %>%
   summarise(
     lfp_mean     = mean(work[year == 2010],         na.rm = TRUE),
     lfp_sd       = sd(work[year == 2010],           na.rm = TRUE),
+    lfp_min      = min(work[year == 2010],          na.rm = TRUE),
+    lfp_max      = max(work[year == 2010],          na.rm = TRUE),
     migrant_mean = mean(migrant[year == 2011],      na.rm = TRUE),
     migrant_sd   = sd(migrant[year == 2011],        na.rm = TRUE),
+    migrant_min  = min(migrant[year == 2011],       na.rm = TRUE),
+    migrant_max  = max(migrant[year == 2011],       na.rm = TRUE),
     hhbus_mean   = mean(hhbus[year == 2010],        na.rm = TRUE),
     hhbus_sd     = sd(hhbus[year == 2010],          na.rm = TRUE),
+    hhbus_min    = min(hhbus[year == 2010],         na.rm = TRUE),
+    hhbus_max    = max(hhbus[year == 2010],         na.rm = TRUE),
     agri_mean    = mean(agri[year == 2010],         na.rm = TRUE),
     agri_sd      = sd(agri[year == 2010],           na.rm = TRUE),
+    agri_min     = min(agri[year == 2010],          na.rm = TRUE),
+    agri_max     = max(agri[year == 2010],          na.rm = TRUE),
     manu_mean    = mean(manu[year == 2010],         na.rm = TRUE),
     manu_sd      = sd(manu[year == 2010],           na.rm = TRUE),
+    manu_min     = min(manu[year == 2010],          na.rm = TRUE),
+    manu_max     = max(manu[year == 2010],          na.rm = TRUE),
     service_mean = mean(service[year == 2010],      na.rm = TRUE),
     service_sd   = sd(service[year == 2010],        na.rm = TRUE),
-    construction_mean = mean(construction[year == 2010],      na.rm = TRUE),
-    construction_sd   = sd(construction[year == 2010],        na.rm = TRUE),
-    cov_mean     = mean(share_3G_OCI,               na.rm = TRUE),
-    cov_sd       = sd(share_3G_OCI,                 na.rm = TRUE),
-    cov16_mean   = mean(share_3G_OCI[year == 2017], na.rm = TRUE),
-    cov16_sd     = sd(share_3G_OCI[year == 2017],   na.rm = TRUE)
+    service_min  = min(service[year == 2010],       na.rm = TRUE),
+    service_max  = max(service[year == 2010],       na.rm = TRUE),
+    cov_mean     = mean(ppn_3G_OCI,               na.rm = TRUE),
+    cov_sd       = sd(ppn_3G_OCI,                 na.rm = TRUE),
+    cov_min      = min(ppn_3G_OCI,                na.rm = TRUE),
+    cov_max      = max(ppn_3G_OCI,                na.rm = TRUE),
+    cov16_mean   = mean(ppn_3G_OCI[year == 2017], na.rm = TRUE),
+    cov16_sd     = sd(ppn_3G_OCI[year == 2017],   na.rm = TRUE),
+    cov16_min    = min(ppn_3G_OCI[year == 2017],  na.rm = TRUE),
+    cov16_max    = max(ppn_3G_OCI[year == 2017],  na.rm = TRUE)
   )
 
 ctrl <- lfs_sum_stats %>% filter(mean_3G_OCI == 0)
@@ -649,21 +731,28 @@ tab <- tibble(
     "Agriculture share",
     "Manufacturing share",
     "Service share",
-    "Construction share",
     "Share of district with 3G coverage (all years)",
     "Share of district with 3G coverage in 2017"
   ),
   ctrl_mean = round(c(f_ctrl$mean, ctrl$lfp_mean, ctrl$migrant_mean, ctrl$hhbus_mean, ctrl$agri_mean,
-                      ctrl$manu_mean, ctrl$service_mean, ctrl$construction_mean, ctrl$cov_mean, ctrl$cov16_mean), 2),
+                      ctrl$manu_mean, ctrl$service_mean, ctrl$cov_mean, ctrl$cov16_mean), 2),
   ctrl_sd   = round(c(f_ctrl$sd,   ctrl$lfp_sd, ctrl$migrant_sd, ctrl$hhbus_sd,  ctrl$agri_sd,
-                      ctrl$manu_sd,  ctrl$service_sd, ctrl$construction_sd, ctrl$cov_sd,  ctrl$cov16_sd), 2),
+                      ctrl$manu_sd,  ctrl$service_sd, ctrl$cov_sd,  ctrl$cov16_sd), 2),
+  ctrl_min  = round(c(f_ctrl$min,  ctrl$lfp_min, ctrl$migrant_min, ctrl$hhbus_min, ctrl$agri_min,
+                      ctrl$manu_min, ctrl$service_min, ctrl$cov_min, ctrl$cov16_min), 2),
+  ctrl_max  = round(c(f_ctrl$max,  ctrl$lfp_max, ctrl$migrant_max, ctrl$hhbus_max, ctrl$agri_max,
+                      ctrl$manu_max, ctrl$service_max, ctrl$cov_max, ctrl$cov16_max), 2),
   trt_mean  = round(c(f_trt$mean,  trt$lfp_mean, trt$migrant_mean,  trt$hhbus_mean,  trt$agri_mean,
-                      trt$manu_mean,  trt$service_mean,  trt$construction_mean, trt$cov_mean,  trt$cov16_mean), 2),
+                      trt$manu_mean,  trt$service_mean,  trt$cov_mean,  trt$cov16_mean), 2),
   trt_sd    = round(c(f_trt$sd,    trt$lfp_sd, trt$migrant_sd,  trt$hhbus_sd,   trt$agri_sd,
-                      trt$manu_sd,   trt$service_sd,   trt$construction_sd, trt$cov_sd,   trt$cov16_sd), 2)
+                      trt$manu_sd,   trt$service_sd,   trt$cov_sd,   trt$cov16_sd), 2),
+  trt_min   = round(c(f_trt$min,   trt$lfp_min, trt$migrant_min,  trt$hhbus_min,  trt$agri_min,
+                      trt$manu_min,  trt$service_min,  trt$cov_min,  trt$cov16_min), 2),
+  trt_max   = round(c(f_trt$max,   trt$lfp_max, trt$migrant_max,  trt$hhbus_max,  trt$agri_max,
+                      trt$manu_max,  trt$service_max,  trt$cov_max,  trt$cov16_max), 2)
 )
 
-header <- c(1, 2, 2)
+header <- c(1, 4, 4)
 names(header) <- c(" ",
                    paste0("Control $N = ", n_ctrl, "$"),
                    paste0("Treated $N = ", n_trt, "$"))
@@ -671,14 +760,6 @@ names(header) <- c(" ",
 kable(tab,
       format    = "latex",
       booktabs  = TRUE,
-      col.names = c("", "Mean", "S.D.", "Mean", "S.D."),
-      align     = c("l", "c", "c", "c", "c"),
-      caption   = "Descriptive Statistics by Treatment Status (initially in 2010)") %>%
-  add_header_above(header) %>%
-  kable_styling(latex_options = "hold_position") %>%
-  footnote(
-    general           = "Source: Authors' calculation using LFS.",
-    general_title     = "",
-    footnote_as_chunk = TRUE,
-    escape            = FALSE
-  )
+      col.names = c("", "Mean", "S.D.", "Min", "Max", "Mean", "S.D.", "Min", "Max"),
+      align     = c("l", "c", "c", "c", "c", "c", "c", "c", "c"),
+      caption   = "Descriptive Statistics by Treatment Status (initially in 2010)") 

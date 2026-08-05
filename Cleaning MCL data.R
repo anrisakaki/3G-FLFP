@@ -1,9 +1,68 @@
 library(data.table)
 library(tidyverse)
-library(stringi)   
+library(stringi)
+library(sf)
+library(readxl)
+
+load("Clean data/dist_3G.Rda")
+load("Clean data/district_controls_09.Rda")
+
+cd_files <- list.files("Raw Data/Consistent District",
+                       pattern = "__31_12.*\\.xls$", full.names = TRUE)
+consist_dist <- rbindlist(lapply(cd_files, function(f) {
+  d <- as.data.table(read_excel(f, sheet = 1, col_types = "text"))
+  setnames(d, 1:8, c("distcode", "distname", "eng", "level",
+                     "decree", "note", "provcode", "provname"))
+  d[, year := as.integer(stri_extract_last_regex(basename(f), "20\\d{2}"))]
+  d[]
+}))
+consist_dist <- consist_dist[!is.na(distcode) & !is.na(provcode)]   
+consist_dist <- unique(consist_dist, by = c("year", "provcode", "distcode"))  
+consist_dist[, `:=`(provname = trimws(provname), distname = trimws(distname))]
+setcolorder(consist_dist, c("year", "provcode", "provname", "distcode", "distname", "level"))
+
+.cd_strip <- function(x, pref) trimws(stri_replace_first_regex(x, paste0("^(?i)(", pref, ")\\s+"), ""))
+consist_dist[, `:=`(dname = .cd_strip(distname, "Quận|Huyện|Thị xã|Thành phố"),
+                    pname = .cd_strip(provname, "Tỉnh|Thành phố"))]
+.cd_clash <- consist_dist[, .(nc = uniqueN(distcode)), by = .(year, pname, dname)][
+               nc > 1, unique(paste(pname, dname))]
+consist_dist[paste(pname, dname) %in% .cd_clash, dname := paste0(dname, " (", level, ")")]
+consist_dist[, yy := sprintf("%02d", year - 2000L)]
+consist_wide <- dcast(consist_dist, pname + dname ~ yy,
+                      value.var = c("provcode", "distcode"), sep = "")
+.cd_notes <- consist_dist[, .(
+  decree = paste(unique(decree[!is.na(decree) & decree != ""]), collapse = " | "),
+  note   = paste(unique(note[  !is.na(note)   & note   != ""]), collapse = " | ")),
+  by = .(pname, dname)]
+.cd_notes[decree == "", decree := NA_character_]; .cd_notes[note == "", note := NA_character_]
+consist_wide <- merge(consist_wide, .cd_notes, by = c("pname", "dname"), all.x = TRUE)
+setcolorder(consist_wide, c("pname", "dname",
+  paste0("provcode", 10:17), paste0("distcode", 10:17), "decree", "note"))
+
+rm(.cd_strip, .cd_clash, .cd_notes)
 
 mcl_files <- list.files("Raw Data/MCL", pattern = "\\.csv$", full.names = T)
 datetime_cols <- c("creation_time", "modified_time", "statistics.views_date_last_refreshed")
+
+vnmap2 <- st_read("Raw Data/VNShapefile/gadm41_VNM_shp/gadm41_VNM_2.shp")   # district polygons (GADM level 2)
+vnmap3 <- st_read("Raw Data/VNShapefile/gadm41_VNM_shp/gadm41_VNM_3.shp")
+road_shps <- list.files("Raw Data/VNShapefile", pattern = "^gis_osm_roads_free_1\\.shp$",
+                        recursive = T, full.names = T)
+street_dir <- rbindlist(lapply(road_shps, function(f)
+  st_read(f, quiet = TRUE) %>%
+    filter(!is.na(name)) %>%
+    dplyr::select(name, fclass, ref) %>%
+    st_join(vnmap3) %>%
+    st_drop_geometry() %>%
+    dplyr::select(name, fclass, ref, NAME_1, NAME_2, NAME_3)
+), fill = TRUE)
+street_dir <- unique(street_dir[!is.na(name),
+  .(street = name, fclass, ref, province = NAME_1, district = NAME_2, ward = NAME_3)])
+setorder(street_dir, province, district, ward, street)
+fwrite(street_dir,  "Clean data/street_directory.csv", bom = TRUE)
+saveRDS(street_dir, "Clean data/street_directory.Rds")
+
+roads <- unique(street_dir[, .(name = street, NAME_1 = province, NAME_2 = district, NAME_3 = ward)])
 
 mcl <- rbindlist(
   lapply(mcl_files, function(f) fread(f, colClasses = setNames(rep("character", length(datetime_cols)), datetime_cols))),
@@ -16,10 +75,14 @@ mcl$year <- lubridate::year(mcl$creation_time)
 mcl <- mcl %>%
   select(-c(activities, is_branded_content, lang, match_type, mcl_url, modified_time, multimedia,
             post_owner.id, post_owner.type, post_owner.username,
-            surface.id, statistics.views_date_last_refreshed, surface.type, shared_post_id))
+            surface.id, statistics.views_date_last_refreshed, surface.type, shared_post_id)) 
 
 mcl_main <- mcl %>%
-  filter(str_detect(text, regex("tuyển dụng", ignore_case = T)))
+  filter(str_detect(text, regex("tuyển dụng", ignore_case = TRUE)),
+         !is.na(text), text != "") %>%
+  mutate(page = paste(surface.name, post_owner.name)) %>%
+  arrange(creation_time) %>%                     
+  distinct(text, .keep_all = T)               
 
 JOBAD_ROLE <- paste0("(nhân\\s+viên|nv|thợ|ctv|cộng\\s+tác\\s+viên|kế\\s+toán|phục\\s+vụ|bảo\\s+vệ|",
   "lái\\s+xe|tài\\s+xế|pg|pb|công\\s+nhân|lao\\s+động|sinh\\s+viên|giáo\\s+viên|gia\\s+sư|",
@@ -36,12 +99,12 @@ JOBAD_MAIN <- c(
          "lương\\s+\\d|thu\\s+nhập\\s*[:：\\d]"),
   "số\\s+lượng\\s*[:：]?\\s*\\d|số\\s+lượng\\s+(tuyển|cần)",
   "vị\\s+trí\\s*[:：]|vị\\s+trí\\s+(tuyển|công\\s+việc|cần)|chức\\s+danh|chức\\s+vụ",
-  "nộp\\s+hồ\\s+sơ|gửi\\s+hồ\\s+sơ|hồ\\s+sơ\\s+(bao\\s+gồm|gồm|xin\\s+việc)|ứng\\s+tuyển|hạn\\s+(chót|nộp)|deadline",
+  "nộp\\s+hồ|gửi\\s+hồ\\s+sơ|hồ\\s+sơ\\s+(bao\\s+gồm|gồm|xin\\s+việc)|ứng\\s+tuyển|hạn\\s+(chót|nộp)|deadline",
   "thời\\s+gian\\s+làm\\s+việc|giờ\\s+làm|ca\\s+(sáng|chiều|tối|xoay|gãy|đêm)|theo\\s+ca|full\\s*time|part\\s*time",
-  "(nơi|địa\\s+điểm|địa\\s+chỉ)\\s+làm\\s+việc|làm\\s+việc\\s+tại",
+  "(nơi|địa\\s+điểm|địa\\s+chỉ)\\s+làm\\s+việc|nơi\\s+làm|làm\\s+việc\\s+tại",
   paste0("(liên\\s+hệ|hotline|zalo|sđt|đt|đth)\\s*[:：]?[^\\n]{0,20}\\d{4,}|",
          "(?<!\\d)0\\d{2,4}[ .]?\\d{2,4}[ .]?\\d{3,5}(?![\\d])"),
-  paste0("cần\\s+tuyển|tuyển\\s+gấp|thông\\s+báo\\s+tuyển\\s+dụng|tin\\s+tuyển\\s+dụng|",
+  paste0("cần\\s+tuyển|tuyển\\s+gấp|báo\\s+tuyển|tin\\s+tuyển|",
          "(đang\\s+|nhu\\s+cầu\\s+)?tuyển(\\s+dụng)?\\s*[:：]?[^\\p{L}\\n]{0,8}(gấp\\s+)?",
          "(các\\s+|nhiều\\s+|một\\s+|\\d+\\s*[./)]?\\s*)?", JOBAD_ROLE, "|",
          "tuyển(\\s+dụng)?\\s*[:：]?\\s*\\n\\s*\\d+\\s*[./)]\\s*(các\\s+|nhiều\\s+)?", JOBAD_ROLE, "|",
@@ -51,16 +114,17 @@ JOBAD_PERI <- c(
   "\\d+\\s*(tr|triệu|k)\\s*/?\\s*(tháng|ca|ngày|giờ|h)(?![\\p{L}])",
   "(?<![\\p{L}])(ib|inbox)(?![\\p{L}])")
 JOBAD_NEG <- c(
-  "bí\\s+quyết|mẹo\\s|cách\\s+(viết|trả\\s+lời|deal|gây\\s+ấn)|làm\\s+thế\\s+nào\\s+để|kinh\\s+nghiệm\\s+(phỏng\\s+vấn|xin\\s+việc)|câu\\s+hỏi\\s+phỏng\\s+vấn",
+  "bí\\s+quyết|mẹo|cách\\s+(viết|trả\\s+lời|deal|gây\\s+ấn)|làm\\s+thế\\s+nào\\s+để|kinh\\s+nghiệm\\s+(phỏng\\s+vấn|xin\\s+việc)|câu\\s+hỏi\\s+phỏng\\s+vấn",
   "nhà\\s+tuyển\\s+dụng",
   "khai\\s+giảng|học\\s+phí|khoá\\s+học|khóa\\s+học|lớp\\s+học|chiêu\\s+sinh|tuyển\\s+sinh|học\\s+bổng",
   "phóng\\s+viên|theo\\s+báo|trả\\s+lời\\s+(báo|phỏng\\s+vấn\\s+của)|cho\\s+biết|khẳng\\s+định",
-  "cuộc\\s+thi|vòng\\s+(loại|chung\\s+kết|sơ\\s+khảo)|hội\\s+thảo|workshop|talkshow|minigame|giveaway|give\\s+away")
+  "cuộc\\s+thi|vòng\\s+(loại|chung\\s+kết|sơ\\s+khảo)|hội\\s+thảo|workshop|talkshow|minigame|giveaway|give\\s+away",
+  "truyện\\s+cười|siêu\\s+hài\\s+hước|thư\\s+giãn\\s+cuối\\s+tuần|mẩu\\s+chuyện\\s+(vui|cười)")
 # job_page: poster is a dedicated job/recruitment page (name of page or owner).
 JOBAD_PAGE <- paste0("việc\\s*làm|viec\\s*lam|tìm\\s*việc|tim\\s*viec|",
                      "tuyển\\s*dụng|tuyen\\s*dung|(?<![a-z])job|(?<![a-z])hr(?![a-z])|",
                      "vietnamworks|career|topcv|mywork")
-JOBAD_STRONG <- paste0("thông\\s+báo\\s+tuyển\\s+dụng|tin\\s+tuyển\\s+dụng|",
+JOBAD_STRONG <- paste0("báo\\s+tuyển|tin\\s+tuyển|",
                        "vị\\s+trí\\s+tuyển\\s+dụng|cần\\s+tuyển|tuyển\\s+gấp|",
                        "(đang\\s+|nhu\\s+cầu\\s+)?tuyển(\\s+dụng)?\\s*[:：]?[^\\p{L}\\n]{0,8}(gấp\\s+)?",
                        "(các\\s+|nhiều\\s+|một\\s+|\\d+\\s*[./)]?\\s*)?", JOBAD_ROLE, "|",
@@ -70,6 +134,12 @@ JOBAD_NEG2 <- c(
   "tuyển\\s+(chồng|vợ|người\\s+yêu|bạn\\s+(trai|gái)(?![\\p{L}]))",
   "(muốn|cần|nhu\\s+cầu)\\s+(gửi|đăng)\\s+tin|đăng\\s+tin\\s+tuyển\\s+dụng\\s+vui\\s+lòng",
   "lừa\\s+đảo|cảnh\\s+báo|giả\\s+mạo|bóc\\s+phốt|đa\\s+cấp")
+# job hashtags: strong, poster-independent markers, usually in footer tags (so
+# not gated by the 250-char onset). Diacritics optional; compound tags allowed
+# (#tuyendungxyz). "#jobs" kept to an exact tag; "job" alone is too ambiguous.
+JOBAD_HASH <- paste0("#\\s*jobs?(?![\\p{L}])|",
+                     "#\\s*(tin[\\s_]*)?tuyển[\\s_]*dụng|#\\s*(tin[\\s_]*)?tuyen[\\s_]*dung|",
+                     "#\\s*việc[\\s_]*làm|#\\s*viec[\\s_]*lam")
 .ja <- stri_trans_tolower(stri_trans_nfc(mcl_main$text))
 .pgnm <- stri_trans_tolower(stri_trans_nfc(paste(mcl_main$surface.name, mcl_main$post_owner.name,
   fifelse(is.na(mcl_main$surface.username), "", mcl_main$surface.username))))
@@ -79,19 +149,75 @@ mcl_main$job_page <- as.integer(stri_detect_regex(.pgnm, JOBAD_PAGE))
 .nn <- Reduce(`+`, lapply(JOBAD_NEG, function(p) stri_detect_regex(.ja, p)))
 .n2 <- Reduce(`+`, lapply(JOBAD_NEG2, function(p) stri_detect_regex(.ja, p)))
 .stp <- stri_locate_first_regex(.ja, JOBAD_STRONG)[, 1]
+.hh <- stri_detect_regex(.ja, JOBAD_HASH)
 mcl_main$is_job_ad <- as.integer(
   (.pn >= 2 & .mn >= 1 & !(.nn >= 2 & .pn <= 3)) |
   (mcl_main$job_page == 1L & .mn >= 1 & .nn == 0 & .n2 == 0) |
-  (!is.na(.stp) & .stp <= 250 & .nn == 0 & .n2 == 0))
-rm(.ja, .pgnm, .mn, .pn, .nn, .n2, .stp)
-message("is_job_ad == 1: ", sum(mcl_main$is_job_ad),
-        sprintf(" of %d posts (%.1f%%)", nrow(mcl_main), 100*mean(mcl_main$is_job_ad)))
+  (!is.na(.stp) & .stp <= 250 & .nn == 0 & .n2 == 0) |
+  (.hh & .nn == 0 & .n2 == 0) |
+  stri_detect_regex(.pgnm, "canthoinfo") | stri_detect_fixed(.ja, "canthoinfo"))
+rm(.ja, .pgnm, .mn, .pn, .nn, .n2, .stp, .hh)
 
 source("vn_district_match.R")
 
-gaz   <- build_gazetteer()
+.cn <- function(x) vn_canon(x, FALSE)
+.ds <- function(x) stri_replace_first_regex(trimws(x), "^(?i)(Quận|Huyện|Thị xã|Thành phố)\\s+", "")
+.ps <- function(x) stri_replace_first_regex(trimws(x), "^(?i)(Tỉnh|Thành phố|Tp\\.?)\\s+", "")
+.l11 <- fread("Raw Data/LFS/lfs_dist_11.csv", encoding = "UTF-8")[,
+          .(tinh = as.integer(tinh), huyen = as.integer(huyen), provname, distname)]
+.l11[, `:=`(pk = .cn(.ps(provname)), dk = .cn(.ds(distname)),
+            dtype = .cn(stri_extract_first_regex(distname, "(?i)^(Quận|Huyện|Thị xã|Thành phố)")))]
+.provL <- unique(.l11[, .(tinh, provname, pk)])[, .SD[1], by = tinh]      # one label per tinh
+.provX <- unique(.l11[, .(pk, tinh)])
+.l11d  <- unique(.l11[, .(tinh, dk, huyen)])[, .SD[1], by = .(tinh, dk)]
+.look  <- function(t, d){ r <- .l11d[tinh == t & dk == d, huyen]; if (length(r)) r[1] else NA_integer_ }
+
+.ch <- fread(text = "prov|child|parent
+Hà Nội|Bắc Từ Liêm|Từ Liêm
+Hà Nội|Nam Từ Liêm|Từ Liêm
+Tuyên Quang|Lâm Bình|Nà Hang
+Tuyên Quang|Na Hang|Nà Hang
+Điện Biên|Nậm Pồ|Mường Nhé
+Lai Châu|Nậm Nhùn|Mường Tè
+Sơn La|Vân Hồ|Mộc Châu
+Nghệ An|Hoàng Mai|Quỳnh Lưu
+Quảng Bình|Ba Đồn|Quảng Trạch
+Ninh Thuận|Thuận Nam|Ninh Phước
+Kon Tum|Ia H' Drai|Sa Thầy
+Gia Lai|Chư Pưh|Chư Sê
+Bình Phước|Bù Gia Mập|Phước Long
+Bình Phước|Phú Riềng|Phước Long
+Bình Phước|Hớn Quản|Bình Long
+Bình Dương|Bàu Bàng|Bến Cát
+Bình Dương|Bắc Tân Uyên|Tân Uyên
+Long An|Kiến Tường|Mộc Hóa
+Bến Tre|Mỏ Cày Bắc|Mỏ Cày Nam
+Kiên Giang|Giang Thành|Kiên Lương
+Sóc Trăng|Trần Đề|Long Phú
+Quảng Ninh|Quảng Yên|Yên Hưng
+Bình Phước|Đồng Phú|Đồng Phù
+Bình Định|Quy Nhơn|Qui Nhơn", sep = "|")
+.ch[, `:=`(pk = .cn(prov), ck = .cn(child), rk = .cn(parent))]
+.par <- function(p, d){ r <- .ch[pk == p & ck == d, rk]; if (length(r)) r[1] else NA_character_ }
+
+.G <- unique(consist_dist[, .(pk = .cn(.ps(provname)), dk = .cn(.ds(distname)),
+                              distname = .ds(distname), lvl = stri_trans_tolower(trimws(level)))])
+.G <- merge(.G, .provX, by = "pk", all.x = TRUE)
+.res <- as.integer(mapply(.look, .G$tinh, .G$dk))                        
+for (.i in which(is.na(.res) & !is.na(.G$tinh))) {                       
+  .pr <- .par(.G$pk[.i], .G$dk[.i]); if (!is.na(.pr)) .res[.i] <- .look(.G$tinh[.i], .pr) }
+.G[, huyen := .res]
+.prim <- unique(.l11[, .(tinh, huyen, distname = .ds(distname), dname = dk, split_of = NA_character_, dtype)])
+.ali  <- unique(.G[!is.na(huyen), .(tinh, huyen, distname, dname = dk, split_of = "gso", dtype = lvl)])
+gaz  <- merge(rbind(.prim, .ali), .provL[, .(tinh, provname, pname = pk)], by = "tinh", all.x = TRUE)
+gaz  <- unique(gaz[dname != ""])[, .SD[1], by = .(tinh, dname)]          # primary listed first -> wins
+setcolorder(gaz, c("tinh", "huyen", "provname", "distname", "dname", "pname", "dtype", "split_of"))
+stopifnot(nrow(gaz[stri_detect_regex(dname, "^[0-9]{1,2}$")]) == 12L,    # HCMC numbered quận
+          all(gaz[stri_detect_regex(dname, "^[0-9]{1,2}$"), tinh] == 79L),
+          nrow(unique(gaz[, .(tinh, huyen)])[!unique(.l11[, .(tinh, huyen)]), on = c("tinh","huyen")]) == 0L)
 prov  <- build_provinces(gaz)
-wards <- build_wards()   
+wards <- build_wards(gaz, sf::st_drop_geometry(vnmap3))
+rm(.cn, .ds, .ps, .l11, .provL, .provX, .l11d, .look, .ch, .par, .G, .res, .prim, .ali)
 
 mcl_main <- mcl_main %>% mutate(page = paste(surface.name, post_owner.name))
 
@@ -111,7 +237,8 @@ print(mcl_dist[, .N, by = .(evidence, conf)][order(-N)])
 fwrite(mcl_dist, "mcl_district_panel.csv")
 
 NAMED_IN_TEXT <- c("prov_adjacent", "prov_in_text", "numbered",
-                   "prefix_only", "prov_in_page", "prefix_conflict", "bare")
+                   "prefix_only", "prov_in_page", "prefix_typed",
+                   "prefix_conflict", "bare", "ward", "ascii_marked", "abbrev")
 CONF_RANK <- c(low = 1L, medium = 2L, high = 3L)
 
 dist_rows <- mcl_dist[evidence %in% NAMED_IN_TEXT]
@@ -188,35 +315,58 @@ mcl_main[, post_row := seq_len(.N), by=id][, rk := NULL]
 for (cl in STAT_COLS) set(mcl_main, j=cl, value=NA)
 mcl_main[post_row==1L, (STAT_COLS) := .st[.SD, on="id", mget(paste0("i.", STAT_COLS))]]
 
-## (3) KCN crosswalk (learned from posts that name BOTH an industrial park and a district)
-.d1 <- mcl_main[post_row==1L, .(id, text, n_districts)]
-.tk <- vn_canon(.d1$text)
-.kn <- stri_extract_first_regex(.tk,
-  "(?<![\\p{L}])(kcn|khu\\s+công\\s+nghiệp|kcx|khu\\s+chế\\s+xuất)\\s+[\\p{L}0-9][\\p{L}0-9 ]{2,25}")
-.kn <- stri_replace_first_regex(.kn, "^(kcn|khu\\s+công\\s+nghiệp|kcx|khu\\s+chế\\s+xuất)\\s+", "")
-.kn <- stri_replace_first_regex(.kn, "\\s+(gần|tại|thuộc|và|có|đang|tuyển|cần|với|là|ở|đc|địa)\\b.*$", "")
-.kn <- stri_trim_both(stri_replace_all_regex(.kn, "\\s+", " "))
-.kn[nchar(.kn) < 3] <- NA
-.d1[, kcn := .kn]
-.hi <- mcl_main[!is.na(huyen) & dist_conf=="high",
-                .(nh=uniqueN(huyen), tinh=tinh[1], huyen=huyen[1]), by=id]
-.tr <- merge(.d1[!is.na(kcn), .(id, kcn)], .hi[nh==1L, .(id, tinh, huyen)], by="id")
-.xw <- .tr[, .N, by=.(kcn, tinh, huyen)][order(-N)]
-.xw[, tot := sum(N), by=kcn]
-.xw <- .xw[, .SD[1], by=kcn][N >= 5 & N/tot >= 0.65]
-.xw <- .xw[!stri_detect_regex(kcn, "^vsip")]                       # multi-province chain
-.lab <- unique(mcl_main[!is.na(huyen), .(tinh, huyen, district, province)])
-.ad  <- .lab[district == "Huyện An Dương" & province == "Hải Phòng"]
-if (nrow(.ad) == 1L) .xw[stri_detect_regex(kcn, "^nomura"), `:=`(tinh=.ad$tinh, huyen=.ad$huyen)]
-.tgt <- merge(.d1[!is.na(kcn) & n_districts==0, .(id, kcn)], .xw[, .(kcn, tinh, huyen)], by="kcn")
-if (nrow(.tgt)){
-  .fill <- merge(.tgt, .lab, by=c("tinh","huyen"))
-  mcl_main[.fill, on="id", `:=`(tinh=i.tinh, huyen=i.huyen, district=i.district,
-           province=i.province, dist_evidence="kcn", dist_conf="medium",
-           n_districts=1L, loc_cue="kcn")]
+## (3) KCN gazetteer — authoritative SEZ / industrial-zone list from
+## Vietnam_SEZ_Metadata.xlsx 
+.d1 <- mcl_main[post_row==1L, .(id, text, n_districts, tinh)]
+.af <- function(x) stri_trans_tolower(stri_trim_both(stri_trans_general(x, "Latin-ASCII")))
+.sez <- as.data.table(readxl::read_excel("Raw Data/VNShapefile/Vietnam_SEZ_Metadata.xlsx",
+                                         sheet = "SEZ metadata", col_types = "text"))
+setnames(.sez, 1:6, c("code","kname","kprov","kdist","kaddr","ktype"))
+.sez <- .sez[!is.na(kname) & kname != "SEZ name"]
+.sez[, kc := .af(stri_replace_first_regex(kname,
+  "(?i)^(Industrial (Zone|Park)|Special Economic Zone|(Coastal|Cross-border|Border) Economic Zone|Economic Zone)\\s+", ""))]
+.gzf <- unique(gaz[, .(tinh, huyen,
+          pf = .af(stri_replace_first_regex(provname, "(?i)^(Tỉnh|Thành phố|Tp\\.?)\\s+", "")),
+          df = .af(dname))])[, .SD[1], by = .(pf, df)]
+.sez[, pf := .af(kprov)]
+.sez[, dfcol := .af(stri_replace_first_regex(kdist, "(?i)^(TP|TX|Q|H|Thanh pho|Thi xa|Quan|Huyen)[\\.\\s]+", ""))]
+.sez[, rid := .I]
+## district(s) named in the Vietnamese Address field are more granular/reliable than
+## the District column; use them, falling back to the column only where the address
+## names none. A multi-district address yields several rows, which the province-gated
+## matcher below then treats as ambiguous (and leaves unfilled).
+.dmk <- "(?i)(?:huyện|thị\\s*xã|quận|thành\\s*phố|tp|tx)\\.?\\s+([\\p{L}][\\p{L} ]+?)(?=\\s*[,.;()]|\\s+tỉnh|\\s+t\\.|$)"
+.sez[, adl := lapply(stri_match_all_regex(kaddr, .dmk, omit_no_match = TRUE),
+                     function(m) if (nrow(m)) unique(.af(trimws(m[, 2]))) else character())]
+.szl <- .sez[, .(df = if (length(adl[[1]])) adl[[1]] else dfcol), by = .(rid, pf, kc)]
+kcn_gaz <- unique(merge(.szl[df != ""], .gzf, by = c("pf","df"))[kc != "" & stri_length(kc) >= 4L, .(kcn = kc, tinh, huyen)])
+.lab <- unique(gaz[is.na(split_of), .(tinh, huyen, district = distname, province = provname)])[, .SD[1], by = .(tinh, huyen)]
+fwrite(merge(kcn_gaz, .lab, by = c("tinh","huyen"))[order(province, district, kcn)],
+       "Clean data/kcn_gazetteer.csv", bom = TRUE)
+
+## find KNOWN park names in the post text, after a KCN/KCX/VSIP marker (accent-folded)
+.rxk <- paste0("(?<![\\p{L}])(?:kcn|khu\\s+cong\\s+nghiep|kcx|khu\\s+che\\s+xuat|vsip)\\s+(",
+               paste(.esc(unique(kcn_gaz$kcn)[order(-stri_length(unique(kcn_gaz$kcn)))]), collapse = "|"),
+               ")(?![\\p{L}])")
+.km <- stri_match_all_regex(.af(vn_canon(.d1$text)), .rxk, omit_no_match = TRUE)
+.d1[, khit := lapply(.km, function(m) if (length(m)) unique(m[, 2]) else character())]
+
+mcl_main[, `:=`(dist_pred=NA_character_, huyen_pred=NA_integer_, pred_source=NA_character_)]
+.kl <- .d1[n_districts==0 & lengths(khit) > 0, .(kcn = unlist(khit)), by = .(id, ptinh = tinh)]
+.kl <- merge(.kl, kcn_gaz, by = "kcn", allow.cartesian = TRUE)
+.kf <- .kl[, {
+  inp <- if (!is.na(ptinh[1])) .SD[tinh == ptinh[1]] else .SD[0L]
+  if (nrow(inp) && uniqueN(inp$huyen) == 1L)   .(tinh = inp$tinh[1], huyen = inp$huyen[1])
+  else if (uniqueN(paste(tinh, huyen)) == 1L)  .(tinh = tinh[1],     huyen = huyen[1])
+  else                                         .(tinh = NA_integer_, huyen = NA_integer_)
+}, by = id][!is.na(huyen)]
+if (nrow(.kf)){
+  .fill <- merge(.kf, .lab, by = c("tinh","huyen"))
+  mcl_main[.fill, on = "id", `:=`(tinh = i.tinh, province = i.province,
+           dist_pred = i.district, huyen_pred = i.huyen, pred_source = "kcn")]
 }
 message("loc_cue work rows: ", sum(mcl_main$loc_cue=="work"),
-        " | KCN parks learned: ", nrow(.xw), " | posts filled via KCN: ", nrow(.tgt))
+        " | KCN gazetteer: ", uniqueN(kcn_gaz$kcn), " parks | posts filled via KCN: ", nrow(.kf))
 
 RX_ST <- paste0(
   "(?<![\\p{L}\\d/])(?!(?:19|20)\\d\\d(?![\\d]))\\d{1,4}[a-z]?(?:\\s*/\\s*\\d+[a-z]?){0,2}\\s+",
@@ -241,32 +391,109 @@ ST_STOPTOK <- c("triệu","nghìn","vnđ","vnd","usd","tr","k","đ","sáng","tr�
       bad <- vapply(stri_split_fixed(x, " "), function(tk) any(tk %in% ST_STOPTOK), logical(1))
       x[!bad] })]
 .d2[, n_street := lengths(streets)]
-.hi2 <- mcl_main[!is.na(huyen) & dist_conf=="high", .(nh=uniqueN(huyen), tinh=tinh[1], huyen=huyen[1]), by=id]
-.pr  <- merge(.d2[n_street>0, .(id, streets)], .hi2[nh==1, .(id, tinh, huyen)], by="id")[
-          , .(street = unlist(streets)), by=.(id, tinh, huyen)]
-.sxw <- .pr[, .N, by=.(street, tinh, huyen)]
-.sxw[, tot := sum(N), by=.(street, tinh)]
-.sxw <- .sxw[order(-N)][, .SD[1], by=.(street, tinh)][N >= 5 & N/tot >= 0.70]
+
 .dn <- unique(mcl_main[!is.na(huyen), .(tinh,
         dname = vn_canon(stri_replace_first_regex(district,
           "^(Quận|Huyện|Thị\\s+xã|Thành\\s+phố)\\s+", ""), hard_sep=FALSE))])
 .pn <- unique(mcl_main[!is.na(tinh) & !is.na(province), .(tinh, dname = vn_canon(province, hard_sep=FALSE))])
-.sxw <- .sxw[!rbind(.dn, .pn), on = c(street="dname", tinh="tinh")]
 .tg2 <- .d2[n_street>0 & n_districts==0 & !is.na(tinh), .(id, tinh, streets)][
           , .(street = unlist(streets)), by=.(id, tinh)]
-.fl2 <- merge(.tg2, .sxw[, .(street, tinh, huyen)], by=c("street","tinh"))
-.cf2 <- .fl2[, uniqueN(huyen), by=id]
-.fl2 <- .fl2[id %in% .cf2[V1==1]$id][, .SD[1], by=id]
 .lab2 <- unique(mcl_main[!is.na(huyen), .(tinh, huyen, district, province)])
-if (nrow(.fl2)){
-  .fl2 <- merge(.fl2, .lab2, by=c("tinh","huyen"))
-  mcl_main[.fl2, on="id", `:=`(tinh=i.tinh, huyen=i.huyen, district=i.district,
-           province=i.province, dist_evidence="street", dist_conf="medium",
-           n_districts=1L, loc_cue="street")]
+
+.cn2 <- function(x){ x <- stri_replace_all_regex(x, "[-–—]", " ")
+  x <- stri_replace_all_regex(x, "\\s+", " "); vn_canon(stri_trim_both(x), hard_sep=FALSE) }
+.rg <- as.data.table(roads)[!is.na(name)]
+.rg[, pc := .cn2(stri_replace_first_regex(NAME_1, "^(Tp|TP|Thành\\s+phố|Tỉnh)\\s+", ""))]
+.pl <- unique(gaz[, .(tinh, provname)])
+.pl[, pc := .cn2(stri_replace_first_regex(provname, "^(Tp|TP|Thành\\s+phố|Tỉnh)\\s+", ""))]
+.rg <- merge(.rg, .pl[, .(pc, tinh)], by="pc")
+.rg[, dc := .cn2(stri_replace_first_regex(NAME_2, "^(Quận|Huyện|Thị\\s+xã|Thành\\s+phố)\\s+", ""))]
+.gn <- unique(gaz[, .(tinh, huyen,
+        dc = .cn2(stri_replace_first_regex(distname, "^(Quận|Huyện|Thị\\s+xã|Thành\\s+phố)\\s+", "")))])
+.gn <- unique(.gn, by=c("tinh","dc"))
+.rg <- merge(.rg, .gn, by=c("tinh","dc"))
+.rg <- .rg[!stri_detect_regex(tolower(name),
+        "^(quốc\\s*l[ộô]|tỉnh\\s*l[ộô]|hương\\s*l[ộô]|cao\\s*tốc|xa\\s*lộ|ql|tl|đt|ct|ah)\\s*\\d")]
+.rg[, rc := .cn2(stri_replace_first_regex(name, "^(?i)(đường|duong|phố|pho|đại\\s+lộ)\\s+", ""))]
+.rg <- .rg[stri_detect_regex(rc, "^[\\p{L}]+( [\\p{L}]+){1,3}$")]
+.rgz <- unique(.rg[, .(rc, tinh, huyen)])
+.rgz <- .rgz[, if (.N == 1L) .SD, by=.(rc, tinh)]                 # unique within province
+.rgz <- .rgz[!rc %in% c(.dn$dname, .pn$dname)]                    # no district/province names
+## street->district comes from OSM alone (unique within province); no teacher-post
+## veto here — a firm's named job-district need not be the street's district.
+.tg3 <- .tg2                                # all street posts eligible
+.fl3 <- merge(.tg3, .rgz, by.x=c("street","tinh"), by.y=c("rc","tinh"))
+.fl3 <- .fl3[, .(huyen = if (uniqueN(huyen)==1L) huyen[1] else NA_integer_), by=.(id, tinh)][!is.na(huyen)]
+.fl3 <- .fl3[!id %in% mcl_main[!is.na(pred_source), id]]   # kcn preds keep priority
+if (nrow(.fl3)){
+  .fl3 <- merge(.fl3, .lab2, by=c("tinh","huyen"))
+  mcl_main[.fl3, on="id", `:=`(dist_pred=i.district, huyen_pred=i.huyen,
+           pred_source="osr")]
 }
-message("street crosswalk: ", nrow(.sxw), " entries | posts filled via street: ", nrow(.fl2))
-rm(.st,.d1,.tk,.kn,.hi,.tr,.xw,.lab,.ad,.tgt,.i, wl, al, hl, tc, pp,
-   .d2,.tc2,.stx,.hi2,.pr,.sxw,.dn,.pn,.tg2,.fl2,.cf2,.lab2,.name_of)
+message("road gazetteer: ", nrow(.rgz), " roads",
+        " | posts filled via road_gaz: ", nrow(.fl3))
+
+.rw <- as.data.table(roads)[!is.na(name) & !is.na(NAME_3)]
+.rw[, pc := .cn2(stri_replace_first_regex(NAME_1, "^(Tp|TP|Thành\\s+phố|Tỉnh)\\s+", ""))]
+.rw <- merge(.rw, .pl[, .(pc, tinh)], by="pc")
+.rw[, dc := .cn2(stri_replace_first_regex(NAME_2, "^(Quận|Huyện|Thị\\s+xã|Thành\\s+phố)\\s+", ""))]
+.rw <- merge(.rw, .gn, by=c("tinh","dc"))
+.rw <- .rw[!stri_detect_regex(tolower(name),
+        "^(quốc\\s*l[ộô]|tỉnh\\s*l[ộô]|hương\\s*l[ộô]|cao\\s*tốc|xa\\s*lộ|ql|tl|đt|ct|ah)\\s*\\d")]
+.rw[, rc := .cn2(stri_replace_first_regex(name, "^(?i)(đường|duong|phố|pho|đại\\s+lộ)\\s+", ""))]
+.rw <- .rw[stri_detect_regex(rc, "^[\\p{L}]+( [\\p{L}]+){1,3}$")]
+.rw[, wc := .cn2(stri_replace_first_regex(NAME_3, "^(Phường|Xã|Thị\\s+trấn)\\s+", ""))]
+.rw[, wc := stri_replace_first_regex(wc, "^0+(?=[0-9])", "")]
+.pw0 <- unique(.rw[wc != "" & !rc %in% c(.dn$dname, .pn$dname), .(rc, wc, tinh, huyen)])
+.pwp <- .pw0[, if (.N == 1L) .SD, by=.(rc, wc, tinh)]              # unique within province
+.pwn <- .pw0[, if (uniqueN(paste(tinh, huyen)) == 1L) .SD[1], by=.(rc, wc)]  # nationally unique
+.v3 <- as.data.table(sf::st_drop_geometry(vnmap3))[, .(NAME_1, NAME_2, NAME_3)]
+.v3[, pc := .cn2(stri_replace_first_regex(NAME_1, "^(Tp|TP|Thành\\s+phố|Tỉnh)\\s+", ""))]
+.v3 <- merge(.v3, .pl[, .(pc, tinh)], by="pc")
+.v3[, dc := .cn2(stri_replace_first_regex(NAME_2, "^(Quận|Huyện|Thị\\s+xã|Thành\\s+phố)\\s+", ""))]
+.v3 <- merge(.v3, .gn, by=c("tinh","dc"))
+.v3[, wc := .cn2(stri_replace_first_regex(NAME_3, "^(Phường|Xã|Thị\\s+trấn)\\s+", ""))]
+.wg <- unique(.v3[!stri_detect_regex(wc, "^[0-9]+$") & stri_length(wc) >= 6, .(wc, tinh, huyen)])
+.wg <- .wg[, if (.N == 1L) .SD, by=.(wc, tinh)]
+## ward mentions in posts (marker required; numeric wards with phường/p only)
+.wnm <- setdiff(unique(c(.pw0$wc, .wg$wc)), as.character(0:99))
+.wnm <- .wnm[stri_length(.wnm) >= 4]
+.rxwn <- paste0("(?<![\\p{L}])(?:phường|xã|thị\\s+trấn|p|tt)\\s*¦?\\s*(",
+                paste(.esc(.wnm[order(-stri_length(.wnm))]), collapse="|"), ")(?![\\p{L}\\p{N}])")
+.rxwu <- "(?<![\\p{L}\\p{N}])(?:phường|p)\\s*¦?\\s*0?([1-9][0-9]?)(?![0-9])"
+.wn <- stri_match_all_regex(.tc2, .rxwn, omit_no_match=TRUE)
+.wu <- stri_match_all_regex(.tc2, .rxwu, omit_no_match=TRUE)
+.d2[, wardm := mapply(function(a, b) unique(c(if (length(a)) a[,2], if (length(b)) b[,2])),
+                      .wn, .wu, SIMPLIFY=FALSE)]
+
+.el <- .d2[n_districts==0 & !id %in% mcl_main[!is.na(pred_source), id]]
+.f4 <- .el[!is.na(tinh) & n_street>0 & lengths(wardm)>0,
+           CJ(rc=unlist(streets), wc=unlist(wardm), unique=TRUE), by=.(id, tinh)]
+.f4 <- merge(.f4, .pwp, by=c("rc","wc","tinh"))
+.f4 <- .f4[, .(huyen = if (uniqueN(huyen)==1L) huyen[1] else NA_integer_), by=.(id,tinh)][!is.na(huyen)]
+.f5 <- .el[is.na(tinh) & n_street>0 & lengths(wardm)>0,
+           CJ(rc=unlist(streets), wc=unlist(wardm), unique=TRUE), by=id]
+.f5 <- merge(.f5, .pwn, by=c("rc","wc"))
+.f5 <- .f5[, .(dt=uniqueN(paste(tinh,huyen)), tinh=tinh[1], huyen=huyen[1]), by=id][dt==1L][, dt := NULL]
+.f6 <- .el[!is.na(tinh) & lengths(wardm)>0, .(wc=unlist(wardm)), by=.(id,tinh)]
+.f6 <- merge(.f6, .wg, by=c("wc","tinh"))
+.f6 <- .f6[, .(huyen = if (uniqueN(huyen)==1L) huyen[1] else NA_integer_), by=.(id,tinh)][!is.na(huyen)]
+.f6 <- .f6[!id %in% .f4$id]
+if (nrow(.f4)){ .f4 <- merge(.f4, .lab2, by=c("tinh","huyen"))
+  mcl_main[.f4, on="id", `:=`(dist_pred=i.district, huyen_pred=i.huyen, pred_source="osrw")] }
+if (nrow(.f5)){ .f5 <- merge(.f5, .lab2, by=c("tinh","huyen"))
+  mcl_main[.f5, on="id", `:=`(tinh=i.tinh, province=i.province,
+           dist_pred=i.district, huyen_pred=i.huyen, pred_source="osrw")] }
+if (nrow(.f6)){ .f6 <- merge(.f6, .lab2, by=c("tinh","huyen"))
+  mcl_main[.f6, on="id", `:=`(dist_pred=i.district, huyen_pred=i.huyen, pred_source="ward3")] }
+message("road+ward pairs: ", nrow(.pwp), " prov-keyed / ", nrow(.pwn), " national",
+        " | ward3 keys: ", nrow(.wg),
+        " | fills: osrw ", nrow(.f4), "+", nrow(.f5), " | ward3 ", nrow(.f6))
+rm(.st,.d1,.af,.sez,.gzf,.dmk,.szl,kcn_gaz,.rxk,.km,.kl,.kf,.lab,.i, wl, al, hl, tc, pp,
+   .d2,.tc2,.stx,.dn,.pn,.tg2,.lab2,.name_of,
+   .cn2,.rg,.pl,.gn,.rgz,.tg3,.fl3,
+   .rw,.pw0,.pwp,.pwn,.v3,.wg,.wnm,.rxwn,.rxwu,.wn,.wu,
+   .el,.f4,.f5,.f6)
 stopifnot(uniqueN(mcl_main$id) == n_posts,
           nrow(mcl_main[post_row == 1L]) == n_posts,
           !anyDuplicated(mcl_main[, .(id, huyen)]))
@@ -361,30 +588,59 @@ mcl_main[, hiring_female_only := as.integer(
 mcl_main[, formal := as.integer(stri_detect_regex(.tl, RX_FORMAL))]
 mcl_main[, taxid  := as.integer(stri_detect_regex(.tl, RX_TAXID))]
 
+## contract: 1 if the post mentions a WRITTEN EMPLOYMENT contract (HĐLĐ / ký hợp
+## đồng / a typed labour contract). Distinct from `formal` (insurance / labour
+## law). Kept to employment-contract forms; non-employment contracts (đại lý /
+## mua bán / cộng tác viên / kinh tế) are excluded so it measures the worker's
+## contract, not the firm's deals.
+RX_CONTRACT <- paste0(
+  "hợp\\s+đồng\\s+lao\\s+động",
+  "|(?<![\\p{L}])hđlđ(?![\\p{L}])",
+  "|hợp\\s+đồng\\s+(chính\\s+thức|dài\\s+hạn|thử\\s+việc|thời\\s+vụ|có\\s+thời\\s+hạn|",
+    "(không|vô)\\s+(xác\\s+định\\s+)?thời\\s+hạn|\\d+\\s*(tháng|năm))",
+  "|ký\\s+(kết\\s+)?(hợp\\s+đồng|hđ(?![\\p{L}]))",
+    "(?!\\s+(đại\\s+lý|mua\\s+bán|cộng\\s+tác|nguyên\\s+tắc|kinh\\s+tế|thuê|nhượng))",
+  "|được\\s+ký\\s+(chính\\s+thức|hợp\\s+đồng)")
+mcl_main[, contract := as.integer(stri_detect_regex(.tl, RX_CONTRACT))]
+
 ## ---- sector (agri / manu / service) --------------------------------------
-## Argmax over occupation/industry keyword-family COUNTS. 
-RX_AGRI <- paste0("nông\\s+nghiệp|trồng\\s+trọt|chăn\\s+nuôi|nuôi\\s+trồng|thu\\s+hoạch|",
-  "nông\\s+trại|trang\\s+trại|làm\\s+vườn|thủy\\s+sản|thú\\s+y|",
-  "cây\\s+(giống|trồng)|phân\\s+bón|thuốc\\s+bảo\\s+vệ\\s+thực\\s+vật|nông\\s+dân|lâm\\s+nghiệp")
-RX_MANU <- paste0("công\\s+nhân(?!\\s+xây)|nhà\\s+máy|xưởng|sản\\s+xuất|dây\\s+chuyền|lắp\\s+ráp|",
-  "linh\\s+kiện|điện\\s+tử(?!\\s+viễn)|may\\s+(mặc|công\\s+nghiệp)|thợ\\s+may|dệt|",
-  "giày\\s+(da|dép)|bao\\s+bì|in\\s+ấn|cơ\\s+khí|thợ\\s+(hàn|tiện|phay)|gia\\s+công|",
-  "chế\\s+biến|đóng\\s+gói|kcn|khu\\s+công\\s+nghiệp|khu\\s+chế\\s+xuất")
-RX_CONS <- paste0("xây\\s+dựng|công\\s+trình|thợ\\s+(hồ|xây|điện\\s+nước|sơn\\s+nước)|phụ\\s+hồ|",
-  "giàn\\s+giáo|cốt\\s+thép|đổ\\s+bê\\s+tông|công\\s+nhân\\s+xây")
-RX_SERV <- paste0("bán\\s+hàng|phục\\s+vụ|nhà\\s+hàng|quán|cafe|cà\\s+phê|khách\\s+sạn|lễ\\s+tân|",
-  "thu\\s+ngân|kế\\s+toán|văn\\s+phòng|marketing|kinh\\s+doanh|tư\\s+vấn|chăm\\s+sóc\\s+khách|",
-  "giao\\s+hàng|ship|lái\\s+xe|tài\\s+xế|bảo\\s+vệ|tạp\\s+vụ|giúp\\s+việc|spa|salon|làm\\s+tóc|",
-  "gia\\s+sư|giáo\\s+viên|lập\\s+trình|thiết\\s+kế|ngân\\s+hàng|bất\\s+động\\s+sản|du\\s+lịch|",
-  "pha\\s+chế|bartender|trang\\s+điểm|(?<![\\p{L}])pg(?![\\p{L}])|telesale|kho\\b|thư\\s+ký|",
-  "nhân\\s+viên\\s+(văn\\s+phòng|kinh\\s+doanh|thị\\s+trường)|siêu\\s+thị")
-.sa <- stri_count_regex(.tl, RX_AGRI); .sm <- stri_count_regex(.tl, RX_MANU)
-.sc <- stri_count_regex(.tl, RX_CONS); .ss <- stri_count_regex(.tl, RX_SERV)
+RX_AGRI <- paste0("nông\\s+nghiệp|trồng\\s+trọt|chăn\\s+nuôi|nuôi\\s+trồng|",
+  "nuôi\\s+(tôm|cá|heo|lợn|gà|vịt|bò|ong)|nông\\s+trại|trang\\s+trại|làm\\s+vườn|",
+  "lâm\\s+nghiệp|nông\\s+dân|cây\\s+(giống|trồng)|phân\\s+bón|thú\\s+y|",
+  "thuốc\\s+bảo\\s+vệ\\s+thực\\s+vật|nuôi\\s+trồng\\s+thủy\\s+sản|giống\\s+(cây|thủy\\s+sản)|",
+  "trồng(?!\\s+răng)|nuôi(?!\\s*(ăn|ở|cơm|con|cái|dạy|dưỡng))|(?<![\\p{L}])bón(?![\\p{L}])|phần\\s+chăn")
+RX_MANU <- paste0("công\\s+nhân(?!\\s+xây)|nhà\\s+máy|nhà\\s+xưởng|(?<![\\p{L}])xưởng|",
+  "khu\\s+công\\s+nghiệp|(?<![\\p{L}])kcn(?![\\p{L}])|khu\\s+chế\\s+xuất|dây\\s+chuyền|",
+  "sản\\s+xuất|gia\\s+công|lắp\\s+ráp|chế\\s+biến|linh\\s+kiện|điện\\s+tử(?!\\s+viễn)|",
+  "may\\s+(mặc|công\\s+nghiệp)|thợ\\s+may|dệt(?![\\p{L}])|nhuộm|giày\\s+(da|dép)|da\\s+giày|",
+  "cơ\\s+khí|thợ\\s+(hàn|tiện|phay|cnc)|hàn\\s+xì|bao\\s+bì|in\\s+ấn|nhựa(?![\\p{L}])|",
+  "thép(?![\\p{L}])|đúc(?![\\p{L}])|luyện\\s+kim|hóa\\s+chất|đóng\\s+gói|",
+  "xe\\s+đưa|khu\\s+công|sam\\s*sung")
+RX_CONS <- paste0("xây\\s+dựng|công\\s+trình|thi\\s+công|nhà\\s+thầu|thầu\\s+(xây|thi\\s+công)|",
+  "giàn\\s+giáo|cốt\\s+thép|đổ\\s+bê\\s+tông|phụ\\s+hồ|thợ\\s+(hồ|xây|sơn\\s+nước|điện\\s+nước)|",
+  "san\\s+lấp|cầu\\s+đường|công\\s+nhân\\s+xây")
+RX_SERV <- paste0("bán\\s+hàng|phục\\s+vụ|nhà\\s+hàng|quán|cafe|cà\\s+phê|khách\\s+sạn|resort|",
+  "lễ\\s+tân|thu\\s+ngân|phụ\\s+bếp|đầu\\s+bếp|pha\\s+chế|bartender|buồng\\s+phòng|",
+  "kế\\s+toán|văn\\s+phòng|marketing|kinh\\s+doanh|tư\\s+vấn|chăm\\s+sóc\\s+khách|telesale|",
+  "giao\\s+hàng|ship|lái\\s+xe|tài\\s+xế|bảo\\s+vệ|tạp\\s+vụ|giúp\\s+việc|thủ\\s+kho|thư\\s+ký|",
+  "spa|salon|thẩm\\s+mỹ|(?<![\\p{L}])nail|cắt\\s+tóc|gội\\s+đầu|massage|trang\\s+điểm|",
+  "gia\\s+sư|giáo\\s+viên|mầm\\s+non|trung\\s+tâm\\s+(anh\\s+ngữ|ngoại\\s+ngữ|đào\\s+tạo|tiếng)|",
+  "lập\\s+trình|thiết\\s+kế|ngân\\s+hàng|bảo\\s+hiểm|bất\\s+động\\s+sản|môi\\s+giới|",
+  "du\\s+lịch|lữ\\s+hành|siêu\\s+thị|cửa\\s+hàng|showroom|(?<![\\p{L}])shop|",
+  "vận\\s+tải|logistics|chuyển\\s+phát|viễn\\s+thông|phòng\\s+khám|nha\\s+khoa|dược|nhà\\s+thuốc|",
+  "(?<![\\p{L}])pg(?![\\p{L}])|(?<![\\p{L}])bar(?![\\p{L}])|karaoke|(?<![\\p{L}])gym|fitness|dịch\\s+vụ|",
+  "chạy\\s+bàn|típ|coffee")
+## RETAIL markers force service even against a product-manu word: a shoe SHOP is
+## service though "giày dép" is a manu marker; a shoe FACTORY keeps "nhà máy"->manu.
+RX_RETAIL <- paste0("cửa\\s+hàng|cửa\\s+hiệu|(?<![\\p{L}])shop(?![\\p{L}])|showroom|",
+                    "siêu\\s+thị|đại\\s+lý|chuỗi\\s+(cửa\\s+hàng|shop|bán\\s+lẻ)|bán\\s+lẻ")
+## assign in REVERSE priority (last write wins): service < manu < retail(service) < cons(NA) < agri
 mcl_main[, sector := NA_character_]
-mcl_main[.sm > .ss & .sm > .sa & .sm > .sc, sector := "manu"]
-mcl_main[.ss > .sm & .ss > .sa & .ss > .sc, sector := "service"]
-mcl_main[.sa >= 1 & .sa >= .sm & .sa >= .ss & .sa >= .sc, sector := "agri"]
-rm(.sa, .sm, .sc, .ss)
+mcl_main[stri_detect_regex(.tl, RX_SERV),   sector := "service"]
+mcl_main[stri_detect_regex(.tl, RX_MANU),   sector := "manu"]
+mcl_main[stri_detect_regex(.tl, RX_RETAIL), sector := "service"]     # retail shop -> service (overrides product-manu)
+mcl_main[stri_detect_regex(.tl, RX_CONS),   sector := NA_character_] # construction -> NA (not manu)
+mcl_main[stri_detect_regex(.tl, RX_AGRI),   sector := "agri"]
 
 ## ---- fdi + is_abroad ------------------------------------------------------
 ## fdi: the hiring firm is FOREIGN-INVESTED (in Vietnam). Explicit capital
@@ -454,29 +710,56 @@ mcl_main[is.na(firm_name) | firm_name == "" |
            "(?i)^(công\\s+ty|cty|tập\\s+đoàn|doanh\\s+nghiệp)\\s+(nhật(\\s+bản)?|hàn\\s+quốc|trung\\s+quốc|đài\\s+loan|nước\\s+ngoài|đa\\s+quốc\\s+gia|fdi|nhỏ|vừa|sẽ|mới|này|đó|trên|của|yêu)\\s*$"),
          firm_name := NA_character_]
 
-## final column order: id + post metadata first, then the district block
 setcolorder(mcl_main, intersect(
   c("id", "year", "creation_time", "content_type",
     "surface.name", "surface.username", "post_owner.name", "page",
     "tinh", "huyen", "district", "province",
-    "dist_evidence", "dist_conf", "loc_cue", "pos", "n_districts", "post_row"),
+    "dist_evidence", "dist_conf", "loc_cue", "pos", "n_districts",
+    "dist_pred", "huyen_pred", "pred_source", "post_row", "text"),
   names(mcl_main)))
 
 save(mcl_main, file = "Clean data/mcl_main.Rda")
 
 # Sum stats
 
-td_agg <- mcl_main %>%
+mcl_sum <- mcl_main %>% 
+  filter(is_job_ad == 1 & dist_conf == "high") %>%
+  rename(socinsur = formal) %>% 
+  mutate(formal = ifelse(socinsur == 1 | contract == 1, 1, 0)) %>% 
+  group_by(year, tinh, huyen) %>% 
+  summarise(
+    job_ads = sum(is_job_ad == 1, na.rm = T),
+    agri = sum(sector == "agri", na.rm = T),
+    manu = sum(sector == "manu", na.rm = T),
+    service = sum(sector == "service", na.rm = T),
+    taxid = sum(taxid == 1, na.rm = T),
+    taxid = sum(socinsur == 1, na.rm = T),
+    formal = sum(formal == 1, na.rm = T),
+    fdi = sum(fdi == 1, na.rm = T),
+    hiring_female = sum(hiring_female == 1, na.rm = T),
+    hiring_female_only = sum(hiring_female_only == 1, na.rm = T)
+  ) %>% 
+  filter(!is.na(huyen)) %>% 
+  full_join(dist_3G) %>% 
+  mutate(
+    job_ads = ifelse(is.na(job_ads), 0, job_ads),
+    agri = ifelse(is.na(agri), 0, agri),
+    manu = ifelse(is.na(manu), 0, manu),
+    fdi = ifelse(is.na(fdi), 0, fdi),
+    formal = ifelse(is.na(formal), 0, formal)
+  )
+
+mcl_jobad_agg <- mcl_main %>%
   filter(is_job_ad == 1 & post_row == 1) %>%
   group_by(year) %>%
   summarise(n = n())
 
-ytop <- ceiling(max(td_agg$n) / 20000) * 20000  
+ytop <- ceiling(max(mcl_jobad_agg$n) / 20000) * 20000  
 
-ggplot(td_agg, aes(x = year, y = n)) +
+ggplot(mcl_jobad_agg, aes(x = year, y = n)) +
   geom_line() +
   geom_point() +
-  scale_x_continuous(breaks = td_agg$year) +
+  scale_x_continuous(breaks = mcl_jobad_agg$year) +
   scale_y_continuous(limits = c(0, ytop), breaks = seq(0, ytop, 20000),
                      labels = scales::label_comma()) +
   labs(x = "Year", y = "Number of job ads posted on Facebook pages",

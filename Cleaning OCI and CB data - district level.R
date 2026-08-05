@@ -1,4 +1,29 @@
-ruralid <- wards_rural %>% 
+library(tidyverse)      # dplyr, stringr, purrr, forcats, ggplot2, tibble
+library(sf)
+library(lubridate)      # year() / month() / day()
+library(haven)          # write_dta()
+library(terra)          # rast(), crs(), project(), aggregate()
+library(exactextractr)  # exact_extract()
+
+opencell     <- read.csv("Raw Data/Vietnam_Cell_tower.csv")                      # OpenCellID towers
+vnmap2       <- read_sf("Raw Data/VNShapefile/gadm41_VNM_shp/gadm41_VNM_2.shp")  # GADM 4.1 district polygons
+wards_rural  <- read.csv("Raw Data/rural_urban_wards.csv")                        # ward-level rural/urban
+lfs11_distid <- read.csv("Raw Data/LFS/lfs_dist_11.csv")                          # 2011 LFS district frame
+
+## Collins Bartholomew 3G coverage rasters (2012-2017)
+cb12 <- rast("Raw Data/Collins Bartholomew/wx910xj1289/MCE_Global3G_2012.tif")
+cb13 <- rast("Raw Data/Collins Bartholomew/dg771jv6579/MCE_Global3G_2013.tif")
+cb14 <- rast("Raw Data/Collins Bartholomew/pd038fr9690/MCE_Global3G_2014.tif")
+cb15 <- rast("Raw Data/Collins Bartholomew/db189xs5502/MCE_Global3G_2015.tif")
+cb16 <- rast("Raw Data/Collins Bartholomew/ky819sb7704/MCE_Global3G_2016.tif")
+cb17 <- rast("Raw Data/Collins Bartholomew/by170qy6709/MCE_Global3G_2017.tif")
+
+pop_files <- list.files("Raw Data/Population Data", pattern = "\\.tif$", full.names = TRUE)
+pop_years <- as.integer(sub(".*vnm_ppp_(\\d{4})\\.tif$", "\\1", pop_files))
+pop_list  <- lapply(pop_files, terra::rast)
+names(pop_list) <- paste0("pop", substr(pop_years, 3, 4))
+
+ruralid <- wards_rural %>%
   mutate(
     type = word(wardname, 1),
     wardname = wardname %>%
@@ -25,23 +50,48 @@ ruralid <- wards_rural %>%
     NAME_2 = case_when(
     NAME_2 == "Quy Nhơn" ~ "Qui Nhơn",
     TRUE ~ NAME_2)
-  ) %>% 
+  ) %>%
   distinct()
 
-vnmap2 <- vnmap2 %>% 
+ruralid <- bind_rows(ruralid, data.frame(
+  NAME_1 = c("Bình Phước", "Đồng Tháp",            "Đồng Tháp",         "Quảng Bình",  "Tiền Giang"),
+  NAME_2 = c("Đồng Phù",   "Cao Lãnh (Thành phố)", "Hồng Ngự (Thị xã)", "Quảng Trạch", "Cai Lậy"),
+  urban  = c(0,            1,                       0,                   0,             0),
+  stringsAsFactors = FALSE
+))
+
+vnmap2 <- vnmap2 %>%
   mutate(NAME_2 = NAME_2 %>%
            str_remove("^(Quận|Huyện|Thành phố|Thị xã|TP|Thị Xã|Thành Phố|TP\\.)\\s*") %>%
-           str_remove(" \\(Thành phố\\)$") %>%
-           str_remove(" \\(Thị xã\\)$") %>%
-           str_trim(),
+           str_trim(),  
          NAME_2 = case_when(
-           NAME_2 == 'Bắc Từ Liêm' ~ 'Từ Liêm',
-           NAME_2 == 'Nam Từ Liêm' ~ 'Từ Liêm',
-           NAME_2 == 'Mỏ Cày Bắc' ~ 'Mỏ Cày Nam',
-           NAME_2 == 'Bắc Tân Uyên' ~ 'Tân Uyên',
+           NAME_2 == 'Bắc Từ Liêm'                       ~ 'Từ Liêm',
+           NAME_2 == 'Nam Từ Liêm'                       ~ 'Từ Liêm',
+           NAME_2 == 'Bắc Tân Uyên'                      ~ 'Tân Uyên',
+           NAME_2 == 'Bàu Bàng'                          ~ 'Bến Cát',
+           NAME_2 == 'Ba Đồn'                            ~ 'Quảng Trạch',
+           NAME_2 == 'Hoàng Mai' & NAME_1 == 'Nghệ An'   ~ 'Quỳnh Lưu',
+           NAME_2 == 'Nậm Nhùn'                          ~ 'Mường Tè',
+           NAME_2 == 'Nậm Pồ'                            ~ 'Mường Nhé',
+           NAME_2 == "Ia H' Drai"                        ~ 'Sa Thầy',
+           NAME_2 == 'Kiến Tường'                        ~ 'Mộc Hóa',
+           NAME_2 == 'Vân Hồ'                            ~ 'Mộc Châu',
+           NAME_2 == 'Kỳ Anh (Thị xã)'                   ~ 'Kỳ Anh',
+           NAME_2 == 'Long Mỹ (Thị xã)'                  ~ 'Long Mỹ',
+           NAME_2 == 'Cai Lậy (Thị xã)'                  ~ 'Cai Lậy',
+           NAME_2 == 'Duyên Hải (Thị xã)'                ~ 'Duyên Hải',
+           NAME_2 %in% c('Bù Gia Mập','Phú Riềng')       ~ 'Phước Long',
+           NAME_2 == 'Hớn Quản'                          ~ 'Bình Long',
+           NAME_2 == 'Mỏ Cày Bắc'                        ~ 'Mỏ Cày Nam',
+           NAME_2 == 'Chư Pưh'                           ~ 'Chư Sê',
+           NAME_2 == 'Giang Thành'                       ~ 'Kiên Lương',
+           NAME_2 == 'Thuận Nam'                         ~ 'Ninh Phước',
+           NAME_2 == 'Trần Đề'                           ~ 'Long Phú',
+           NAME_2 == 'Lâm Bình'                          ~ 'Nà Hang',
+           NAME_2 == 'Quảng Yên'                         ~ 'Yên Hưng',
+           NAME_2 == 'Đồng Phú'                          ~ 'Đồng Phù',
            TRUE ~ NAME_2
-         ),
-         NAME_2 = ifelse(NAME_2 == "Hoà An" & NAME_1 == "Cao Bằng", "Cao Bằng", NAME_2)
+         )
          ) %>% 
   group_by(NAME_1, NAME_2) %>%
   summarise(geometry = st_union(geometry), .groups = "drop") %>% 
@@ -70,21 +120,26 @@ vnmap2_dist <- vnmap2 %>%
     )
   )
 
+saveRDS(vnmap2_dist, "Clean data/vnmap2_dist.Rds")
+
 distid <- lfs11_distid %>%
   select(provname, distname, tinh, huyen) %>%
   mutate(
-    huyen = ifelse(tinh == 87 & huyen == 868, 870, huyen),
-    huyen = ifelse(tinh == 87 & huyen == 866, 873, huyen),
-    huyen = ifelse(tinh == 4 & huyen == 51, 40, huyen)
-  ) %>% 
-  distinct() %>% 
+    distname = case_when(
+      tinh == 1 & huyen == 19 ~ "Huyện Từ Liêm",
+      tinh == 4 & huyen == 51 ~ "Huyện Hoà An",
+      distname == "Thành phố Cao Lãnh" ~ "Cao Lãnh (Thành phố)",
+      distname == "Thị xã Hồng Ngự"   ~ "Hồng Ngự (Thị xã)",
+      TRUE ~ distname)
+  ) %>%
+  distinct() %>%
   rename(NAME_1 = provname,
-         NAME_2 = distname) %>% 
+         NAME_2 = distname) %>%
   mutate(
     NAME_2 = NAME_2 %>%
       str_remove("^(Quận|Huyện|Thành phố|Thị xã|TP|Thị Xã|Thành Phố|TP\\.)\\s*") %>%
       str_trim()
-  ) %>% 
+  ) %>%
   full_join(vnmap2_dist) %>% 
   distinct() %>% 
   filter(!is.na(tinh),
@@ -324,7 +379,7 @@ dist_3G <- dist_3G %>%
 save(dist_3G, file = "Clean data/dist_3G.Rda")
 write_dta(dist_3G, "Clean data/dist_3G.dta")
 
-dist_3G_shp <- left_join(vnmap2, dist_3G) 
+dist_3G_shp <- left_join(vnmap2, dist_3G)
 
 dist_3G_shp$year_mean_OCI <- forcats::fct_na_value_to_level(
   as.factor(dist_3G_shp$year_mean_OCI),
@@ -355,11 +410,11 @@ ggplot() +
     labels = c(
       "2010" = "2010 (N = 30)",
       "2011" = "2011 (N = 56)",
-      "2012" = "2012 (N = 146)",
-      "2013" = "2013 (N = 254)",
-      "2014" = "2014 (N = 49)",
-      "2015" = "2015 (N = 107)",
-      "2016" = "2016 (N = 16)",
+      "2012" = "2012 (N = 151)",
+      "2013" = "2013 (N = 256)",
+      "2014" = "2014 (N = 54)",
+      "2015" = "2015 (N = 116)",
+      "2016" = "2016 (N = 18)",
       "2017" = "2017 (N = 2)"
     )
   )+
@@ -398,14 +453,14 @@ ggplot() +
     ),
     labels = c(
       "2010" = "2010 (N = 2)",
-      "2011" = "2011 (N = 11)",
-      "2012" = "2012 (N = 51)",
+      "2011" = "2011 (N = 12)",
+      "2012" = "2012 (N = 55)",
       "2013" = "2013 (N = 122)",
-      "2014" = "2014 (N = 53)",
-      "2015" = "2015 (N = 215)",
-      "2016" = "2016 (N = 60)",
-      "2017" = "2017 (N = 25)",
-      "Control" = " Control (N = 135)")
+      "2014" = "2014 (N = 58)",
+      "2015" = "2015 (N = 216)",
+      "2016" = "2016 (N = 59)",
+      "2017" = "2017 (N = 24)",
+      "Control" = " Control (N = 137)")
   )+
   geom_sf(data = vnmap2, fill = NA, color = "black", size = 0.2) +
   labs(fill = "Year treated") +
