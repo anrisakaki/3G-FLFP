@@ -2,9 +2,8 @@ library(data.table)
 library(tidyverse)
 
 load("Clean data/mcl_main.Rda")
-setDT(mcl_main)
 
-stopifnot("is_job_ad" %in% names(mcl_main))
+mcl_main <- mcl_main %>% filter(is_job_ad == 1)
 
 OUT_DIR <- "Clean data/MCL Check"
 if (!dir.exists(OUT_DIR)) dir.create(OUT_DIR, recursive = TRUE)
@@ -16,7 +15,6 @@ prep <- function(dt) {                            # tidy text + blank check colu
   dt[]
 }
 
-## ---- (1) job ads with a district NAMED IN THE POST -----------------------
 INF_COLS <- c(ID_COLS, "tinh", "huyen", "district", "province",
               "dist_evidence", "dist_conf", "n_districts")
 stopifnot(all(INF_COLS %in% names(mcl_main)))

@@ -2,7 +2,6 @@
 suppressMessages({library(data.table); library(stringi)})
 
 LFS_DIR <- "Raw Data/LFS"
-MCL_DIR <- "Raw Data/MCL"
 SEP     <- " ¦ "   # sentinel marking hard punctuation; blocks cross-clause matches
 
 ## ---- 1. Vietnamese normalisation (keeps diacritics) -----------------
@@ -286,24 +285,4 @@ match_districts <- function(text, page, g, prov, risky = RISKY_DEFAULT,
 derive_risky <- function(m, min_n = 10L, min_support = 0.30){
   s <- m[evidence != "province_only", .(n = .N, sup = mean(evidence != "bare")), by = matched]
   s[n >= min_n & sup < min_support]$matched
-}
-
-mcl_district_panel <- function(mcl_dir = MCL_DIR, filter_rx = "tuyển dụng"){
-  g <- build_gazetteer(); prov <- build_provinces(g); wards <- build_wards(g)
-  files <- list.files(mcl_dir, pattern = "\\.csv$", full.names = TRUE)
-  d <- rbindlist(lapply(files, function(f)
-        fread(f, encoding = "UTF-8",
-              select = c("id","creation_time","text","surface.name","post_owner.name"),
-              colClasses = c(creation_time = "character"))), fill = TRUE)
-  d <- d[stri_detect_regex(text, filter_rx, case_insensitive = TRUE)]
-  d[, page := paste(surface.name, post_owner.name)]
-
-  m1    <- match_districts(d$text, d$page, g, prov, risky = character(), wards = wards)
-  risky <- union(RISKY_DEFAULT, derive_risky(m1))
-  message("risky names dropped from the bare tier: ", paste(risky, collapse = ", "))
-  m <- match_districts(d$text, d$page, g, prov, risky = risky, wards = wards)
-
-  m[, `:=`(id = d$id[post], creation_time = d$creation_time[post])]
-  m[, year := lubridate::year(lubridate::ymd_hms(creation_time))]
-  m[]
 }

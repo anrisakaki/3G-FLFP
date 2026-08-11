@@ -27,40 +27,35 @@ consist_dist[, `:=`(dname = .cd_strip(distname, "Quận|Huyện|Thị xã|Thành
 .cd_clash <- consist_dist[, .(nc = uniqueN(distcode)), by = .(year, pname, dname)][
                nc > 1, unique(paste(pname, dname))]
 consist_dist[paste(pname, dname) %in% .cd_clash, dname := paste0(dname, " (", level, ")")]
-consist_dist[, yy := sprintf("%02d", year - 2000L)]
-consist_wide <- dcast(consist_dist, pname + dname ~ yy,
-                      value.var = c("provcode", "distcode"), sep = "")
-.cd_notes <- consist_dist[, .(
-  decree = paste(unique(decree[!is.na(decree) & decree != ""]), collapse = " | "),
-  note   = paste(unique(note[  !is.na(note)   & note   != ""]), collapse = " | ")),
-  by = .(pname, dname)]
-.cd_notes[decree == "", decree := NA_character_]; .cd_notes[note == "", note := NA_character_]
-consist_wide <- merge(consist_wide, .cd_notes, by = c("pname", "dname"), all.x = TRUE)
-setcolorder(consist_wide, c("pname", "dname",
-  paste0("provcode", 10:17), paste0("distcode", 10:17), "decree", "note"))
 
-rm(.cd_strip, .cd_clash, .cd_notes)
+rm(.cd_strip, .cd_clash)
 
 mcl_files <- list.files("Raw Data/MCL", pattern = "\\.csv$", full.names = T)
 datetime_cols <- c("creation_time", "modified_time", "statistics.views_date_last_refreshed")
 
-vnmap2 <- st_read("Raw Data/VNShapefile/gadm41_VNM_shp/gadm41_VNM_2.shp")   # district polygons (GADM level 2)
 vnmap3 <- st_read("Raw Data/VNShapefile/gadm41_VNM_shp/gadm41_VNM_3.shp")
-road_shps <- list.files("Raw Data/VNShapefile", pattern = "^gis_osm_roads_free_1\\.shp$",
-                        recursive = T, full.names = T)
-street_dir <- rbindlist(lapply(road_shps, function(f)
-  st_read(f, quiet = TRUE) %>%
-    filter(!is.na(name)) %>%
-    dplyr::select(name, fclass, ref) %>%
-    st_join(vnmap3) %>%
-    st_drop_geometry() %>%
-    dplyr::select(name, fclass, ref, NAME_1, NAME_2, NAME_3)
-), fill = TRUE)
-street_dir <- unique(street_dir[!is.na(name),
-  .(street = name, fclass, ref, province = NAME_1, district = NAME_2, ward = NAME_3)])
-setorder(street_dir, province, district, ward, street)
-fwrite(street_dir,  "Clean data/street_directory.csv", bom = TRUE)
-saveRDS(street_dir, "Clean data/street_directory.Rds")
+## OSM street directory (road x GADM-ward spatial join) — the slowest step. It is
+## cached to Clean data/street_directory.Rds; DELETE that file to rebuild it from
+## the shapefiles (e.g. after refreshing the OSM extracts).
+if (file.exists("Clean data/street_directory.Rds")) {
+  street_dir <- as.data.table(readRDS("Clean data/street_directory.Rds"))
+} else {
+  road_shps <- list.files("Raw Data/VNShapefile", pattern = "^gis_osm_roads_free_1\\.shp$",
+                          recursive = T, full.names = T)
+  street_dir <- rbindlist(lapply(road_shps, function(f)
+    st_read(f, quiet = TRUE) %>%
+      filter(!is.na(name)) %>%
+      dplyr::select(name, fclass, ref) %>%
+      st_join(vnmap3) %>%
+      st_drop_geometry() %>%
+      dplyr::select(name, fclass, ref, NAME_1, NAME_2, NAME_3)
+  ), fill = TRUE)
+  street_dir <- unique(street_dir[!is.na(name),
+    .(street = name, fclass, ref, province = NAME_1, district = NAME_2, ward = NAME_3)])
+  setorder(street_dir, province, district, ward, street)
+  fwrite(street_dir,  "Clean data/street_directory.csv", bom = TRUE)
+  saveRDS(street_dir, "Clean data/street_directory.Rds")
+}
 
 roads <- unique(street_dir[, .(name = street, NAME_1 = province, NAME_2 = district, NAME_3 = ward)])
 
@@ -78,8 +73,8 @@ mcl <- mcl %>%
             surface.id, statistics.views_date_last_refreshed, surface.type, shared_post_id)) 
 
 mcl_main <- mcl %>%
-  filter(str_detect(text, regex("tuyển dụng", ignore_case = TRUE)),
-         !is.na(text), text != "") %>%
+#  filter(str_detect(text, regex("tuyển dụng|tuyendung|cần tìm", ignore_case = T)),
+#         !is.na(text), text != "") %>%
   mutate(page = paste(surface.name, post_owner.name)) %>%
   arrange(creation_time) %>%                     
   distinct(text, .keep_all = T)               
@@ -134,9 +129,6 @@ JOBAD_NEG2 <- c(
   "tuyển\\s+(chồng|vợ|người\\s+yêu|bạn\\s+(trai|gái)(?![\\p{L}]))",
   "(muốn|cần|nhu\\s+cầu)\\s+(gửi|đăng)\\s+tin|đăng\\s+tin\\s+tuyển\\s+dụng\\s+vui\\s+lòng",
   "lừa\\s+đảo|cảnh\\s+báo|giả\\s+mạo|bóc\\s+phốt|đa\\s+cấp")
-# job hashtags: strong, poster-independent markers, usually in footer tags (so
-# not gated by the 250-char onset). Diacritics optional; compound tags allowed
-# (#tuyendungxyz). "#jobs" kept to an exact tag; "job" alone is too ambiguous.
 JOBAD_HASH <- paste0("#\\s*jobs?(?![\\p{L}])|",
                      "#\\s*(tin[\\s_]*)?tuyển[\\s_]*dụng|#\\s*(tin[\\s_]*)?tuyen[\\s_]*dung|",
                      "#\\s*việc[\\s_]*làm|#\\s*viec[\\s_]*lam")
@@ -158,7 +150,31 @@ mcl_main$is_job_ad <- as.integer(
   stri_detect_regex(.pgnm, "canthoinfo") | stri_detect_fixed(.ja, "canthoinfo"))
 rm(.ja, .pgnm, .mn, .pn, .nn, .n2, .stp, .hh)
 
+mcl_main <- mcl_main %>% filter(is_job_ad == 1)
+
 source("vn_district_match.R")
+
+library(parallel)
+match_districts_par <- function(text, page, g, prov, risky, wards,
+                                ncores = max(1L, detectCores() - 1L)) {
+  n <- length(text)
+  if (ncores <= 1L || n < 5000L)
+    return(match_districts(text, page, g, prov, risky = risky, wards = wards))
+  grp <- splitIndices(n, ncores)                         # contiguous index blocks
+  cl  <- makeCluster(ncores)
+  on.exit(stopCluster(cl), add = TRUE)
+  clusterCall(cl, function(d) { setwd(d); library(data.table); library(stringi)
+                                source("vn_district_match.R"); TRUE }, getwd())
+  parts <- clusterMap(cl,
+    function(ii, t, p, g, prov, risky, wards) {
+      m <- match_districts(t, p, g, prov, risky = risky, wards = wards)
+      if (nrow(m)) m[, post := ii[post]]                 
+      m
+    },
+    grp, lapply(grp, function(ii) text[ii]), lapply(grp, function(ii) page[ii]),
+    MoreArgs = list(g = g, prov = prov, risky = risky, wards = wards))
+  rbindlist(parts)[order(post)]
+}
 
 .cn <- function(x) vn_canon(x, FALSE)
 .ds <- function(x) stri_replace_first_regex(trimws(x), "^(?i)(Quận|Huyện|Thị xã|Thành phố)\\s+", "")
@@ -221,11 +237,17 @@ rm(.cn, .ds, .ps, .l11, .provL, .provX, .l11d, .look, .ch, .par, .G, .res, .prim
 
 mcl_main <- mcl_main %>% mutate(page = paste(surface.name, post_owner.name))
 
-pass1 <- match_districts(mcl_main$text, mcl_main$page, gaz, prov, risky = character(), wards = wards)
+pass1 <- match_districts_par(mcl_main$text, mcl_main$page, gaz, prov, risky = character(), wards = wards)
 risky <- union(RISKY_DEFAULT, derive_risky(pass1))
 message("risky names dropped from the bare tier: ", paste(risky, collapse = ", "))
 
-mcl_dist <- match_districts(mcl_main$text, mcl_main$page, gaz, prov, risky = risky, wards = wards)
+# risky names identified: lý nhân, thống nhất, đức thọ, yên bình,
+# tân sơn, minh long, an phú, kế sách, vĩnh hưng, tân trụ, tân hưng
+# these match as districts only when supported by a district prefix
+# (Quận/Huyện/TP/TX/Q/H) OR a province cue (province in the post text or page);
+# a context-free mention is ignored
+
+mcl_dist <- match_districts_par(mcl_main$text, mcl_main$page, gaz, prov, risky = risky, wards = wards)
 mcl_dist[, `:=`(id   = mcl_main$id[post],
                 year = mcl_main$year[post])]
 
@@ -253,7 +275,7 @@ setnames(long_d, c("distname", "evidence", "conf"),
                  c("district", "dist_evidence", "dist_conf"))
 
 no_d <- data.table(post = setdiff(seq_len(nrow(mcl_main)), unique(long_d$post)))
-no_d[pbest, on = "post", tinh := i.prov_tinh]      # province may still be known
+no_d[pbest, on = "post", tinh := i.prov_tinh]      
 no_d[, `:=`(huyen = NA_integer_, district = NA_character_,
             dist_evidence = NA_character_, dist_conf = NA_character_, pos = NA_integer_)]
 
@@ -276,11 +298,6 @@ for (cl in STAT_COLS) {
 setcolorder(mcl_main, c("id", "post_row", "n_districts", "year",
                         "tinh", "huyen", "district", "province",
                         "dist_evidence", "dist_conf"))
-
-stopifnot(uniqueN(mcl_main$id) == n_posts,
-          !anyDuplicated(mcl_main[, .(id, huyen)]),
-          nrow(mcl_main[post_row == 1L]) == n_posts,
-          nrow(mcl_main[!is.na(huyen) & is.na(tinh)]) == 0)
 
 WORK  <- "(nơi|địa\\s+điểm|địa\\s+chỉ|khu\\s+vực)\\s+làm\\s+việc|làm\\s+việc\\s+tại|làm\\s+tại"
 APPLY <- "nộp\\s+hồ\\s+sơ|gửi\\s+hồ\\s+sơ|nhận\\s+hồ\\s+sơ|phỏng\\s+vấn\\s+(trực\\s+tiếp\\s+)?tại|liên\\s+hệ"
@@ -340,11 +357,17 @@ setnames(.sez, 1:6, c("code","kname","kprov","kdist","kaddr","ktype"))
                      function(m) if (nrow(m)) unique(.af(trimws(m[, 2]))) else character())]
 .szl <- .sez[, .(df = if (length(adl[[1]])) adl[[1]] else dfcol), by = .(rid, pf, kc)]
 kcn_gaz <- unique(merge(.szl[df != ""], .gzf, by = c("pf","df"))[kc != "" & stri_length(kc) >= 4L, .(kcn = kc, tinh, huyen)])
+## VSIP is written bare in ads ("KCN VSIP") but stored per-site in the xlsx
+## ("VSIP Quảng Ngãi"); register a bare "vsip" for each province with exactly ONE
+## VSIP-family district, so a bare mention resolves province-gated (ambiguous
+## multi-VSIP provinces like Bình Dương are left as-is).
+.vsip <- unique(kcn_gaz[stri_detect_fixed(kcn, "vsip"), .(tinh, huyen)])
+.vsip <- .vsip[, if (uniqueN(huyen) == 1L) .(kcn = "vsip", huyen = huyen[1]), by = tinh]
+kcn_gaz <- unique(rbind(kcn_gaz, .vsip[, .(kcn, tinh, huyen)]))
 .lab <- unique(gaz[is.na(split_of), .(tinh, huyen, district = distname, province = provname)])[, .SD[1], by = .(tinh, huyen)]
 fwrite(merge(kcn_gaz, .lab, by = c("tinh","huyen"))[order(province, district, kcn)],
        "Clean data/kcn_gazetteer.csv", bom = TRUE)
 
-## find KNOWN park names in the post text, after a KCN/KCX/VSIP marker (accent-folded)
 .rxk <- paste0("(?<![\\p{L}])(?:kcn|khu\\s+cong\\s+nghiep|kcx|khu\\s+che\\s+xuat|vsip)\\s+(",
                paste(.esc(unique(kcn_gaz$kcn)[order(-stri_length(unique(kcn_gaz$kcn)))]), collapse = "|"),
                ")(?![\\p{L}])")
@@ -391,6 +414,17 @@ ST_STOPTOK <- c("triệu","nghìn","vnđ","vnd","usd","tr","k","đ","sáng","tr�
       bad <- vapply(stri_split_fixed(x, " "), function(tk) any(tk %in% ST_STOPTOK), logical(1))
       x[!bad] })]
 .d2[, n_street := lengths(streets)]
+## explicitly-marked streets ("đường/phố/đại lộ X", no house number needed) — catches
+## "Số 566, đường Núi Thành" (a separator before đường) and streets whose name is also
+## a district name (resolved below against .rgz_m, which keeps them). "thành phố" excluded.
+RX_STM <- "(?<![\\p{L}])(?<!thành )(?:đường|phố|đại\\s+lộ)\\s+([\\p{L}]+(?:\\s+[\\p{L}]+){0,3})(?=\\s*(?:¦|$|phường|quận|huyện|tx|tp|khu)|\\s*\\d)"
+.smx <- stri_match_all_regex(.tc2, RX_STM, omit_no_match=TRUE)
+.d2[, mstreets := lapply(.smx, function(m){ if (!nrow(m)) return(character())
+      x <- unique(stri_trim_both(m[,2]))
+      x <- x[!stri_extract_first_regex(x, "^[\\p{L}]+") %in% ST_STOP1 & stri_count_fixed(x," ") >= 1]
+      bad <- vapply(stri_split_fixed(x, " "), function(tk) any(tk %in% ST_STOPTOK), logical(1))
+      x[!bad] })]
+.d2[, n_mstreet := lengths(mstreets)]
 
 .dn <- unique(mcl_main[!is.na(huyen), .(tinh,
         dname = vn_canon(stri_replace_first_regex(district,
@@ -418,11 +452,15 @@ ST_STOPTOK <- c("triệu","nghìn","vnđ","vnd","usd","tr","k","đ","sáng","tr�
 .rg <- .rg[stri_detect_regex(rc, "^[\\p{L}]+( [\\p{L}]+){1,3}$")]
 .rgz <- unique(.rg[, .(rc, tinh, huyen)])
 .rgz <- .rgz[, if (.N == 1L) .SD, by=.(rc, tinh)]                 # unique within province
-.rgz <- .rgz[!rc %in% c(.dn$dname, .pn$dname)]                    # no district/province names
+.rgz_m <- .rgz[!rc %in% .pn$dname]               # MARKED streets keep district-named ones (đường Núi Thành)
+.rgz   <- .rgz[!rc %in% c(.dn$dname, .pn$dname)] # UNMARKED: no district/province names
 ## street->district comes from OSM alone (unique within province); no teacher-post
 ## veto here — a firm's named job-district need not be the street's district.
 .tg3 <- .tg2                                # all street posts eligible
-.fl3 <- merge(.tg3, .rgz, by.x=c("street","tinh"), by.y=c("rc","tinh"))
+.tgm <- .d2[n_mstreet>0 & n_districts==0 & !is.na(tinh), .(street = unlist(mstreets)), by=.(id, tinh)]
+.fl3 <- unique(rbind(
+          merge(.tg3, .rgz,   by.x=c("street","tinh"), by.y=c("rc","tinh"))[, .(id, tinh, huyen)],
+          merge(.tgm, .rgz_m, by.x=c("street","tinh"), by.y=c("rc","tinh"))[, .(id, tinh, huyen)]))
 .fl3 <- .fl3[, .(huyen = if (uniqueN(huyen)==1L) huyen[1] else NA_integer_), by=.(id, tinh)][!is.na(huyen)]
 .fl3 <- .fl3[!id %in% mcl_main[!is.na(pred_source), id]]   # kcn preds keep priority
 if (nrow(.fl3)){
@@ -489,14 +527,11 @@ if (nrow(.f6)){ .f6 <- merge(.f6, .lab2, by=c("tinh","huyen"))
 message("road+ward pairs: ", nrow(.pwp), " prov-keyed / ", nrow(.pwn), " national",
         " | ward3 keys: ", nrow(.wg),
         " | fills: osrw ", nrow(.f4), "+", nrow(.f5), " | ward3 ", nrow(.f6))
-rm(.st,.d1,.af,.sez,.gzf,.dmk,.szl,kcn_gaz,.rxk,.km,.kl,.kf,.lab,.i, wl, al, hl, tc, pp,
-   .d2,.tc2,.stx,.dn,.pn,.tg2,.lab2,.name_of,
-   .cn2,.rg,.pl,.gn,.rgz,.tg3,.fl3,
+rm(.st,.d1,.af,.sez,.gzf,.dmk,.szl,.vsip,kcn_gaz,.rxk,.km,.kl,.kf,.lab,.i, wl, al, hl, tc, pp,
+   .d2,.tc2,.stx,.smx,.dn,.pn,.tg2,.tgm,.lab2,.name_of,
+   .cn2,.rg,.pl,.gn,.rgz,.rgz_m,.tg3,.fl3,
    .rw,.pw0,.pwp,.pwn,.v3,.wg,.wnm,.rxwn,.rxwu,.wn,.wu,
    .el,.f4,.f5,.f6)
-stopifnot(uniqueN(mcl_main$id) == n_posts,
-          nrow(mcl_main[post_row == 1L]) == n_posts,
-          !anyDuplicated(mcl_main[, .(id, huyen)]))
 
 ## female-labour cue. EVERY bare-"nữ" ending carries (?![\p{L}]) so the very
 ## common word "nữa" (moreover/also) never matches. Covers nữ after OR before a
